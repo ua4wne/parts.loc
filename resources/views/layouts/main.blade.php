@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/plugins.css">
     <link rel="stylesheet" href="/css/themes/theme-1.css" id="skin_color" />
+    <link href="/css/jstree/themes/default/style.min.css" rel="stylesheet" media="screen">
     <!-- end: CLIP-TWO CSS -->
     <!-- start: CSS REQUIRED FOR THIS PAGE ONLY -->
     <!-- end: CSS REQUIRED FOR THIS PAGE ONLY -->
@@ -85,9 +86,8 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li><a href="#"><span class="title"> Группы номенклатуры </span></a></li>
-                            <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
                             <li><a href="#"><span class="title"> Номенклатура </span></a></li>
+                            <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
                             <li><a href="#"><span class="title"> Контрагенты </span></a></li>
                             <li><a href="#"><span class="title"> Валюты </span></a></li>
                         </ul>
