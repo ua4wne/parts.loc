@@ -29,4 +29,22 @@ Route::middleware(['auth'])->group(function(){
         //profiles/reset-pass
         Route::post('/newpass',['uses'=>'ProfileController@newPass','as'=>'newPass']);
     });
+
+    //goods/ группа обработки роутов goods
+    Route::group(['prefix'=>'goods'], function(){
+        Route::get('/',['uses'=>'GoodController@index','as'=>'goods']);
+        //goods/add
+        Route::match(['get','post'],'/add',['uses'=>'GoodController@create','as'=>'goodAdd']);
+        //goods/edit
+        Route::match(['get','post'],'/edit/{id}',['uses'=>'GoodController@edit','as'=>'goodEdit']);
+        //goods/delete
+        Route::post('/delete',['uses'=>'GoodController@delete','as'=>'delGood']);
+
+    });
+
+    //categories/ группа обработки роутов categories
+    Route::group(['prefix'=>'categories'], function(){
+        Route::post('/',['uses'=>'CategoryController@index','as'=>'viewCategories']);
+
+    });
 });

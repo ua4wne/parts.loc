@@ -86,7 +86,7 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li><a href="#"><span class="title"> Номенклатура </span></a></li>
+                            <li><a href="{{ route('goods') }}"><span class="title"> Номенклатура </span></a></li>
                             <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
                             <li><a href="#"><span class="title"> Контрагенты </span></a></li>
                             <li><a href="#"><span class="title"> Валюты </span></a></li>
