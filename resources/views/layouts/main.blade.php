@@ -88,81 +88,25 @@
                         <ul class="sub-menu">
                             <li><a href="{{ route('goods') }}"><span class="title"> Номенклатура </span></a></li>
                             <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
+                            <li><a href="{{ route('orgs') }}"><span class="title"> Организации </span></a></li>
                             <li><a href="#"><span class="title"> Контрагенты </span></a></li>
                             <li><a href="#"><span class="title"> Валюты </span></a></li>
+                            <li><a href="{{ route('orgforms') }}"><span class="title"> Организационные формы </span></a></li>
                         </ul>
                     </li>
                     <li>
                         <a href="javascript:void(0)">
                             <div class="item-content">
                                 <div class="item-media">
-                                    <i class="ti-layout-grid2"></i>
+                                    <i class="ti-dropbox"></i>
                                 </div>
                                 <div class="item-inner">
-                                    <span class="title"> Tables </span><i class="icon-arrow"></i>
+                                    <span class="title"> Складской учет </span><i class="icon-arrow"></i>
                                 </div>
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li>
-                                <a href="table_basic.html">
-                                    <span class="title">Basic Tables</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="table_responsive.html">
-                                    <span class="title">Responsive Tables</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="table_data.html">
-                                    <span class="title">Advanced Data Tables</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0)">
-                            <div class="item-content">
-                                <div class="item-media">
-                                    <i class="ti-pencil-alt"></i>
-                                </div>
-                                <div class="item-inner">
-                                    <span class="title"> Forms </span><i class="icon-arrow"></i>
-                                </div>
-                            </div>
-                        </a>
-                        <ul class="sub-menu">
-                            <li>
-                                <a href="form_elements.html">
-                                    <span class="title">Form Elements</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="form_text_editor.html">
-                                    <span class="title">Text Editor</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="form_wizard.html">
-                                    <span class="title">Form Wizard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="form_validation.html">
-                                    <span class="title">Form Validation</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="form_image_cropping.html">
-                                    <span class="title">Image Cropping</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="form_multiple_upload.html">
-                                    <span class="title">Multiple File Upload</span>
-                                </a>
-                            </li>
+                            <li><a href="#"><span class="title">Склады</span></a></li>
                         </ul>
                     </li>
                     <li>
@@ -172,109 +116,13 @@
                                     <i class="ti-user"></i>
                                 </div>
                                 <div class="item-inner">
-                                    <span class="title"> Login </span><i class="icon-arrow"></i>
+                                    <span class="title"> Кадровый учет </span><i class="icon-arrow"></i>
                                 </div>
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li>
-                                <a href="login_signin.html">
-                                    <span class="title"> Login Form </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="login_registration.html">
-                                    <span class="title"> Registration Form </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="login_forgot.html">
-                                    <span class="title"> Forgot Password Form </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="login_lockscreen.html">
-                                    <span class="title">Lock Screen</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0)">
-                            <div class="item-content">
-                                <div class="item-media">
-                                    <i class="ti-layers-alt"></i>
-                                </div>
-                                <div class="item-inner">
-                                    <span class="title"> Pages </span><i class="icon-arrow"></i>
-                                </div>
-                            </div>
-                        </a>
-                        <ul class="sub-menu">
-                            <li>
-                                <a href="pages_user_profile.html">
-                                    <span class="title">User Profile</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="pages_invoice.html">
-                                    <span class="title">Invoice</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="pages_timeline.html">
-                                    <span class="title">Timeline</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="pages_calendar.html">
-                                    <span class="title">Calendar</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="pages_messages.html">
-                                    <span class="title">Messages</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="pages_blank_page.html">
-                                    <span class="title">Blank Page</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0)">
-                            <div class="item-content">
-                                <div class="item-media">
-                                    <i class="ti-package"></i>
-                                </div>
-                                <div class="item-inner">
-                                    <span class="title"> Utilities </span><i class="icon-arrow"></i>
-                                </div>
-                            </div>
-                        </a>
-                        <ul class="sub-menu">
-                            <li>
-                                <a href="utilities_search_result.html">
-                                    <span class="title">Search Results</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="utilities_error_404.html">
-                                    <span class="title">Error 404</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="utilities_error_500.html">
-                                    <span class="title">Error 500</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="utilities_pricing_table.html">
-                                    <span class="title">Pricing Table</span>
-                                </a>
-                            </li>
+                            <li><a href="{{ route('personals') }}"><span class="title"> Сотрудники </span></a></li>
+                            <li><a href="{{ route('positions') }}"><span class="title"> Должности </span></a></li>
                         </ul>
                     </li>
                     <li>

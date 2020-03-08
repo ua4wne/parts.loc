@@ -39,7 +39,7 @@ class CategoryController extends Controller
                         break;
                     // Удаляем категорию
                     case 'delete_category':
-                        $id = isset($input['id']) && $input['id'] !== '#' ? (int)$input['id'] : 0;
+                        $id = $input['id'];
                         //удаляем всех потомков
                         $childs = Category::where(['parent_id'=>$id])->get();
                         foreach ($childs as $child){

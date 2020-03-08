@@ -37,7 +37,7 @@
     <!-- page content -->
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="panel panel-white">
                     <div class="panel-heading">
                         <p class="panel-title">Категории номенклатуры</p>
@@ -49,7 +49,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-10">
                 <div class="panel panel-white">
                     <div class="panel-heading">
                         <p class="panel-title" id="goods">Номенклатура</p>
@@ -114,9 +114,17 @@
                     multiple: false,
                     data: data
                 },
-                plugins : ["state","contextmenu","wholerow", "dnd"],
+                types : {
+                    "default" : {
+                        "icon" : "fa fa-folder text-primary fa-lg"
+                    },
+                    "file" : {
+                        "icon" : "fa fa-file text-primary fa-lg"
+                    }
+                },
+                plugins : ["state","contextmenu","wholerow", "dnd","types"],
             }).bind('changed.jstree', function(e, data) {
-                let category = data.node.text;
+                let category = data.node.id;
                 ui.$goods.html('Товары из категории ' + category);
                 //console.log('node data: ', data);
             }).bind('move_node.jstree', function(e, data) {
@@ -136,50 +144,48 @@
                     position: +data.position,
                     text: data.node.text,
                 };
-                _createCategory(params);
+                //_createCategory(params);
+                let dat = $.extend(params, {
+                    action: 'create_category'
+                });
+
+                $.ajax({
+                    url: '{{ route('viewCategories') }}',
+                    method: 'POST',
+                    data: dat,
+                    dataType: 'json',
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(resp) {
+                        //alert(resp);
+                        let obj = $.parseJSON(resp.result);
+                        //console.log('resp=', obj.id);
+                        if (resp.code === 'success')
+                            data.instance.set_id(data.node, obj.id);
+                    },
+                    error: function () {
+                        data.instance.refresh();
+                    }
+                });
             }).bind('rename_node.jstree', function(e, data) {
                 //console.log('data=', data);
                 let params = {
                     id: +data.node.id,
                     text: data.text,
                 };
-                _renameCategory(params);
+                _renameCategory(params,data);
             }).bind('delete_node.jstree', function(e, data) {
-                console.log('data=', data);
-                /*let params = {
+                //console.log('data=', data);
+                let params = {
                     id: +data.node.id,
                 };
-                _deleteCategory(params);*/
-            });
-        }
-
-        //Создание новой категории
-        function _createCategory(params) {
-            let data = $.extend(params, {
-                action: 'create_category'
-            });
-
-            $.ajax({
-                url: '{{ route('viewCategories') }}',
-                method: 'POST',
-                data: data,
-                dataType: 'json',
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(resp) {
-                    //alert(resp);
-                    if (resp.code === 'success')
-                        params.instance.set_id(params.node, resp.id);
-                },
-                error: function () {
-                    params.instance.refresh();
-                }
+                _deleteCategory(params,data);
             });
         }
 
         //Переименование категории
-        function _renameCategory(params) {
+        function _renameCategory(params,dat) {
             let data = $.extend(params, {
                 action: 'rename_category'
             });
@@ -196,13 +202,13 @@
                     //alert(resp);
                 },
                 error: function () {
-                    params.instance.refresh();
+                    dat.instance.refresh();
                 }
             });
         }
 
         //Удаление категории
-        function _deleteCategory(params) {
+        function _deleteCategory(params,dat) {
             let data = $.extend(params, {
                 action: 'delete_category'
             });
@@ -219,7 +225,7 @@
                     //alert(resp);
                 },
                 error: function () {
-                    params.instance.refresh();
+                    dat.instance.refresh();
                 }
             });
         }
