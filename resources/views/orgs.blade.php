@@ -52,10 +52,9 @@
                         <table class="table table-bordered">
                             <thead>
                             <tr>
-                                <th>Форма</th>
                                 <th>Наименование</th>
-                                <th>Полное название</th>
                                 <th>ИНН</th>
+                                <th>КПП</th>
                                 <th>ОГРН</th>
                                 <th>Юридический адрес</th>
                                 <th>Статус</th>
@@ -65,28 +64,34 @@
                             <tbody>
                             @foreach($rows as $k => $row)
                                 <tr>
-                                    <td>{{ $row->org_form->name }}</td>
-                                    <td>{{ $row->short_name }}</td>
                                     <td>{{ $row->title }}</td>
                                     <td>{{ $row->inn }}</td>
+                                    <td>{{ $row->kpp }}</td>
                                     <td>{{ $row->ogrn }}</td>
                                     <td>{{ $row->legal_address }}</td>
-                                    <td>{{ $row->status }}</td>
-                                    <td style="width:110px;">
+                                    <td>@if($row->status)
+                                            <span role="button" class="label label-success">Действующая</span>
+                                        @else
+                                            <span role="button" class="label label-danger">Не действующая</span>
+                                        @endif
+                                    </td>
+                                    <td style="width:145px;">
+                                        {!! Form::open(['url'=>route('orgEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
+                                        {{ method_field('DELETE') }}
                                         <div class="form-group" role="group">
-                                            <button class="btn btn-info btn-sm view_org" type="button"
-                                                    data-toggle="modal" data-target="#viewOrg"
-                                                    title="Карточка организации"><i class="fa fa-eye fa-lg"
-                                                                               aria-hidden="true"></i></button>
-                                            <button class="btn btn-success btn-sm org_edit" type="button"
-                                                    data-toggle="modal" data-target="#editOrg"
-                                                    title="Редактировать запись"><i class="fa fa-edit fa-lg"
-                                                                                    aria-hidden="true"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm org_delete" type="button"
-                                                    title="Удалить запись"><i class="fa fa-trash fa-lg"
-                                                                              aria-hidden="true"></i></button>
+                                            <a href="{{route('orgView',['id'=>$row->id])}}">
+                                                <button class="btn btn-info" type="button"
+                                                        title="Карточка организации"><i class="fa fa-eye fa-lg>"
+                                                                                        aria-hidden="true"></i></button>
+                                            </a>
+                                            <a href="{{route('orgEdit',['id'=>$row->id])}}">
+                                                <button class="btn btn-success" type="button"
+                                                        title="Редактировать запись"><i class="fa fa-edit fa-lg>"
+                                                                                        aria-hidden="true"></i></button>
+                                            </a>
+                                            {!! Form::button('<i class="fa fa-trash-o fa-lg>" aria-hidden="true"></i>',['class'=>'btn btn-danger','type'=>'submit','title'=>'Удалить запись']) !!}
                                         </div>
+                                        {!! Form::close() !!}
                                     </td>
                                 </tr>
                             @endforeach

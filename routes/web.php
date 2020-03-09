@@ -64,8 +64,8 @@ Route::middleware(['auth'])->group(function(){
         //organisations/add
         Route::match(['get', 'post'], '/add', ['uses' => 'OrganisationController@create', 'as' => 'orgAdd']);
         //organisations/edit
-        Route::match(['get', 'post'], '/edit/{id}', ['uses' => 'OrganisationController@edit', 'as' => 'orgEdit']);
-        //organisations/delete
-        Route::post('/delete', ['uses' => 'OrganisationController@destroy', 'as' => 'orgDel']);
+        Route::match(['get', 'post','delete'], '/edit/{id}', ['uses' => 'OrganisationController@edit', 'as' => 'orgEdit']);
+        //organisations/view
+        Route::get('/view/{id}', ['uses' => 'OrganisationController@view', 'as' => 'orgView']);
     });
 });
