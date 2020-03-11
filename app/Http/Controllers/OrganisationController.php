@@ -152,7 +152,7 @@ class OrganisationController extends Controller
                 $orgsel[$object->id] = $object->title;
             }
             $data = [
-                'title' => 'Организационные формы',
+                'title' => 'Организации',
                 'head' => 'Редактирование записи '.$old['title'],
                 'data' => $old,
                 'orgsel' => $orgsel,
@@ -163,6 +163,15 @@ class OrganisationController extends Controller
     }
 
     public function view($id){
-        return 'в разработке!';
+        $model = Organisation::find($id);
+        if(view()->exists('org_view')){
+            $data = [
+                'title' => 'Организации',
+                'head' => $model->title,
+                'model' => $model,
+            ];
+            return view('org_view',$data);
+        }
+        abort(404);
     }
 }

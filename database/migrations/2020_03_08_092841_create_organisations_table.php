@@ -29,7 +29,7 @@ class CreateOrganisationsTable extends Migration
             $table->string('legal_address')->nullable();
             $table->string('post_address')->nullable();
             $table->string('phone',20)->nullable();
-            $table->string('e-mail',30)->nullable();
+            $table->string('email',30)->nullable();
             $table->timestamps();
         });
     }

@@ -27,8 +27,6 @@ Route::middleware(['auth'])->group(function () {
         //personals/add
         Route::match(['get', 'post'], '/add', ['uses' => 'PersonalController@create', 'as' => 'personalAdd']);
         //personals/edit
-        Route::match(['get', 'post'], '/edit/{id}', ['uses' => 'PersonalController@edit', 'as' => 'personalEdit']);
-        //personals/delete
-        Route::post('/delete', ['uses' => 'PersonalController@destroy', 'as' => 'personalDel']);
+        Route::match(['get', 'post','delete'], '/edit/{id}', ['uses' => 'PersonalController@edit', 'as' => 'personalEdit']);
     });
 });

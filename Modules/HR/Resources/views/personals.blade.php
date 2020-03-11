@@ -39,7 +39,7 @@
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
             <div class="panel-heading">
-                <a href="{{route('positionAdd')}}">
+                <a href="{{route('personalAdd')}}">
                     <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-plus"
                                                                                   aria-hidden="true"></i> Новая
                         запись
@@ -52,19 +52,31 @@
                         <table class="table table-bordered">
                             <thead>
                             <tr>
+                                <th>ФИО</th>
                                 <th>Должность</th>
+                                <th>Организация</th>
+                                <th>Право подписи</th>
                                 <th>Действия</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($rows as $k => $row)
                                 <tr>
-                                    <td>{{ $row->title }}</td>
+                                    <td>{{ $row->user->name }}</td>
+                                    <td>{{ $row->position->title }}</td>
+                                    <td>{{ $row->organisation->short_name }}</td>
+                                    <td>
+                                        @if($row->signing)
+                                            <span role="button" class="label label-success">Есть</span>
+                                        @else
+                                            <span role="button" class="label label-danger">Нет</span>
+                                        @endif
+                                    </td>
                                     <td style="width:110px;">
-                                        {!! Form::open(['url'=>route('positionEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
+                                        {!! Form::open(['url'=>route('personalEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
                                         {{ method_field('DELETE') }}
                                         <div class="form-group" role="group">
-                                            <a href="{{route('positionEdit',['id'=>$row->id])}}">
+                                            <a href="{{route('personalEdit',['id'=>$row->id])}}">
                                                 <button class="btn btn-success" type="button"
                                                         title="Редактировать запись"><i class="fa fa-edit fa-lg>"
                                                                                         aria-hidden="true"></i></button>

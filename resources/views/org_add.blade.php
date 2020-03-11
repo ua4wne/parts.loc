@@ -130,10 +130,10 @@
             </div>
 
             <div class="form-group">
-                {!! Form::label('e-mail','E-mail:',['class' => 'col-xs-3 control-label'])   !!}
+                {!! Form::label('email','E-mail:',['class' => 'col-xs-3 control-label'])   !!}
                 <div class="col-xs-8">
-                    {!! Form::email('e-mail',old('e-mail'),['class' => 'form-control','placeholder'=>'Укажите e-mail','maxlength'=>'30'])!!}
-                    {!! $errors->first('e-mail', '<p class="text-danger">:message</p>') !!}
+                    {!! Form::email('email',old('email'),['class' => 'form-control','placeholder'=>'Укажите e-mail','maxlength'=>'30'])!!}
+                    {!! $errors->first('email', '<p class="text-danger">:message</p>') !!}
                 </div>
             </div>
 
