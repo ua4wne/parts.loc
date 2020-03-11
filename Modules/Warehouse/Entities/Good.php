@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Warehouse\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +12,7 @@ class Good extends Model
 
     public function category()
     {
-        return $this->belongsTo('App\Models\Category','category_id','id');
+        return $this->belongsTo('Modules\Warehouse\Entities\Category','category_id','id');
     }
 
     /**
@@ -20,6 +20,6 @@ class Good extends Model
      */
     public function units()
     {
-        return $this->belongsToMany('App\Models\Unit');
+        return $this->belongsToMany('Modules\Warehouse\Entities\Unit');
     }
 }

@@ -86,8 +86,6 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li><a href="{{ route('goods') }}"><span class="title"> Номенклатура </span></a></li>
-                            <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
                             <li><a href="{{ route('orgs') }}"><span class="title"> Организации </span></a></li>
                             <li><a href="#"><span class="title"> Контрагенты </span></a></li>
                             <li><a href="#"><span class="title"> Валюты </span></a></li>
@@ -106,7 +104,10 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li><a href="#"><span class="title">Склады</span></a></li>
+                            <li><a href="{{ route('warehouses') }}"><span class="title">Склады</span></a></li>
+                            <li><a href="{{ route('groups') }}"><span class="title"> Группы товаров </span></a></li>
+                            <li><a href="{{ route('goods') }}"><span class="title"> Номенклатура </span></a></li>
+                            <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
                         </ul>
                     </li>
                     <li>

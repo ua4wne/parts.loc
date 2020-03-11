@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Warehouse\Http\Controllers;
 
-use App\Models\Category;
-use App\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Modules\Warehouse\Entities\Category;
 
 class CategoryController extends Controller
 {

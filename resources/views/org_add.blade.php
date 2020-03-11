@@ -49,9 +49,11 @@
             </div>
 
             <div class="form-group">
-                {!! Form::label('short_name','Короткое название:',['class' => 'col-xs-3 control-label'])   !!}
+                <label class="col-xs-3 control-label">
+                    Короткое название: <span class="symbol required" aria-required="true"></span>
+                </label>
                 <div class="col-xs-8">
-                    {!! Form::text('short_name',old('short_name'),['class' => 'form-control','placeholder'=>'Введите короткое название','maxlength'=>'100'])!!}
+                    {!! Form::text('short_name',old('short_name'),['class' => 'form-control','placeholder'=>'Введите короткое название','maxlength'=>'100','required'=>'required'])!!}
                     {!! $errors->first('short_name', '<p class="text-danger">:message</p>') !!}
                 </div>
             </div>
