@@ -17,8 +17,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',['uses'=>'GoodController@index','as'=>'goods']);
         //goods/add
         Route::match(['get','post'],'/add',['uses'=>'GoodController@create','as'=>'goodAdd']);
+        //goods/view
+        Route::get('/view/{id}',['uses'=>'GoodController@view','as'=>'viewGood']);
+        //goods/find
+        Route::post('/find',['uses'=>'GoodController@find','as'=>'findGood']);
         //goods/edit
-        Route::match(['get','post'],'/edit/{id}',['uses'=>'GoodController@edit','as'=>'goodEdit']);
+        Route::post('/edit',['uses'=>'GoodController@edit','as'=>'editGood']);
         //goods/delete
         Route::post('/delete',['uses'=>'GoodController@delete','as'=>'delGood']);
 
@@ -46,6 +50,15 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['get','post'],'/add',['uses'=>'GroupController@create','as'=>'groupAdd']);
         //groups/edit
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'GroupController@edit','as'=>'groupEdit']);
+    });
+
+    //units/ группа обработки роутов units
+    Route::group(['prefix'=>'units'], function(){
+        Route::get('/',['uses'=>'UnitController@index','as'=>'units']);
+        //units/add
+        Route::match(['get','post'],'/add',['uses'=>'UnitController@create','as'=>'unitAdd']);
+        //units/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'UnitController@edit','as'=>'unitEdit']);
     });
 });
 

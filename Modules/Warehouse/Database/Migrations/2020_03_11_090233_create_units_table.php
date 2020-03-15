@@ -16,9 +16,9 @@ class CreateUnitsTable extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title',70);
-            $table->string('code',3);
+            $table->string('short_name',7);
+            $table->string('code',7);
             $table->smallInteger('koeff')->unsigned()->default(1);
-            $table->integer('base_id')->unsigned()->nullable();
             $table->timestamps();
         });
     }

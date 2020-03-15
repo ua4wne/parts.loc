@@ -17,10 +17,12 @@ class CreateGoodsTable extends Migration
             $table->increments('id');
             $table->integer('category_id')->unsigned();
             $table->foreign('category_id')->references('id')->on('categories');
+            $table->integer('group_id')->unsigned();
+            $table->foreign('group_id')->references('id')->on('groups');
             $table->string('title',200);
             $table->string('descr')->nullable();
-            $table->integer('bx_group')->unsigned();
-            $table->string('vendor_code',64)->nullable();
+            $table->integer('bx_group')->unsigned()->nullable();
+            $table->string('vendor_code',64);
             $table->string('analog_code',64)->nullable();
             $table->string('brand',200)->nullable();
             $table->string('model',200)->nullable();

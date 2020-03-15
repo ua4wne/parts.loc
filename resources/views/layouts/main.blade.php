@@ -30,6 +30,9 @@
     <link rel="stylesheet" href="/css/plugins.css">
     <link rel="stylesheet" href="/css/themes/theme-1.css" id="skin_color" />
     <link href="/css/jstree/themes/default/style.min.css" rel="stylesheet" media="screen">
+    @section('user_css')
+
+    @show
     <!-- end: CLIP-TWO CSS -->
     <!-- start: CSS REQUIRED FOR THIS PAGE ONLY -->
     <!-- end: CSS REQUIRED FOR THIS PAGE ONLY -->
@@ -96,7 +99,22 @@
                         <a href="javascript:void(0)">
                             <div class="item-content">
                                 <div class="item-media">
-                                    <i class="ti-dropbox"></i>
+                                    <i class="ti-briefcase"></i>
+                                </div>
+                                <div class="item-inner">
+                                    <span class="title"> Документы </span><i class="icon-arrow"></i>
+                                </div>
+                            </div>
+                        </a>
+                        <ul class="sub-menu">
+                            <li><a href="#"><span class="title">Корректировка остатков</span></a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <div class="item-content">
+                                <div class="item-media">
+                                    <i class="ti-dropbox-alt"></i>
                                 </div>
                                 <div class="item-inner">
                                     <span class="title"> Складской учет </span><i class="icon-arrow"></i>
@@ -107,7 +125,7 @@
                             <li><a href="{{ route('warehouses') }}"><span class="title">Склады</span></a></li>
                             <li><a href="{{ route('groups') }}"><span class="title"> Группы товаров </span></a></li>
                             <li><a href="{{ route('goods') }}"><span class="title"> Номенклатура </span></a></li>
-                            <li><a href="#"><span class="title"> Единицы измерений </span></a></li>
+                            <li><a href="{{ route('units') }}"><span class="title"> Единицы измерений </span></a></li>
                         </ul>
                     </li>
                     <li>

@@ -43,7 +43,7 @@ class WarehouseController extends Controller
      */
     public function create(Request $request)
     {
-        if (!Role::granted('wh_work')) {//вызываем event
+        if (!Role::granted('wh_edit')) {//вызываем event
             $msg = 'Попытка создания новой записи в справочнике складов!';
             event(new AddEventLogs('access', Auth::id(), $msg));
             abort(503, 'У Вас нет прав на создание записи в справочнике складов!');
@@ -110,7 +110,7 @@ class WarehouseController extends Controller
         $model = Warehouse::find($id);
         $name = $model->title;
         if ($request->isMethod('delete')) {
-            if (!Role::granted('wh_work')) {
+            if (!Role::granted('wh_edit')) {
                 $msg = 'Попытка удаления записи ' . $name . ' из справочника складов.';
                 event(new AddEventLogs('access', Auth::id(), $msg));
                 abort(503, 'У Вас нет прав на удаление записи!');
@@ -121,7 +121,7 @@ class WarehouseController extends Controller
             event(new AddEventLogs('info', Auth::id(), $msg));
             return redirect('/warehouses')->with('status', $msg);
         }
-        if (!Role::granted('wh_work')) {
+        if (!Role::granted('wh_edit')) {
             $msg = 'Попытка редактирования записи ' . $name . ' в справочнике складов.';
             //вызываем event
             event(new AddEventLogs('access', Auth::id(), $msg));
