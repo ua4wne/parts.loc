@@ -18,13 +18,15 @@ Route::middleware(['auth'])->group(function () {
         //goods/add
         Route::match(['get','post'],'/add',['uses'=>'GoodController@create','as'=>'goodAdd']);
         //goods/view
-        Route::get('/view/{id}',['uses'=>'GoodController@view','as'=>'viewGood']);
+        Route::post('/view',['uses'=>'GoodController@view','as'=>'viewGood']);
         //goods/find
         Route::post('/find',['uses'=>'GoodController@find','as'=>'findGood']);
         //goods/edit
         Route::post('/edit',['uses'=>'GoodController@edit','as'=>'editGood']);
         //goods/delete
         Route::post('/delete',['uses'=>'GoodController@delete','as'=>'delGood']);
+        //goods/import
+        Route::post('/import', ['uses'=>'GoodController@download','as'=>'importGood']);
 
     });
 

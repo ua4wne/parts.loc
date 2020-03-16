@@ -12,6 +12,7 @@ use Modules\Warehouse\Entities\Category;
 use Modules\Warehouse\Entities\Good;
 use Modules\Warehouse\Entities\Group;
 use Modules\Warehouse\Entities\Unit;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Validator;
 
 class GoodController extends Controller
@@ -24,8 +25,9 @@ class GoodController extends Controller
     {
         if (view()->exists('warehouse::goods')) {
             //выбираем первую категорию из списка для отображения
-            $node = Category::first();
-            $rows = Good::where(['category_id'=>$node->id])->orderBy('updated_at', 'desc')->get();
+            //$node = Category::first();
+            //$rows = Good::where(['category_id'=>$node->id])->orderBy('updated_at', 'desc')->get();
+            $rows = [];
             $title = 'Номенклатура';
             $cats = Category::all();
             $catsel = array();
@@ -196,7 +198,7 @@ class GoodController extends Controller
             $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
             //вызываем event
             event(new AddEventLogs('info', Auth::id(), $msg));
-            return 'OK';
+            return $model->category_id;
         }
     }
 
@@ -209,37 +211,84 @@ class GoodController extends Controller
         }
     }
 
-    public function view($id)
+    public function view(Request $request)
     {
-        if (view()->exists('warehouse::goods')) {
-            //выбираем 100 последних товаров
-            $rows = Good::orderBy('updated_at', 'desc')->get();
-            $title = 'Номенклатура';
-            $cats = Category::all();
-            $catsel = array();
-            foreach ($cats as $val) {
-                $catsel[$val->id] = $val->category;
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $category_id = $input['id'];
+            $goods = Good::where(['category_id'=>$category_id])->get();
+            if(!empty($goods)){
+                $content='';
+                foreach ($goods as $good){
+                    $content.= '<tr id="'.$good->id.'"><td>'.$good->group->title.'</td><td>'.$good->title.'</td><td>'.$good->vendor_code.'</td><td>'.$good->analog_code.'</td>
+                                <td>'.$good->brand.'</td><td>'.$good->model.'</td><td>';
+                    if($good->gtd)
+                        $content.= '<span role="button" class="label label-success">Есть</span>';
+                    else
+                        $content.= '<span role="button" class="label label-danger">Нет</span>';
+                    $content.= '</td><td>'.$good->barcode.'</td>
+                                            <td>
+                                                <div class="form-group" role="group">
+                                                    <button class="btn btn-success btn-sm row_edit" type="button"
+                                                            data-toggle="modal" data-target="#editGood"
+                                                            title="Редактировать запись"><i class="fa fa-edit fa-lg"
+                                                                                            aria-hidden="true"></i>
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm row_delete" type="button"
+                                                            title="Удалить запись"><i class="fa fa-trash fa-lg"
+                                                                                      aria-hidden="true"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>';
+
+                }
+                return $content;
             }
-            $groups = Group::all();
-            $groupsel = array();
-            foreach ($groups as $val) {
-                $groupsel[$val->id] = $val->title;
-            }
-            $units = Unit::all();
-            $unitsel = array();
-            foreach ($units as $val) {
-                $unitsel[$val->id] = $val->title;
-            }
-            $data = [
-                'title' => $title,
-                'head' => 'Справочник номенклатуры',
-                'rows' => $rows,
-                'catsel' => $catsel,
-                'groupsel' => $groupsel,
-                'unitsel' => $unitsel,
-            ];
-            return view('warehouse::goods', $data);
+            return 'NODATA';
         }
-        abort(404);
+    }
+
+    public function download(Request $request){
+        if(!Role::granted('import') && !Role::granted('wh_edit')){
+            return 'NO';
+        }
+        if($request->hasFile('file')) {
+            $path = $request->file('file')->getRealPath();
+            $excel = IOFactory::load($path);
+            // Цикл по листам Excel-файла
+            foreach ($excel->getWorksheetIterator() as $worksheet) {
+                // выгружаем данные из объекта в массив
+                $tables[] = $worksheet->toArray();
+            }
+            $num = 0;
+            // Цикл по листам Excel-файла
+            foreach( $tables as $table ) {
+                $rows = count($table);
+                $date = $table[0][0];
+                for($i=2;$i<$rows;$i++){
+                    $row = $table[$i];
+                    $model = new Good();
+                    $model->renter_id = $row[0];
+                    $model->data = $date;
+                    $model->period1 = $row[2];
+                    $model->period2 = $row[3];
+                    $model->period3 = $row[4];
+                    $model->period4 = $row[5];
+                    $model->period5 = $row[6];
+                    $model->period6 = $row[7];
+                    $model->period7 = $row[8];
+                    $model->period8 = $row[9];
+                    $model->period9 = $row[10];
+                    $model->period10 = $row[11];
+                    $model->period11 = $row[12];
+                    $dbl = RentLog::where(['renter_id'=>$row[0],'data'=>$date])->first();
+                    if(!empty($dbl)) $dbl->delete(); //удаляем дубли, если есть
+                    if($model->save())
+                        $num++;
+                }
+            }
+            $result = ['rows'=>$rows,'num'=>$num];
+            return json_encode($result);
+        }
     }
 }

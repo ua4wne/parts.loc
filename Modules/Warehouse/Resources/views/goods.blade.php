@@ -51,29 +51,83 @@
                     </div>
                 </div>
             </div>
-            <!-- View Good Modal -->
-            <div class="modal fade" id="viewGood" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+            <!-- Import Good Modal -->
+            <div class="modal fade" id="importGood" tabindex="-1" role="dialog" aria-labelledby="importGood"
                  aria-hidden="true">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
+                                <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
                             </button>
-                            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                            <h4 class="modal-title">Загрузка данных из Excel</h4>
                         </div>
                         <div class="modal-body">
-                            Modal Content
+                            {!! Form::open(['url' => '#','id'=>'import_good','class'=>'form-horizontal','method'=>'POST']) !!}
+
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
+                                    Категория номенклатуры: <span class="symbol required" aria-required="true"></span>
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::select('category_id',$catsel, old('category_id'), ['class' => 'form-control','required'=>'required','id'=>'cat_id']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
+                                    Товарная группа: <span class="symbol required" aria-required="true"></span>
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::select('group_id',$groupsel, old('group_id'), ['class' => 'form-control','required'=>'required']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
+                                    Основная ед. измерения: <span class="symbol required" aria-required="true"></span>
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::select('unit_id',$unitsel, old('unit_id'), ['class' => 'form-control','required'=>'required']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('vat','Ставка НДС, %:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('vat','20',['class' => 'form-control','placeholder'=>'Укажите процент НДС'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
+                                    Учет по ГДТ: <span class="symbol required" aria-required="true"></span>
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::select('gtd',['0'=>'Нет','1'=>'Да'], old('gtd'), ['class' => 'form-control']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
+                                    Файл Excel: <span class="symbol required" aria-required="true"></span>
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::file('file', ['class' => 'form-control','data-buttonText'=>'Выберите файл Excel','data-buttonName'=>"btn-primary",'data-placeholder'=>"Файл не выбран",'required'=>'required']) !!}
+                                </div>
+                            </div>
+
+                            {!! Form::close() !!}
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary btn-o" data-dismiss="modal">
-                                Close
-                            </button>
+                            <span class="pull-left" id="loader"><img src="/images/file-loader.gif"></span> <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-primary" id="btn_import">Сохранить</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- View Good Modal -->
+            <!-- Import Good Modal -->
             <!-- Add Good Modal -->
             <div class="modal fade" id="newGood" tabindex="-1" role="dialog" aria-labelledby="newGood"
                  aria-hidden="true">
@@ -395,10 +449,10 @@
                                 <i class="fa fa-plus" aria-hidden="true"></i>
                                 Новый товар
                             </button>
-                            <button type="button" class="btn btn-primary btn-sm btn-o" id="import"><i
-                                        class="fa fa-download"
-                                        aria-hidden="true"></i>
-                                    Импорт
+                            <button type="button" class="btn btn-primary btn-sm btn-o" id="import" data-toggle="modal"
+                                    data-target="#importGood">
+                                <i class="fa fa-download" aria-hidden="true"></i>
+                                Импорт
                             </button>
                             <a href="#">
                                 <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-upload"
@@ -423,7 +477,7 @@
                                     <th>Действия</th>
                                 </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tbody_goods">
                                 @if($rows)
                                     @foreach($rows as $row)
 
@@ -473,6 +527,7 @@
     <script src="/js/jstree.min.js"></script>
     @include('confirm')
     <script>
+        $('#loader').hide();
         _loadData();
         let table = $('#mytable').DataTable({
             "aoColumnDefs": [{
@@ -513,9 +568,48 @@
             // set the initial value
             "iDisplayLength": 10,
         });
-        /*$('#mytable tbody').on( 'click', 'tr', function () {
-            console.log( table.row( this ).data() );
-        } );*/
+
+        $('#btn_import').click(function (e) {
+            e.preventDefault();
+            let error = 0;
+            $("#import_good").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
+                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
+                        error = 1;// определяем индекс ошибки
+                    } else {
+                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
+                    }
+
+                }
+            })
+            if (error) {
+                alert("Необходимо заполнять все доступные поля!");
+                return false;
+            } else {
+                $('#loader').show();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('importGood') }}',
+                    data: $('#import_good').serialize(),
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'NO')
+                            alert('Выполнение операции запрещено!');
+                        else if (res == 'ERR')
+                            alert('При обновлении данных возникла ошибка!');
+                        else {
+                            _viewGoods($('#cat_id').val());
+                            $(".modal").modal("hide");
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status + '\n' + thrownError);
+                    }
+                });
+                $('#loader').hide()
+            }
+        });
 
         $('#btn_new').click(function (e) {
             e.preventDefault();
@@ -597,10 +691,10 @@
                     success: function (res) {
                         //alert(res);
                         let obj = jQuery.parseJSON(res);
-                        if(typeof obj === 'object'){
+                        if (typeof obj === 'object') {
                             $('#egood_id').val(obj.id);
-                            $("#ecategory_id option[value='"+obj.category_id+"']").attr("selected", "selected");
-                            $("#egroup_id option[value='"+obj.group_id+"']").attr("selected", "selected");
+                            $("#ecategory_id option[value='" + obj.category_id + "']").attr("selected", "selected");
+                            $("#egroup_id option[value='" + obj.group_id + "']").attr("selected", "selected");
                             $('#etitle').val(obj.title);
                             $('#edescr').val(obj.descr);
                             $('#ebx_group').val(obj.bx_group);
@@ -608,13 +702,13 @@
                             $('#eanalog_code').val(obj.analog_code);
                             $('#ebrand').val(obj.brand);
                             $('#emodel').val(obj.model);
-                            $("#eunit_id option[value='"+obj.unit_id+"']").attr("selected", "selected");
+                            $("#eunit_id option[value='" + obj.unit_id + "']").attr("selected", "selected");
                             $('#eweight').val(obj.weight);
                             $('#ecapacity').val(obj.capacity);
                             $('#elength').val(obj.length);
                             $('#earea').val(obj.area);
                             $('#evat').val(obj.vat);
-                            $("#egtd option[value='"+obj.gtd+"']").attr("selected", "selected");
+                            $("#egtd option[value='" + obj.gtd + "']").attr("selected", "selected");
                             $('#ebarcode').val(obj.barcode);
                         }
                     },
@@ -653,13 +747,14 @@
                         //alert(res);
                         if (res == 'NO')
                             alert('Выполнение операции запрещено!');
-                        if (res == 'NO VALIDATE')
+                        else if (res == 'NO VALIDATE')
                             alert('Ошибки валидации данных формы!');
-                        if (res == 'ERR')
+                        else if (res == 'ERR')
                             alert('При обновлении данных возникла ошибка!');
-                        if (res == 'OK')
-                            //window.location.reload();
-                            window.location.href = "/";
+                        else {
+                            _viewGoods(res);
+                            $(".modal").modal("hide");
+                        }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status + '\n' + thrownError);
@@ -728,6 +823,7 @@
                 ui.$goods.html('Товары из категории ' + data.node.text);
                 //console.log('node data: ', data);
                 //загружаем товары категории
+                _viewGoods(category);
             }).bind('move_node.jstree', function (e, data) {
                 let params = {
                     id: +data.node.id,
@@ -785,6 +881,68 @@
             }).bind('loaded.jstree', function (e, data) {
                 //console.log('data=', data);
                 data.instance.select_node([{{ $node }}, {{ $sub }}]); //node ids that you want to check
+            });
+        }
+
+        //Вывод товаров выбранной категории
+        function _viewGoods(id) {
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('viewGood') }}',
+                data: {'id': id},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    if (res != 'NODATA') {
+                        $('#mytable').DataTable().destroy();
+                        $('#mytable').find('tbody').html(res);
+                        $('#mytable').DataTable({
+                            "aoColumnDefs": [{
+                                "aTargets": [0]
+                            }],
+                            "language": {
+                                "processing": "Подождите...",
+                                "search": "Поиск: ",
+                                "lengthMenu": "Показать _MENU_ записей",
+                                "info": "Записи с _START_ до _END_ из _TOTAL_ записей",
+                                "infoEmpty": "Записи с 0 до 0 из 0 записей",
+                                "infoFiltered": "(отфильтровано из _MAX_ записей)",
+                                "infoPostFix": "",
+                                "loadingRecords": "Загрузка записей...",
+                                "zeroRecords": "Записи отсутствуют.",
+                                "emptyTable": "В таблице отсутствуют данные",
+                                "paginate": {
+                                    "first": "Первая",
+                                    "previous": "Предыдущая",
+                                    "next": "Следующая",
+                                    "last": "Последняя"
+                                },
+                                "aria": {
+                                    "sortAscending": ": активировать для сортировки столбца по возрастанию",
+                                    "sortDescending": ": активировать для сортировки столбца по убыванию"
+                                },
+                                "select": {
+                                    "rows": {
+                                        "_": "Выбрано записей: %d",
+                                        "0": "Кликните по записи для выбора",
+                                        "1": "Выбрана одна запись"
+                                    }
+                                }
+                            },
+                            //"aaSorting" : [[1, 'asc']],
+                            "aLengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Все"] // change per page values here
+                            ],
+                            // set the initial value
+                            "iDisplayLength": 10,
+                        }).draw();
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
             });
         }
 
