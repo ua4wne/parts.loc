@@ -88,7 +88,7 @@ class GoodController extends Controller
                 'descr' => 'nullable|string|max:255',
                 'bx_group' => 'nullable|integer',
                 'vendor_code' => 'required|string|max:64',
-                'analog_code' => 'nullable|string|max:64',
+                'analog_code' => 'nullable|string|max:180',
                 'brand' => 'nullable|string|max:200',
                 'model' => 'nullable|string|max:200',
                 'unit_id' => 'required|integer',
@@ -173,7 +173,7 @@ class GoodController extends Controller
                 'descr' => 'nullable|string|max:255',
                 'bx_group' => 'nullable|integer',
                 'vendor_code' => 'required|string|max:64',
-                'analog_code' => 'nullable|string|max:64',
+                'analog_code' => 'nullable|string|max:180',
                 'brand' => 'nullable|string|max:200',
                 'model' => 'nullable|string|max:200',
                 'unit_id' => 'required|integer',
@@ -253,6 +253,11 @@ class GoodController extends Controller
             return 'NO';
         }
         if($request->hasFile('file')) {
+            $cat_id = 2; //$input['category_id'];
+            $group_id = 6; //$input['group_id'];
+            $unit_id = 1; //$input['unit_id'];
+            $vat = 20; //$input['vat'];
+            $gtd = 0; //$input['gtd'];
             $path = $request->file('file')->getRealPath();
             $excel = IOFactory::load($path);
             // Цикл по листам Excel-файла
@@ -264,31 +269,36 @@ class GoodController extends Controller
             // Цикл по листам Excel-файла
             foreach( $tables as $table ) {
                 $rows = count($table);
-                $date = $table[0][0];
-                for($i=2;$i<$rows;$i++){
+                $analog = '';
+                for($i=1;$i<$rows;$i++){
                     $row = $table[$i];
-                    $model = new Good();
-                    $model->renter_id = $row[0];
-                    $model->data = $date;
-                    $model->period1 = $row[2];
-                    $model->period2 = $row[3];
-                    $model->period3 = $row[4];
-                    $model->period4 = $row[5];
-                    $model->period5 = $row[6];
-                    $model->period6 = $row[7];
-                    $model->period7 = $row[8];
-                    $model->period8 = $row[9];
-                    $model->period9 = $row[10];
-                    $model->period10 = $row[11];
-                    $model->period11 = $row[12];
-                    $dbl = RentLog::where(['renter_id'=>$row[0],'data'=>$date])->first();
-                    if(!empty($dbl)) $dbl->delete(); //удаляем дубли, если есть
-                    if($model->save())
+                    $title = trim($row[2]);
+                    //выделяем номера аналогов из строки с именем
+                    $tmp = explode(',',$title);
+                    $title = $tmp[0]; //наименование слева от первой запятой, аналоги справа
+                    if(!empty($tmp[1])){
+                        if(strstr($row[5],"Komatsu") !== FALSE){
+                            //заменяем все внутренние пробелы на тире
+                            $tmp[1] = trim(str_replace(' ','-',$tmp[1]));
+                            $row[1] = trim(str_replace(' ','-',$row[1]));
+                        }
+                        //разделяем запятыми строку аналогов
+                        $analog = trim(str_replace('/',' ',$tmp[1]));
+                        $analog = str_replace(" ",", ",$analog);
+                        if($analog == $row[1])
+                            $analog = '';
+                    }
+                    if(!empty($row[1])){
+                        Good::updateOrCreate(['vendor_code' => $row[1]], ['category_id' => $cat_id,'group_id' => $group_id,
+                            'title' => $title,'bx_group' => $row[0],'analog_code' => $analog,'brand' => $row[4], 'model' => $row[5],
+                            'unit_id' => $unit_id,'vat' => $vat,'gtd' => $gtd]);
                         $num++;
+                    }
                 }
             }
             $result = ['rows'=>$rows,'num'=>$num];
             return json_encode($result);
         }
+        return 'ERR';
     }
 }

@@ -23,7 +23,7 @@ class CreateGoodsTable extends Migration
             $table->string('descr')->nullable();
             $table->integer('bx_group')->unsigned()->nullable();
             $table->string('vendor_code',64);
-            $table->string('analog_code',64)->nullable();
+            $table->string('analog_code',180)->nullable();
             $table->string('brand',200)->nullable();
             $table->string('model',200)->nullable();
             $table->integer('unit_id')->unsigned();

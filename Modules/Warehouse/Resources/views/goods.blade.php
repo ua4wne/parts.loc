@@ -63,57 +63,14 @@
                             <h4 class="modal-title">Загрузка данных из Excel</h4>
                         </div>
                         <div class="modal-body">
-                            {!! Form::open(['url' => '#','id'=>'import_good','class'=>'form-horizontal','method'=>'POST']) !!}
-
-                            <div class="form-group">
-                                <label class="col-xs-3 control-label">
-                                    Категория номенклатуры: <span class="symbol required" aria-required="true"></span>
-                                </label>
-                                <div class="col-xs-8">
-                                    {!! Form::select('category_id',$catsel, old('category_id'), ['class' => 'form-control','required'=>'required','id'=>'cat_id']); !!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-xs-3 control-label">
-                                    Товарная группа: <span class="symbol required" aria-required="true"></span>
-                                </label>
-                                <div class="col-xs-8">
-                                    {!! Form::select('group_id',$groupsel, old('group_id'), ['class' => 'form-control','required'=>'required']); !!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-xs-3 control-label">
-                                    Основная ед. измерения: <span class="symbol required" aria-required="true"></span>
-                                </label>
-                                <div class="col-xs-8">
-                                    {!! Form::select('unit_id',$unitsel, old('unit_id'), ['class' => 'form-control','required'=>'required']); !!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                {!! Form::label('vat','Ставка НДС, %:',['class' => 'col-xs-3 control-label'])   !!}
-                                <div class="col-xs-8">
-                                    {!! Form::text('vat','20',['class' => 'form-control','placeholder'=>'Укажите процент НДС'])!!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-xs-3 control-label">
-                                    Учет по ГДТ: <span class="symbol required" aria-required="true"></span>
-                                </label>
-                                <div class="col-xs-8">
-                                    {!! Form::select('gtd',['0'=>'Нет','1'=>'Да'], old('gtd'), ['class' => 'form-control']); !!}
-                                </div>
-                            </div>
+                            {!! Form::open(['url' => '#','id'=>'import_good','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
 
                             <div class="form-group">
                                 <label class="col-xs-3 control-label">
                                     Файл Excel: <span class="symbol required" aria-required="true"></span>
                                 </label>
                                 <div class="col-xs-8">
-                                    {!! Form::file('file', ['class' => 'form-control','data-buttonText'=>'Выберите файл Excel','data-buttonName'=>"btn-primary",'data-placeholder'=>"Файл не выбран",'required'=>'required']) !!}
+                                    {!! Form::file('file', ['class' => 'form-control','data-buttonText'=>'Выберите файл Excel','data-buttonName'=>"btn-primary",'data-placeholder'=>"Файл не выбран",'required'=>'required','id'=>'file']) !!}
                                 </div>
                             </div>
 
@@ -195,7 +152,7 @@
                             <div class="form-group">
                                 {!! Form::label('analog_code','Коды аналогов:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('analog_code',old('analog_code'),['class' => 'form-control','placeholder'=>'Введите артикулы аналогов через запятую','maxlength'=>'64','id'=>'analog_code'])!!}
+                                    {!! Form::text('analog_code',old('analog_code'),['class' => 'form-control','placeholder'=>'Введите артикулы аналогов через запятую','maxlength'=>'180','id'=>'analog_code'])!!}
                                 </div>
                             </div>
 
@@ -354,7 +311,7 @@
                             <div class="form-group">
                                 {!! Form::label('analog_code','Коды аналогов:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('analog_code',old('analog_code'),['class' => 'form-control','placeholder'=>'Введите артикулы аналогов через запятую','maxlength'=>'64','id'=>'eanalog_code'])!!}
+                                    {!! Form::text('analog_code',old('analog_code'),['class' => 'form-control','placeholder'=>'Введите артикулы аналогов через запятую','maxlength'=>'180','id'=>'eanalog_code'])!!}
                                 </div>
                             </div>
 
@@ -571,6 +528,7 @@
 
         $('#btn_import').click(function (e) {
             e.preventDefault();
+            $('#loader').show();
             let error = 0;
             $("#import_good").find(":input").each(function () {// проверяем каждое поле ввода в форме
                 if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
@@ -584,30 +542,41 @@
                 }
             })
             if (error) {
+                $('#loader').hide();
                 alert("Необходимо заполнять все доступные поля!");
                 return false;
             } else {
-                $('#loader').show();
+                let formData = new FormData();
+                formData.append('file', $('#file').prop("files")[0]);
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('importGood') }}',
-                    data: $('#import_good').serialize(),
+                    processData: false,
+                    contentType: false,
+                    cache:false,
+                    dataType : 'text',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
                     success: function (res) {
                         //alert(res);
+                        let obj = jQuery.parseJSON(res);
+                        if (typeof obj === 'object') {
+                            //_viewGoods($('#cat_id').val());
+                            $(".modal").modal("hide");
+                            alert('Обработано строк '+obj.num+' из '+obj.rows+'!');
+                        }
                         if (res == 'NO')
                             alert('Выполнение операции запрещено!');
                         else if (res == 'ERR')
                             alert('При обновлении данных возникла ошибка!');
-                        else {
-                            _viewGoods($('#cat_id').val());
-                            $(".modal").modal("hide");
-                        }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status + '\n' + thrownError);
                     }
                 });
-                $('#loader').hide()
+                $('#loader').hide();
             }
         });
 
