@@ -16,26 +16,6 @@
         <li class="active"><a href="{{ route('goods') }}">{{ $title }}</a></li>
     </ul>
     <!-- END BREADCRUMB -->
-    @if (session('error'))
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <div class="alert alert-danger panel-remove">
-                    <a href="#" class="close" data-dismiss="alert">&times;</a>
-                    {{ session('error') }}
-                </div>
-            </div>
-        </div>
-    @endif
-    @if (session('status'))
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <div class="alert alert-success panel-remove">
-                    <a href="#" class="close" data-dismiss="alert">&times;</a>
-                    {{ session('status') }}
-                </div>
-            </div>
-        </div>
-    @endif
     <!-- page content -->
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
@@ -438,7 +418,7 @@
                                 @if($rows)
                                     @foreach($rows as $row)
 
-                                        <tr id="{{ $row->id }}">
+                                        <tr id="row{{ $row->id }}">
                                             <td>{{ $row->group->title }}</td>
                                             <td>{{ $row->title }}</td>
                                             <td>{{ $row->vendor_code }}</td>
@@ -689,6 +669,41 @@
 
             }
         }, ".row_edit");
+
+        $(document).on({
+            click: function (e) {
+                e.preventDefault();
+                var id = $(this).parent().parent().parent().attr("id");
+                alert('id=' + id);
+                let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
+                if (x) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('delGood') }}',
+                        data: {'id': id},
+                        headers: {
+                            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (res) {
+                            //alert(res);
+                            if(res=='OK'){
+                                $('#' + id).hide();
+                                table.reload();
+                            }
+                            if(res=='NO'){
+                                alert('У вас нет прав для выполнения операции удаления!');
+                            }
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            }
+        }, ".row_delete");
 
         $('#btn_save').click(function (e) {
             e.preventDefault();

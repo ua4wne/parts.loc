@@ -220,7 +220,7 @@ class GoodController extends Controller
             if(!empty($goods)){
                 $content='';
                 foreach ($goods as $good){
-                    $content.= '<tr id="'.$good->id.'"><td>'.$good->group->title.'</td><td>'.$good->title.'</td><td>'.$good->vendor_code.'</td><td>'.$good->analog_code.'</td>
+                    $content.= '<tr id="row'.$good->id.'"><td>'.$good->group->title.'</td><td>'.$good->title.'</td><td>'.$good->vendor_code.'</td><td>'.$good->analog_code.'</td>
                                 <td>'.$good->brand.'</td><td>'.$good->model.'</td><td>';
                     if($good->gtd)
                         $content.= '<span role="button" class="label label-success">Есть</span>';
@@ -300,5 +300,16 @@ class GoodController extends Controller
             return json_encode($result);
         }
         return 'ERR';
+    }
+
+    public function delete(Request $request){
+        if(!Role::granted('wh_edit')){
+            return 'NO';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            //$model = Good::find($input['id']);
+            return 'OK';
+        }
     }
 }
