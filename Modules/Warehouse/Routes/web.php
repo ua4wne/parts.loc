@@ -27,7 +27,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/delete',['uses'=>'GoodController@delete','as'=>'delGood']);
         //goods/import
         Route::post('/import', ['uses'=>'GoodController@download','as'=>'importGood']);
-
+        //goods/export
+        Route::post('/export',['uses'=>'GoodController@upload','as'=>'exportGood']);
     });
 
     //categories/ группа обработки роутов categories

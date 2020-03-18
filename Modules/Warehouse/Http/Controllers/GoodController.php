@@ -13,6 +13,10 @@ use Modules\Warehouse\Entities\Good;
 use Modules\Warehouse\Entities\Group;
 use Modules\Warehouse\Entities\Unit;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Validator;
 
 class GoodController extends Controller
@@ -158,7 +162,8 @@ class GoodController extends Controller
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $model = Good::find($input['id']);
+            $id = substr($input['id'],3);
+            $model = Good::find($id);
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
                 'max' => 'Значение поля должно быть не более :max символов!',
@@ -206,7 +211,8 @@ class GoodController extends Controller
     {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $model = Good::find($input['id'])->toArray();
+            $id = substr($input['id'],3);
+            $model = Good::find($id)->toArray();
             return json_encode($model);
         }
     }
@@ -216,7 +222,7 @@ class GoodController extends Controller
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $category_id = $input['id'];
-            $goods = Good::where(['category_id'=>$category_id])->get();
+            $goods = Good::where(['category_id'=>$category_id])->orderBy('updated_at', 'desc')->get();
             if(!empty($goods)){
                 $content='';
                 foreach ($goods as $good){
@@ -308,8 +314,109 @@ class GoodController extends Controller
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            //$model = Good::find($input['id']);
-            return 'OK';
+            $id = substr($input['id'],3);
+            $model = Good::find($id);
+            if($model->delete())
+                return 'OK';
+            else
+                return 'ERR';
+        }
+    }
+
+    public function upload(Request $request){
+        if(!Role::granted('export') && !Role::granted('wh_edit')){
+            abort(503, 'У Вас нет прав на экспорт номенклатуры!');
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $goods = Good::whereIn('category_id',$input['category'])->orderBy('category_id', 'asc')->get();
+            $styleArray = array(
+                'font' => array(
+                    'bold' => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                ),
+                'borders' => array(
+                    'top' => array(
+                        'style' => Border::BORDER_THIN,
+                    ),
+                    'bottom' => array(
+                        'style' => Border::BORDER_THIN,
+                    ),
+                    'left' => array(
+                        'style' => Border::BORDER_THIN,
+                    ),
+                    'right' => array(
+                        'style' => Border::BORDER_THIN,
+                    ),
+                )
+            );
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Номенклатура');
+            $k=1;
+            $sheet->getStyle('A' . $k . ':P' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->setCellValue('A1', 'Категория');
+            $sheet->setCellValue('B1', 'Группа');
+            $sheet->setCellValue('C1', 'Наименование');
+            $sheet->setCellValue('D1', 'Описание');
+            $sheet->setCellValue('E1', 'Код Bitrix');
+            $sheet->setCellValue('F1', 'Артикул');
+            $sheet->setCellValue('G1', 'Аналоги');
+            $sheet->setCellValue('H1', 'Производитель');
+            $sheet->setCellValue('I1', 'Модель');
+            $sheet->setCellValue('J1', 'Ед. изм.');
+            $sheet->setCellValue('K1', 'Вес');
+            $sheet->setCellValue('L1', 'Объем');
+            $sheet->setCellValue('M1', 'Длина');
+            $sheet->setCellValue('N1', 'Площадь');
+            $sheet->setCellValue('O1', 'НДС');
+            $sheet->setCellValue('P1', 'Учет ГТД');
+            $sheet->getStyle('A' . $k . ':M' . $k)->applyFromArray($styleArray);
+            $k++;
+            foreach ($goods as $row) {
+                $sheet->setCellValue('A' . $k, $row->category->category);
+                $sheet->setCellValue('B' . $k, $row->group->title);
+                $sheet->setCellValue('C' . $k, $row->title);
+                $sheet->setCellValue('D' . $k, $row->descr);
+                $sheet->setCellValue('E' . $k, $row->bx_group);
+                $sheet->setCellValue('F' . $k, $row->vendor_code);
+                $sheet->setCellValue('G' . $k, $row->analog_code);
+                $sheet->setCellValue('H' . $k, $row->brand);
+                $sheet->setCellValue('I' . $k, $row->model);
+                $sheet->setCellValue('J' . $k, $row->unit);
+                $sheet->setCellValue('K' . $k, $row->weight);
+                $sheet->setCellValue('L' . $k, $row->capacity);
+                $sheet->setCellValue('M' . $k, $row->length);
+                $sheet->setCellValue('N' . $k, $row->area);
+                $sheet->setCellValue('O' . $k, $row->vat);
+                $sheet->setCellValue('P' . $k, $row->gtd);
+                //$sheet->getStyle('A' . $k . ':P' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $k++;
+            }
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+            $sheet->getColumnDimension('E')->setAutoSize(true);
+            $sheet->getColumnDimension('F')->setAutoSize(true);
+            $sheet->getColumnDimension('G')->setAutoSize(true);
+            $sheet->getColumnDimension('H')->setAutoSize(true);
+            $sheet->getColumnDimension('I')->setAutoSize(true);
+            $sheet->getColumnDimension('J')->setAutoSize(true);
+            $sheet->getColumnDimension('K')->setAutoSize(true);
+            $sheet->getColumnDimension('L')->setAutoSize(true);
+            $sheet->getColumnDimension('M')->setAutoSize(true);
+            $sheet->getColumnDimension('N')->setAutoSize(true);
+            $sheet->getColumnDimension('O')->setAutoSize(true);
+            $sheet->getColumnDimension('P')->setAutoSize(true);
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            $filename = "goods";
+            header('Content-Disposition: attachment;filename=' . $filename . ' ');
+            header('Cache-Control: max-age=0');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
         }
     }
 }

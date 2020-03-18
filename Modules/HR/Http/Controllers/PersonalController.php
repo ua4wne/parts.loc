@@ -88,7 +88,7 @@ class PersonalController extends Controller
             foreach ($positions as $val) {
                 $possel[$val->id] = $val->title;
             }
-            $organisations = Organisation::all();
+            $organisations = Organisation::where(['status'=>1])->get();
             $orgsel = array();
             foreach ($organisations as $val) {
                 $orgsel[$val->id] = $val->short_name;
@@ -166,7 +166,7 @@ class PersonalController extends Controller
             foreach ($positions as $val) {
                 $possel[$val->id] = $val->title;
             }
-            $organisations = Organisation::all();
+            $organisations = Organisation::where(['status'=>1])->get();
             $orgsel = array();
             foreach ($organisations as $val) {
                 $orgsel[$val->id] = $val->short_name;

@@ -91,7 +91,7 @@
                         <ul class="sub-menu">
                             <li><a href="{{ route('orgs') }}"><span class="title"> Организации </span></a></li>
                             <li><a href="#"><span class="title"> Контрагенты </span></a></li>
-                            <li><a href="#"><span class="title"> Валюты </span></a></li>
+                            <li><a href="{{ route('currency') }}"><span class="title"> Валюты </span></a></li>
                             <li><a href="{{ route('orgforms') }}"><span class="title"> Организационные формы </span></a></li>
                         </ul>
                     </li>
@@ -108,6 +108,7 @@
                         </a>
                         <ul class="sub-menu">
                             <li><a href="#"><span class="title">Корректировка остатков</span></a></li>
+                            <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
                         </ul>
                     </li>
                     <li>

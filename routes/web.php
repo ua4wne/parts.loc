@@ -50,4 +50,22 @@ Route::middleware(['auth'])->group(function(){
         //organisations/view
         Route::get('/view/{id}', ['uses' => 'OrganisationController@view', 'as' => 'orgView']);
     });
+
+    //currency/ группа обработки роутов справочника currency
+    Route::group(['prefix'=>'currency'], function(){
+        Route::get('/',['uses'=>'CurrencyController@index','as'=>'currency']);
+        //currency/add
+        Route::match(['get','post'],'/add',['uses'=>'CurrencyController@create','as'=>'currencyAdd']);
+        //currency/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'CurrencyController@edit','as'=>'currencyEdit']);
+    });
+
+    //prices/ группа обработки роутов справочника prices
+    Route::group(['prefix'=>'prices'], function(){
+        Route::get('/',['uses'=>'PriceController@index','as'=>'prices']);
+        //prices/add
+        Route::match(['get','post'],'/add',['uses'=>'PriceController@create','as'=>'priceAdd']);
+        //prices/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'PriceController@edit','as'=>'priceEdit']);
+    });
 });

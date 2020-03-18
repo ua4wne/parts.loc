@@ -18,6 +18,7 @@
     <!-- END BREADCRUMB -->
     <!-- page content -->
     <div class="container-fluid container-fullw bg-white">
+        <div id="loader"></div> <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
         <div class="row">
             <div class="col-md-2">
                 <div class="panel panel-white">
@@ -57,7 +58,7 @@
                             {!! Form::close() !!}
                         </div>
                         <div class="modal-footer">
-                            <span class="pull-left" id="loader"><img src="/images/file-loader.gif"></span> <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
+                            <span class="pull-left" id="file-loader"><img src="/images/file-loader.gif"></span> <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
                             <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
                             <button type="button" class="btn btn-primary" id="btn_import">Сохранить</button>
                         </div>
@@ -65,6 +66,42 @@
                 </div>
             </div>
             <!-- Import Good Modal -->
+            <!-- Export Good Modal -->
+            <div class="modal fade" id="exportGood" tabindex="-1" role="dialog" aria-labelledby="exportGood"
+                 aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                            </button>
+                            <h4 class="modal-title">Выгрузка данных в Excel</h4>
+                        </div>
+                        <div class="modal-body">
+                            {!! Form::open(['url' => route('exportGood'),'class'=>'form-horizontal','method'=>'POST','data-function'=>'no_delete']) !!}
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
+                                    Категория номенклатуры: <span class="symbol required" aria-required="true"></span>
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::select('category[]',$catsel, old('category'), ['class' => 'form-control','required'=>'required',' multiple'=>' multiple']); !!}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-xs-offset-3 col-xs-8">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                                    {!! Form::submit('Создать',['class'=>'btn btn-primary']) !!}
+                                </div>
+                            </div>
+                            {!! Form::close() !!}
+                        </div>
+                        <div class="modal-footer">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Export Good Modal -->
             <!-- Add Good Modal -->
             <div class="modal fade" id="newGood" tabindex="-1" role="dialog" aria-labelledby="newGood"
                  aria-hidden="true">
@@ -392,7 +429,8 @@
                                 Импорт
                             </button>
                             <a href="#">
-                                <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-upload"
+                                <button type="button" class="btn btn-primary btn-sm btn-o" data-toggle="modal"
+                                        data-target="#exportGood"><i class="fa fa-upload"
                                                                                               aria-hidden="true"></i>
                                     Экспорт
                                 </button>
@@ -464,7 +502,6 @@
     <script src="/js/jstree.min.js"></script>
     @include('confirm')
     <script>
-        $('#loader').hide();
         _loadData();
         let table = $('#mytable').DataTable({
             "aoColumnDefs": [{
@@ -508,7 +545,7 @@
 
         $('#btn_import').click(function (e) {
             e.preventDefault();
-            $('#loader').show();
+            $('#file-loader').show();
             let error = 0;
             $("#import_good").find(":input").each(function () {// проверяем каждое поле ввода в форме
                 if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
@@ -522,7 +559,7 @@
                 }
             })
             if (error) {
-                $('#loader').hide();
+                $('#file-loader').hide();
                 alert("Необходимо заполнять все доступные поля!");
                 return false;
             } else {
@@ -543,9 +580,9 @@
                         //alert(res);
                         let obj = jQuery.parseJSON(res);
                         if (typeof obj === 'object') {
-                            //_viewGoods($('#cat_id').val());
                             $(".modal").modal("hide");
                             alert('Обработано строк '+obj.num+' из '+obj.rows+'!');
+                            _viewGoods($('#egood_id').val());
                         }
                         if (res == 'NO')
                             alert('Выполнение операции запрещено!');
@@ -556,7 +593,7 @@
                         alert(xhr.status + '\n' + thrownError);
                     }
                 });
-                $('#loader').hide();
+                $('#file-loader').hide();
             }
         });
 
@@ -615,6 +652,7 @@
                                 $(this).val('');
                             });
                             $('#vat').val('20');
+                            $(".modal").modal("hide");
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -674,7 +712,7 @@
             click: function (e) {
                 e.preventDefault();
                 var id = $(this).parent().parent().parent().attr("id");
-                alert('id=' + id);
+                //alert('id=' + id);
                 let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
                 if (x) {
                     $.ajax({
@@ -688,10 +726,13 @@
                             //alert(res);
                             if(res=='OK'){
                                 $('#' + id).hide();
-                                table.reload();
+                                _viewGoods($('#egood_id').val());
                             }
                             if(res=='NO'){
                                 alert('У вас нет прав для выполнения операции удаления!');
+                            }
+                            if(res=='ERR'){
+                                alert('В процессе удаления произошла ошибка!');
                             }
                         },
                         error: function (xhr, ajaxOptions, thrownError) {
@@ -870,6 +911,8 @@
 
         //Вывод товаров выбранной категории
         function _viewGoods(id) {
+            $('#loader').show();
+            $('#egood_id').val(id);
             $.ajax({
                 type: 'POST',
                 url: '{{ route('viewGood') }}',
@@ -928,6 +971,7 @@
                     alert(thrownError);
                 }
             });
+            $('#loader').hide();
         }
 
         //Переименование категории
