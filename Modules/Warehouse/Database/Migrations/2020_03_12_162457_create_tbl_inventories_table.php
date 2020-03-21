@@ -20,8 +20,10 @@ class CreateTblInventoriesTable extends Migration
             $table->integer('good_id')->unsigned();
             $table->foreign('good_id')->references('id')->on('goods');
             $table->string('cell',10)->nullable();
-            $table->float('cnt');
+            $table->float('qty');
             $table->decimal('price');
+            $table->integer('unit_id')->unsigned();
+            $table->foreign('unit_id')->references('id')->on('units');
             $table->decimal('amount');
             $table->timestamps();
         });

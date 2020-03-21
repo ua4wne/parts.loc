@@ -15,6 +15,7 @@ class CreatePricesTable extends Migration
     {
         Schema::create('prices', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('doc_num',20);
             $table->string('title',100);
             $table->string('descr')->nullable();
             $table->integer('currency_id')->unsigned();

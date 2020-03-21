@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/plugins.css">
     <link rel="stylesheet" href="/css/themes/theme-1.css" id="skin_color" />
-    <link href="/css/jstree/themes/default/style.min.css" rel="stylesheet" media="screen">
+
     @section('user_css')
 
     @show
@@ -107,7 +107,7 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li><a href="#"><span class="title">Корректировка остатков</span></a></li>
+                            <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
                             <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
                         </ul>
                     </li>
@@ -146,16 +146,19 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="javascript:void(0)">
                             <div class="item-content">
                                 <div class="item-media">
                                     <i class="ti-pie-chart"></i>
                                 </div>
                                 <div class="item-inner">
-                                    <span class="title"> Отчеты </span>
+                                    <span class="title"> Отчеты </span><i class="icon-arrow"></i>
                                 </div>
                             </div>
                         </a>
+                        <ul class="sub-menu">
+                            <li><a href="{{ route('stockReport') }}"><span class="title"> Складские остатки </span></a></li>
+                        </ul>
                     </li>
                 </ul>
                 @show

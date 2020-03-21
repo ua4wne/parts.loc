@@ -1,5 +1,6 @@
 {
     "Admin": true,
     "HR": true,
-    "Warehouse": true
+    "Warehouse": true,
+    "Report": true
 }

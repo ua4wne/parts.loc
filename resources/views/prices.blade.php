@@ -52,26 +52,35 @@
                         <table class="table table-bordered">
                             <thead>
                             <tr>
+                                <th>№ документа</th>
                                 <th>Наименование</th>
                                 <th>Описание</th>
                                 <th>Валюта</th>
                                 <th>Организация</th>
                                 <th>Ответственный</th>
+                                <th>Обновлено</th>
                                 <th>Действия</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($rows as $k => $row)
                                 <tr>
+                                    <td>{{ $row->doc_num }}</td>
                                     <td>{{ $row->title }}</td>
                                     <td>{{ $row->descr }}</td>
                                     <td>{{ $row->currency->title }}</td>
                                     <td>{{ $row->organisation->title }}</td>
                                     <td>{{ $row->user->name }}</td>
-                                    <td style="width:100px;">
+                                    <td>{{ $row->updated_at }}</td>
+                                    <td style="width:150px;">
                                         {!! Form::open(['url'=>route('priceEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
                                         {{ method_field('DELETE') }}
                                         <div class="form-group" role="group">
+                                            <a href="{{route('priceView',['id'=>$row->id])}}">
+                                                <button class="btn btn-info" type="button"
+                                                        title="Открыть прайс"><i class="fa fa-eye fa-lg>"
+                                                                                        aria-hidden="true"></i></button>
+                                            </a>
                                             <a href="{{route('priceEdit',['id'=>$row->id])}}">
                                                 <button class="btn btn-success" type="button"
                                                         title="Редактировать запись"><i class="fa fa-edit fa-lg>"

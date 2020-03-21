@@ -9,7 +9,7 @@ class Price extends Model
     //указываем имя таблицы
     protected $table = 'prices';
 
-    protected $fillable = ['title', 'descr', 'currency_id', 'organisation_id', 'user_id'];
+    protected $fillable = ['doc_num','title', 'descr', 'currency_id', 'organisation_id', 'user_id'];
 
     public function currency()
     {

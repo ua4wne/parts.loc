@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Category;
 use Modules\Warehouse\Entities\Good;
@@ -113,10 +114,10 @@ class GoodController extends Controller
             $good->created_at = date('Y-m-d');
             // создаст или обновит запись в модели $good в зависимости от того
             // есть такая запись или нет
-            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'],'group_id' => $input['group_id'],'title' => $input['title'],
-                'descr' => $input['descr'],'bx_group' => $input['bx_group'],'vendor_code' => $input['vendor_code'],'analog_code' => $input['analog_code'],'brand' => $input['brand'],
-                'model' => $input['model'],'unit_id' => $input['unit_id'],'weight' => $input['weight'],'capacity' => $input['capacity'],'length' => $input['length'],
-                'area' => $input['area'],'vat' => $input['vat'],'gtd' => $input['gtd'],'barcode' => $input['barcode']]);
+            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'], 'title' => $input['title'],
+                'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'brand' => $input['brand'],
+                'model' => $input['model'], 'unit_id' => $input['unit_id'], 'weight' => $input['weight'], 'capacity' => $input['capacity'], 'length' => $input['length'],
+                'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
 
             $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
             //вызываем event
@@ -153,7 +154,8 @@ class GoodController extends Controller
         abort(404);*/
     }
 
-    public function edit(Request $request){
+    public function edit(Request $request)
+    {
         if (!Role::granted('wh_work')) {//вызываем event
             $msg = 'Попытка редактирования номенклатуры!';
             event(new AddEventLogs('access', Auth::id(), $msg));
@@ -162,7 +164,7 @@ class GoodController extends Controller
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $id = substr($input['id'],3);
+            $id = substr($input['id'], 3);
             $model = Good::find($id);
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
@@ -195,10 +197,10 @@ class GoodController extends Controller
                 return 'NO VALIDATE';
             }
             // есть такая запись или нет
-            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'],'group_id' => $input['group_id'],'title' => $input['title'],
-                'descr' => $input['descr'],'bx_group' => $input['bx_group'],'vendor_code' => $input['vendor_code'],'analog_code' => $input['analog_code'],'brand' => $input['brand'],
-                'model' => $input['model'],'unit_id' => $input['unit_id'],'weight' => $input['weight'],'capacity' => $input['capacity'],'length' => $input['length'],
-                'area' => $input['area'],'vat' => $input['vat'],'gtd' => $input['gtd'],'barcode' => $input['barcode']]);
+            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'], 'title' => $input['title'],
+                'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'brand' => $input['brand'],
+                'model' => $input['model'], 'unit_id' => $input['unit_id'], 'weight' => $input['weight'], 'capacity' => $input['capacity'], 'length' => $input['length'],
+                'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
 
             $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
             //вызываем event
@@ -211,7 +213,7 @@ class GoodController extends Controller
     {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $id = substr($input['id'],3);
+            $id = substr($input['id'], 3);
             $model = Good::find($id)->toArray();
             return json_encode($model);
         }
@@ -222,17 +224,17 @@ class GoodController extends Controller
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $category_id = $input['id'];
-            $goods = Good::where(['category_id'=>$category_id])->orderBy('updated_at', 'desc')->get();
-            if(!empty($goods)){
-                $content='';
-                foreach ($goods as $good){
-                    $content.= '<tr id="row'.$good->id.'"><td>'.$good->group->title.'</td><td>'.$good->title.'</td><td>'.$good->vendor_code.'</td><td>'.$good->analog_code.'</td>
-                                <td>'.$good->brand.'</td><td>'.$good->model.'</td><td>';
-                    if($good->gtd)
-                        $content.= '<span role="button" class="label label-success">Есть</span>';
+            $goods = Good::where(['category_id' => $category_id])->orderBy('updated_at', 'desc')->get();
+            if (!empty($goods)) {
+                $content = '';
+                foreach ($goods as $good) {
+                    $content .= '<tr id="row' . $good->id . '"><td>' . $good->group->title . '</td><td>' . $good->title . '</td><td>' . $good->vendor_code . '</td><td>' . $good->analog_code . '</td>
+                                <td>' . $good->brand . '</td><td>' . $good->model . '</td><td>';
+                    if ($good->gtd)
+                        $content .= '<span role="button" class="label label-success">Есть</span>';
                     else
-                        $content.= '<span role="button" class="label label-danger">Нет</span>';
-                    $content.= '</td><td>'.$good->barcode.'</td>
+                        $content .= '<span role="button" class="label label-danger">Нет</span>';
+                    $content .= '</td><td>' . $good->barcode . '</td>
                                             <td>
                                                 <div class="form-group" role="group">
                                                     <button class="btn btn-success btn-sm row_edit" type="button"
@@ -254,11 +256,12 @@ class GoodController extends Controller
         }
     }
 
-    public function download(Request $request){
-        if(!Role::granted('import') && !Role::granted('wh_edit')){
+    public function download(Request $request)
+    {
+        if (!Role::granted('import') && !Role::granted('wh_edit')) {
             return 'NO';
         }
-        if($request->hasFile('file')) {
+        if ($request->hasFile('file')) {
             $cat_id = 2; //$input['category_id'];
             $group_id = 6; //$input['group_id'];
             $unit_id = 1; //$input['unit_id'];
@@ -273,63 +276,65 @@ class GoodController extends Controller
             }
             $num = 0;
             // Цикл по листам Excel-файла
-            foreach( $tables as $table ) {
+            foreach ($tables as $table) {
                 $rows = count($table);
                 $analog = '';
-                for($i=1;$i<$rows;$i++){
+                for ($i = 1; $i < $rows; $i++) {
                     $row = $table[$i];
                     $title = trim($row[2]);
                     //выделяем номера аналогов из строки с именем
-                    $tmp = explode(',',$title);
+                    $tmp = explode(',', $title);
                     $title = $tmp[0]; //наименование слева от первой запятой, аналоги справа
-                    if(!empty($tmp[1])){
-                        if(strstr($row[5],"Komatsu") !== FALSE){
+                    if (!empty($tmp[1])) {
+                        if (strstr($row[5], "Komatsu") !== FALSE) {
                             //заменяем все внутренние пробелы на тире
-                            $tmp[1] = trim(str_replace(' ','-',$tmp[1]));
-                            $row[1] = trim(str_replace(' ','-',$row[1]));
+                            $tmp[1] = trim(str_replace(' ', '-', $tmp[1]));
+                            $row[1] = trim(str_replace(' ', '-', $row[1]));
                         }
                         //разделяем запятыми строку аналогов
-                        $analog = trim(str_replace('/',' ',$tmp[1]));
-                        $analog = str_replace(" ",", ",$analog);
-                        if($analog == $row[1])
+                        $analog = trim(str_replace('/', ' ', $tmp[1]));
+                        $analog = str_replace(" ", ", ", $analog);
+                        if ($analog == $row[1])
                             $analog = '';
                     }
-                    if(!empty($row[1])){
-                        Good::updateOrCreate(['vendor_code' => $row[1]], ['category_id' => $cat_id,'group_id' => $group_id,
-                            'title' => $title,'bx_group' => $row[0],'analog_code' => $analog,'brand' => $row[4], 'model' => $row[5],
-                            'unit_id' => $unit_id,'vat' => $vat,'gtd' => $gtd]);
+                    if (!empty($row[1])) {
+                        Good::updateOrCreate(['vendor_code' => $row[1]], ['category_id' => $cat_id, 'group_id' => $group_id,
+                            'title' => $title, 'bx_group' => $row[0], 'analog_code' => $analog, 'brand' => $row[4], 'model' => $row[5],
+                            'unit_id' => $unit_id, 'vat' => $vat, 'gtd' => $gtd]);
                         $num++;
                     }
                 }
             }
-            $result = ['rows'=>$rows,'num'=>$num];
+            $result = ['rows' => $rows, 'num' => $num];
             return json_encode($result);
         }
         return 'ERR';
     }
 
-    public function delete(Request $request){
-        if(!Role::granted('wh_edit')){
+    public function delete(Request $request)
+    {
+        if (!Role::granted('wh_edit')) {
             return 'NO';
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $id = substr($input['id'],3);
+            $id = substr($input['id'], 3);
             $model = Good::find($id);
-            if($model->delete())
+            if ($model->delete())
                 return 'OK';
             else
                 return 'ERR';
         }
     }
 
-    public function upload(Request $request){
-        if(!Role::granted('export') && !Role::granted('wh_edit')){
+    public function upload(Request $request)
+    {
+        if (!Role::granted('export') && !Role::granted('wh_edit')) {
             abort(503, 'У Вас нет прав на экспорт номенклатуры!');
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $goods = Good::whereIn('category_id',$input['category'])->orderBy('category_id', 'asc')->get();
+            $goods = Good::whereIn('category_id', $input['category'])->orderBy('category_id', 'asc')->get();
             $styleArray = array(
                 'font' => array(
                     'bold' => true,
@@ -355,7 +360,7 @@ class GoodController extends Controller
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Номенклатура');
-            $k=1;
+            $k = 1;
             $sheet->getStyle('A' . $k . ':P' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('A1', 'Категория');
             $sheet->setCellValue('B1', 'Группа');
@@ -418,5 +423,14 @@ class GoodController extends Controller
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
         }
+    }
+
+    public function ajaxData(Request $request)
+    {
+        $query = $request->get('query', '');
+        //нужно чтобы возвращалось поле name иначе них.. не работает!!!
+        //подите прочь, я возмущен и раздосадован...
+        $codes = DB::select("select id,vendor_code as name from goods where vendor_code like '%$query%'");
+        return response()->json($codes);
     }
 }

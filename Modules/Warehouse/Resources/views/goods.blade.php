@@ -1,5 +1,6 @@
 @extends('layouts.main')
 @section('user_css')
+    <link href="/css/jstree/themes/default/style.min.css" rel="stylesheet" media="screen">
     <link href="/css/DT_bootstrap.css" rel="stylesheet" media="screen">
 @endsection
 @section('dashboard')

@@ -60,12 +60,26 @@ Route::middleware(['auth'])->group(function(){
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'CurrencyController@edit','as'=>'currencyEdit']);
     });
 
-    //prices/ группа обработки роутов справочника prices
+    //prices/ группа обработки роутов prices
     Route::group(['prefix'=>'prices'], function(){
         Route::get('/',['uses'=>'PriceController@index','as'=>'prices']);
         //prices/add
         Route::match(['get','post'],'/add',['uses'=>'PriceController@create','as'=>'priceAdd']);
         //prices/edit
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'PriceController@edit','as'=>'priceEdit']);
+        //prices/view
+        Route::match(['get','post'],'/view/{id}',['uses'=>'PriceController@show','as'=>'priceView']);
+        //prices/pos/add
+        Route::post('/pos/add',['uses'=>'PriceController@createPosition','as'=>'posPriceAdd']);
+        //prices/pos/find
+        Route::post('/pos/find',['uses'=>'PriceController@findPosition','as'=>'findPosition']);
+        //prices/pos/edit
+        Route::post('/pos/edit',['uses'=>'PriceController@editPosition','as'=>'posPriceEdit']);
+        //prices/pos/delete
+        Route::post('/pos/delete',['uses'=>'PriceController@delPosition','as'=>'posPriceDel']);
+        //prices/import
+        Route::post('/import', ['uses'=>'PriceController@download','as'=>'importPrice']);
+        //prices/export
+        Route::get('/export/{id}',['uses'=>'PriceController@upload','as'=>'exportPrice']);
     });
 });

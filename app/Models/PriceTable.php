@@ -18,6 +18,6 @@ class PriceTable extends Model
 
     public function good()
     {
-        return $this->belongsTo('Modules\Warehouse\Entities\Price','good_id','id');
+        return $this->belongsTo('Modules\Warehouse\Entities\Good','good_id','id');
     }
 }
