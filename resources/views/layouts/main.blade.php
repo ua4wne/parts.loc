@@ -157,7 +157,7 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
-                            <li><a href="{{ route('stockReport') }}"><span class="title"> Складские остатки </span></a></li>
+                            <li><a href="{{ route('stock-report') }}"><span class="title"> Складские остатки </span></a></li>
                         </ul>
                     </li>
                 </ul>

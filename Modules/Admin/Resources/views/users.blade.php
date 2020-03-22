@@ -14,11 +14,23 @@
     </ul>
     <!-- END BREADCRUMB -->
     <!-- page content -->
+    @if (session('error'))
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="alert alert-danger panel-remove">
+                    <a href="#" class="close" data-dismiss="alert">&times;</a>
+                    {{ session('error') }}
+                </div>
+            </div>
+        </div>
+    @endif
     @if (session('status'))
         <div class="row">
-            <div class="alert alert-success panel-remove">
-                <a href="#" class="close" data-dismiss="alert">&times;</a>
-                {{ session('status') }}
+            <div class="col-md-8 col-md-offset-2">
+                <div class="alert alert-success panel-remove">
+                    <a href="#" class="close" data-dismiss="alert">&times;</a>
+                    {{ session('status') }}
+                </div>
             </div>
         </div>
     @endif

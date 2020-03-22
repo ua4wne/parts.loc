@@ -11,10 +11,17 @@
 |
 */
 
-Route::middleware(['auth'])->group(function () {
-    //stock-report
-    Route::match(['get', 'post'], '/add', ['uses' => 'ReportController@stockReport', 'as' => 'stockReport']);
+Route::middleware(['auth'])->group(function() {
 
+    //reports/ группа обработки роутов reports
+    Route::group(['prefix'=>'reports'], function(){
+
+        Route::match(['get','post'],'/stock-report',['uses'=>'StockController@index','as'=>'stock-report']);
+        Route::post('/stock-pie',['uses'=>'StockController@pie_graph','as'=>'stock-pie']);
+        Route::post('/stock-table',['uses'=>'StockController@table','as'=>'stock-table']);
+
+    });
 
 });
+
 
