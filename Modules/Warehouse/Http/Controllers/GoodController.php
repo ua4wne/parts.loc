@@ -3,6 +3,7 @@
 namespace Modules\Warehouse\Http\Controllers;
 
 use App\Events\AddEventLogs;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -126,32 +127,6 @@ class GoodController extends Controller
             $id = Good::where(['vendor_code' => $input['vendor_code']])->first()->id;
             return $id;
         }
-        /*if (view()->exists('warehouse::good_add')) {
-            $cats = Category::all();
-            $catsel = array();
-            foreach ($cats as $val) {
-                $catsel[$val->id] = $val->category;
-            }
-            $groups = Group::all();
-            $groupsel = array();
-            foreach ($groups as $val) {
-                $groupsel[$val->id] = $val->title;
-            }
-            $units = Unit::all();
-            $unitsel = array();
-            foreach ($units as $val) {
-                $unitsel[$val->id] = $val->title;
-            }
-            $data = [
-                'title' => 'Номенклатура',
-                'head' => 'Новая запись',
-                'catsel' => $catsel,
-                'groupsel' => $groupsel,
-                'unitsel' => $unitsel,
-            ];
-            return view('warehouse::good_add', $data);
-        }
-        abort(404);*/
     }
 
     public function edit(Request $request)
@@ -164,7 +139,7 @@ class GoodController extends Controller
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $id = substr($input['id'], 3);
+            $id = $input['id'];
             $model = Good::find($id);
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
@@ -196,6 +171,11 @@ class GoodController extends Controller
                 //return redirect()->route('goodAdd')->withErrors($validator)->withInput();
                 return 'NO VALIDATE';
             }
+            if($model->vendor_code != $input['vendor_code']){ //если правили артикул
+                $model->vendor_code = $input['vendor_code'];
+                $model->save();
+            }
+
             // есть такая запись или нет
             Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'], 'title' => $input['title'],
                 'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'brand' => $input['brand'],
@@ -224,24 +204,31 @@ class GoodController extends Controller
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $category_id = $input['id'];
-            $goods = Good::where(['category_id' => $category_id])->orderBy('updated_at', 'desc')->get();
+            //ищем все дочерние категории для данной
+            $cats = Category::where(['parent_id'=>$category_id])->get();
+            $inval = [$category_id];
+            if(!empty($cats)){
+                foreach ($cats as $val){
+                    array_push($inval,$val->id);
+                }
+            }
+            $goods = Good::whereIn('category_id',$inval)->orderBy('updated_at', 'desc')->get();
             if (!empty($goods)) {
                 $content = '';
                 foreach ($goods as $good) {
                     $content .= '<tr id="row' . $good->id . '"><td>' . $good->group->title . '</td><td>' . $good->title . '</td><td>' . $good->vendor_code . '</td><td>' . $good->analog_code . '</td>
-                                <td>' . $good->brand . '</td><td>' . $good->model . '</td><td>';
-                    if ($good->gtd)
-                        $content .= '<span role="button" class="label label-success">Есть</span>';
-                    else
-                        $content .= '<span role="button" class="label label-danger">Нет</span>';
-                    $content .= '</td><td>' . $good->barcode . '</td>
-                                            <td>
+                                <td>' . $good->brand . '</td><td>' . $good->model . '</td><td>' . $good->barcode . '</td><td>';
+                    $content .= $good->updated_at;
+                    $content .= '</td><td style="width: 120px">
                                                 <div class="form-group" role="group">
                                                     <button class="btn btn-success btn-sm row_edit" type="button"
                                                             data-toggle="modal" data-target="#editGood"
                                                             title="Редактировать запись"><i class="fa fa-edit fa-lg"
                                                                                             aria-hidden="true"></i>
                                                     </button>
+                                                    <button class="btn btn-info btn-sm row_transfer" type="button"
+                                                            title="Передать на сайт"><i class="fa fa-refresh fa-lg"
+                                                                                      aria-hidden="true"></i></button>
                                                     <button class="btn btn-danger btn-sm row_delete" type="button"
                                                             title="Удалить запись"><i class="fa fa-trash fa-lg"
                                                                                       aria-hidden="true"></i></button>
@@ -278,8 +265,8 @@ class GoodController extends Controller
             // Цикл по листам Excel-файла
             foreach ($tables as $table) {
                 $rows = count($table);
-                $analog = '';
                 for ($i = 1; $i < $rows; $i++) {
+                    $analog = '';
                     $row = $table[$i];
                     $title = trim($row[2]);
                     //выделяем номера аналогов из строки с именем
@@ -289,13 +276,16 @@ class GoodController extends Controller
                         if (strstr($row[5], "Komatsu") !== FALSE) {
                             //заменяем все внутренние пробелы на тире
                             $tmp[1] = trim(str_replace(' ', '-', $tmp[1]));
-                            $row[1] = trim(str_replace(' ', '-', $row[1]));
                         }
                         //разделяем запятыми строку аналогов
                         $analog = trim(str_replace('/', ' ', $tmp[1]));
                         $analog = str_replace(" ", ", ", $analog);
-                        if ($analog == $row[1])
-                            $analog = '';
+                        //if ($analog == $row[1])
+                        //    $analog = '';
+                    }
+                    if (strstr($row[5], "Komatsu") !== FALSE) {
+                        //заменяем все внутренние пробелы на тире
+                        $row[1] = str_replace(' ', '-', trim($row[1]));
                     }
                     if (!empty($row[1])) {
                         Good::updateOrCreate(['vendor_code' => $row[1]], ['category_id' => $cat_id, 'group_id' => $group_id,
@@ -378,7 +368,7 @@ class GoodController extends Controller
             $sheet->setCellValue('N1', 'Площадь');
             $sheet->setCellValue('O1', 'НДС');
             $sheet->setCellValue('P1', 'Учет ГТД');
-            $sheet->getStyle('A' . $k . ':M' . $k)->applyFromArray($styleArray);
+            $sheet->getStyle('A' . $k . ':P' . $k)->applyFromArray($styleArray);
             $k++;
             foreach ($goods as $row) {
                 $sheet->setCellValue('A' . $k, $row->category->category);
@@ -432,5 +422,41 @@ class GoodController extends Controller
         //подите прочь, я возмущен и раздосадован...
         $codes = DB::select("select id,vendor_code as name from goods where vendor_code like '%$query%'");
         return response()->json($codes);
+    }
+
+    public function transfer(Request $request){
+        if (!User::hasRole('content_manager')) {
+            return 'NOT';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $id = substr($input['id'], 3);
+            //находим номенклатуру
+            $good = Good::find($id);
+            if (!empty($good)) {
+                $url = env('EXT_URL');
+                $post_data = array(
+                    "token" => env('EXT_TOKEN'),
+                    "section_id" => $good->bx_group,
+                    "artnumber" => $good->vendor_code,
+                    "analogs" => $good->analog_code,
+                    "name" => $good->title,
+                    "brand" => $good->brand,
+                    "model_tech" => $good->model,
+                    "detail_text" => $good->descr
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                // Указываем, что у нас POST запрос
+                curl_setopt($ch, CURLOPT_POST, 1);
+                // Добавляем переменные
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+                $output = curl_exec($ch);
+                curl_close($ch);
+                return $output;
+            }
+        }
     }
 }

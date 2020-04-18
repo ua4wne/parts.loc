@@ -8,6 +8,7 @@ use App\Models\Currency;
 use App\Models\Organisation;
 use App\Models\Price;
 use App\Models\PriceTable;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Entities\Role;
@@ -65,8 +66,8 @@ class PriceController extends Controller
             $doc_num = LibController::GenNumberDoc('prices');
             //смотрим указан ли префикс для документов организации
             $prefix = Organisation::find($input['organisation_id'])->prefix;
-            if(!empty($prefix))
-                $doc_num = $prefix.'-'.$doc_num;
+            if (!empty($prefix))
+                $doc_num = $prefix . '-' . $doc_num;
             $price = new Price();
             $price->fill($input);
             $price->doc_num = $doc_num;
@@ -230,7 +231,7 @@ class PriceController extends Controller
             event(new AddEventLogs('info', Auth::id(), $msg));
             //return redirect()->route('priceView',['id'=>$price_id])->with('status', $msg);
             $row = PriceTable::where(['price_id' => $input['price_id'], 'good_id' => $input['good_id']])->first();
-            $result = ['id' => $row->id, 'title' => $row->good->title];
+            $result = ['id' => $row->id, 'title' => $row->good->title, 'analog' => $row->good->analog_code,'model' => $row->good->model,'updated_at'=>$row->updated_at];
             return json_encode($result);
         }
     }
@@ -315,22 +316,27 @@ class PriceController extends Controller
             $num = 0;
             $rows = 0;
             $doc_num = $tables[0][0][0]; //A1 - номер документа, брать из БД
-            $price_id = Price::where(['doc_num'=>$doc_num])->first()->id;
+            $price_id = Price::where(['doc_num' => $doc_num])->first()->id;
             // Цикл по листам Excel-файла
+            $err = 0;
             foreach ($tables as $table) {
                 $rows = count($table);
                 for ($i = 2; $i < $rows; $i++) {
                     $row = $table[$i];
-                    if(!empty($row[1])){
+                    if (!empty($row[1])) {
                         //$vendor = trim($row[1]);
+                        if (strstr($row[5], "Komatsu") !== FALSE) {
+                            //заменяем все внутренние пробелы на тире
+                            $row[1] = str_replace(' ', '-', trim($row[1]));
+                        }
                         $vendor = $row[1];
-                        if(!is_numeric($row[3]))
+                        if (!is_numeric($row[3]))
                             $row[3] = 0;
-                        if(!is_numeric($row[6]))
+                        if (!is_numeric($row[6]))
                             $row[6] = null;
-                        if(!is_numeric($row[8]))
+                        if (!is_numeric($row[8]))
                             $row[8] = null;
-                        $good = Good::where(['vendor_code'=>$vendor])->first();
+                        $good = Good::where(['vendor_code' => $vendor])->first();
                         if (!empty($good)) {
                             // создаст или обновит запись в модели $good в зависимости от того
                             // есть такая запись или нет
@@ -342,7 +348,7 @@ class PriceController extends Controller
                 }
                 break;
             }
-            $msg = 'Прайс №' . $doc_num . ' был загружен из файла '.$path;
+            $msg = 'Прайс №' . $doc_num . ' был загружен из файла ' . $path;
             //вызываем event
             event(new AddEventLogs('info', Auth::id(), $msg));
             $result = ['rows' => $rows, 'num' => $num];
@@ -379,19 +385,19 @@ class PriceController extends Controller
             )
         );
         $price = Price::find($id);
-        if(!empty($price)){
+        if (!empty($price)) {
             $title = $price->title;
             $doc_num = $price->doc_num;
             $date = $price->updated_at;
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle($title);
-            $sheet->setCellValue('A1',$title);
+            $sheet->setCellValue('A1', $title);
             $sheet->mergeCells('A1:I1');
             $sheet->getStyle('A1:I1')->getFont()->setBold(true);
             $sheet->getStyle('A1:I1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('A2', $doc_num);
-            $sheet->setCellValue('B2', 'Дата обновления: '.$date);
+            $sheet->setCellValue('B2', 'Дата обновления: ' . $date);
             $k = 3;
             $sheet->getStyle('A' . $k . ':I' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('A' . $k, 'Код Bitrix');
@@ -406,8 +412,8 @@ class PriceController extends Controller
             $sheet->getStyle('A' . $k . ':I' . $k)->applyFromArray($styleArray);
             $k++;
             //выбираем позиции прайса
-            $positions = PriceTable::where(['price_id'=>$id])->get();
-            foreach ($positions as $row){
+            $positions = PriceTable::where(['price_id' => $id])->get();
+            foreach ($positions as $row) {
                 $sheet->setCellValue('A' . $k, $row->good->bx_group);
                 $sheet->setCellValue('B' . $k, $row->good->vendor_code);
                 $sheet->setCellValue('C' . $k, $row->good->analog_code);
@@ -435,6 +441,42 @@ class PriceController extends Controller
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
         }
+    }
 
+    public function transfer(Request $request){
+        if (!User::hasRole('content_manager')) {
+            return 'NOT';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $id = substr($input['id'], 3);
+            //находим цену номенклатуры для сайта
+            $price = PriceTable::find($id);
+            if (!empty($price)) {
+                $url = env('EXT_URL');
+                $post_data = array(
+                    "token" => env('EXT_TOKEN'),
+                    "price" => $price->cost_1,
+                    "section_id" => $price->good->bx_group,
+                    "artnumber" => $price->good->vendor_code,
+                    "analogs" => $price->good->analog_code,
+                    "name" => $price->good->title,
+                    "brand" => $price->good->brand,
+                    "model_tech" => $price->good->model,
+                    "detail_text" => $price->good->descr
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                // Указываем, что у нас POST запрос
+                curl_setopt($ch, CURLOPT_POST, 1);
+                // Добавляем переменные
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+                $output = curl_exec($ch);
+                curl_close($ch);
+                return $output;
+            }
+        }
     }
 }

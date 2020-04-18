@@ -147,7 +147,7 @@
                             <div class="form-group">
                                 {!! Form::label('descr','Описание:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('descr',old('descr'),['class' => 'form-control','placeholder'=>'Введите описание','maxlength'=>'255','id'=>'descr'])!!}
+                                    {!! Form::textarea('descr',old('descr'),['class' => 'form-control','rows' => 3, 'cols' => 54,'placeholder'=>'Введите описание','maxlength'=>'255','id'=>'descr'])!!}
                                 </div>
                             </div>
 
@@ -306,7 +306,7 @@
                             <div class="form-group">
                                 {!! Form::label('descr','Описание:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('descr',old('descr'),['class' => 'form-control','placeholder'=>'Введите описание','maxlength'=>'255','id'=>'edescr'])!!}
+                                    {!! Form::textarea('descr',old('descr'),['class' => 'form-control','rows' => 3, 'cols' => 54,'placeholder'=>'Введите описание','maxlength'=>'255','id'=>'edescr'])!!}
                                 </div>
                             </div>
 
@@ -448,8 +448,8 @@
                                     <th>Аналоги</th>
                                     <th>Производитель</th>
                                     <th>Модель</th>
-                                    <th>Учет по ГТД</th>
-                                    <th>Штрих-код</th>
+                                    <th>Штрихкод</th>
+                                    <th>Дата правки</th>
                                     <th>Действия</th>
                                 </tr>
                                 </thead>
@@ -464,21 +464,18 @@
                                             <td>{{ $row->analog_code }}</td>
                                             <td>{{ $row->brand }}</td>
                                             <td>{{ $row->model }}</td>
-                                            <td>
-                                                @if($row->gtd)
-                                                    <span role="button" class="label label-success">Есть</span>
-                                                @else
-                                                    <span role="button" class="label label-danger">Нет</span>
-                                                @endif
-                                            </td>
                                             <td>{{ $row->barcode }}</td>
-                                            <td>
+                                            <td>{{ $row->updated_at }}</td>
+                                            <td style="width: 120px">
                                                 <div class="form-group" role="group">
                                                     <button class="btn btn-success btn-sm row_edit" type="button"
                                                             data-toggle="modal" data-target="#editGood"
                                                             title="Редактировать запись"><i class="fa fa-edit fa-lg"
                                                                                             aria-hidden="true"></i>
                                                     </button>
+                                                    <button class="btn btn-info btn-sm row_transfer" type="button"
+                                                            title="Передать на сайт"><i class="fa fa-refresh fa-lg"
+                                                                                      aria-hidden="true"></i></button>
                                                     <button class="btn btn-danger btn-sm row_delete" type="button"
                                                             title="Удалить запись"><i class="fa fa-trash fa-lg"
                                                                                       aria-hidden="true"></i></button>
@@ -503,6 +500,7 @@
     <script src="/js/jstree.min.js"></script>
     @include('confirm')
     <script>
+        let row_id;
         _loadData();
         let table = $('#mytable').DataTable({
             "aoColumnDefs": [{
@@ -546,7 +544,6 @@
 
         $('#btn_import').click(function (e) {
             e.preventDefault();
-            $('#file-loader').show();
             let error = 0;
             $("#import_good").find(":input").each(function () {// проверяем каждое поле ввода в форме
                 if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
@@ -560,7 +557,7 @@
                 }
             })
             if (error) {
-                $('#file-loader').hide();
+                $('#loader').hide();
                 alert("Необходимо заполнять все доступные поля!");
                 return false;
             } else {
@@ -576,6 +573,9 @@
                     data: formData,
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    beforeSend: function(){
+                        $('#loader').show();
                     },
                     success: function (res) {
                         //alert(res);
@@ -594,7 +594,7 @@
                         alert(xhr.status + '\n' + thrownError);
                     }
                 });
-                $('#file-loader').hide();
+                $('#loader').hide();
             }
         });
 
@@ -629,11 +629,11 @@
                         else if (res == 'ERR')
                             alert('При обновлении данных возникла ошибка!');
                         else {
-                            let gtd = '';
+                            /*let gtd = '';
                             if ($("#gtd option:selected").val() == '1')
                                 gtd = '<span role="button" class="label label-success">Есть</span>';
                             else
-                                gtd = '<span role="button" class="label label-danger">Нет</span>';
+                                gtd = '<span role="button" class="label label-danger">Нет</span>';*/
                             const addedRow = table.row.add([
                                 $("#group_id option:selected").text(),
                                 $('#title').val(),
@@ -641,17 +641,18 @@
                                 $('#analog_code').val(),
                                 $('#brand').val(),
                                 $('#model').val(),
-                                gtd,
                                 $('#barcode').val(),
+                                now(),
                                 '<div class="form-group" role="group"><button class="btn btn-success btn-sm row_edit" type="button" data-toggle="modal" data-target="#editGood" title="Редактировать запись"><i class="fa fa-edit fa-lg" aria-hidden="true"></i></button>' +
+                                '\n<button class="btn btn-info btn-sm row_transfer" type="button" title="Передать на сайт"><i class="fa fa-refresh fa-lg" aria-hidden="true"></i></button>' +
                                 '\n<button class="btn btn-danger btn-sm row_delete" type="button" title="Удалить запись"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button></div>'
                             ]).draw();
                             const addedRowNode = addedRow.node();
-                            $(addedRowNode).attr('id', res);
-                            //$('#new_good')[0].reset();
-                            $('input[type=text]').each(function () {
+                            $(addedRowNode).attr('id', 'row'+res);
+                            $('#new_good')[0].reset();
+                            /*$('input[type=text]').each(function () {
                                 $(this).val('');
-                            });
+                            });*/
                             $('#vat').val('20');
                             $(".modal").modal("hide");
                         }
@@ -667,7 +668,8 @@
             click: function (e) {
                 e.preventDefault();
                 $('#edit_good')[0].reset();
-                var id = $(this).parent().parent().parent().attr("id");
+                let id = $(this).parent().parent().parent().attr("id");
+                row_id = id;
                 //alert('id=' + id);
                 $.ajax({
                     type: 'POST',
@@ -714,8 +716,41 @@
                 e.preventDefault();
                 var id = $(this).parent().parent().parent().attr("id");
                 //alert('id=' + id);
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('transferGood') }}',
+                        data: {'id': id},
+                        headers: {
+                            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (res) {
+                            //alert(res);
+                            if(res=='OK'){
+                                alert('Запись на сайте успешно обновлена!');
+                            }
+                            if(res=='ERR'){
+                                alert('В процессе синхронизации данных на сайт произошла ошибка!');
+                            }
+                            if(res=='NOT'){
+                                alert('У вас нет прав для выполнения операции выгрузки на сайт!');
+                            }
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+            }
+        }, ".row_transfer");
+
+        $(document).on({
+            click: function (e) {
+                e.preventDefault();
+                var id = $(this).parent().parent().parent().attr("id");
+                //alert('id=' + id);
                 let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
                 if (x) {
+                    alert('Не забудьте удалить эту номенклатуру на сайте. Удаление на сайте возможно только вручную!');
                     $.ajax({
                         type: 'POST',
                         url: '{{ route('delGood') }}',
@@ -778,8 +813,16 @@
                         else if (res == 'ERR')
                             alert('При обновлении данных возникла ошибка!');
                         else {
-                            _viewGoods(res);
+                            //_viewGoods(res);
                             $(".modal").modal("hide");
+                            $('#'+row_id).children('td').eq(0).text($("#egroup_id option:selected").text());
+                            $('#'+row_id).children('td').eq(1).text($('#etitle').val());
+                            $('#'+row_id).children('td').eq(2).text($('#evendor_code').val());
+                            $('#'+row_id).children('td').eq(3).text($('#eanalog_code').val());
+                            $('#'+row_id).children('td').eq(4).text($('#ebrand').val());
+                            $('#'+row_id).children('td').eq(5).text($('#emodel').val());
+                            $('#'+row_id).children('td').eq(6).text($('#ebarcode').val());
+                            $('#'+row_id).children('td').eq(7).text(now());
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -789,6 +832,17 @@
                 $.modal.close();
             }
         });
+
+        function now(){
+            Data = new Date();
+            Year = Data.getFullYear();
+            Month = Data.getMonth()+1;
+            Day = Data.getDate();
+            Hour = Data.getHours();
+            Minutes = Data.getMinutes();
+            Seconds = Data.getSeconds();
+            return Year+'-'+Month+'-'+Day+' '+Hour+':'+Minutes+':'+Seconds;
+        }
 
         // Загрузка категорий с сервера
         function _loadData() {

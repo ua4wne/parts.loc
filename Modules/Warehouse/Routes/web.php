@@ -29,6 +29,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/import', ['uses'=>'GoodController@download','as'=>'importGood']);
         //goods/export
         Route::post('/export',['uses'=>'GoodController@upload','as'=>'exportGood']);
+        //goods/transfer
+        Route::post('/transfer',['uses'=>'GoodController@transfer','as'=>'transferGood']);
         //goods/vendor
         Route::get('/vendor',['uses'=>'GoodController@ajaxData','as'=>'getCode']);
     });
@@ -87,6 +89,31 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['get','post'],'/add',['uses'=>'UnitController@create','as'=>'unitAdd']);
         //units/edit
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'UnitController@edit','as'=>'unitEdit']);
+    });
+
+    //inventories/ группа обработки роутов inventories
+    Route::group(['prefix'=>'wh_corrects'], function(){
+        Route::get('/',['uses'=>'WhCorrectController@index','as'=>'wh_corrects']);
+        //wh_corrects/add
+        Route::match(['get','post'],'/add',['uses'=>'WhCorrectController@create','as'=>'wh_correctsAdd']);
+        //wh_corrects/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'WhCorrectController@edit','as'=>'wh_correctEdit']);
+        //wh_corrects/view
+        Route::match(['get','post'],'/view/{id}',['uses'=>'WhCorrectController@show','as'=>'wh_correctsView']);
+        //wh_corrects/pos/add
+        Route::post('/pos/add',['uses'=>'WhCorrectController@createPosition','as'=>'posWhcAdd']);
+        //wh_corrects/pos/find
+        Route::post('/pos/find',['uses'=>'WhCorrectController@findPosition','as'=>'findPosWhc']);
+        //wh_corrects/pos/edit
+        Route::post('/pos/edit',['uses'=>'WhCorrectController@editPosition','as'=>'posWhcEdit']);
+        //wh_corrects/pos/delete
+        Route::post('/pos/delete',['uses'=>'WhCorrectController@delPosition','as'=>'posWhcDel']);
+        //wh_corrects/import
+        Route::post('/import', ['uses'=>'WhCorrectController@download','as'=>'importWhCorrect']);
+        //wh_corrects/export
+        Route::post('/export', ['uses'=>'WhCorrectController@upload','as'=>'exportWhCorrect']);
+        //wh_corrects/write
+        Route::post('/write', ['uses'=>'WhCorrectController@writeToStock','as'=>'writeWhCorrect']);
     });
 });
 

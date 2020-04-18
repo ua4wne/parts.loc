@@ -107,6 +107,7 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
+                            <li><a href="{{ route('wh_corrects') }}"><span class="title">Корректировка остатков</span></a></li>
                             <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
                             <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
                         </ul>

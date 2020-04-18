@@ -57,7 +57,7 @@ class User extends Authenticatable
         $user_id = Auth::id();
         $roles = User::find($user_id)->roles;
         foreach ($roles as $role){
-            if($role->code==$code)
+            if($role->code==$code || $role->code=='admin')
                 return TRUE;
         }
         return FALSE;

@@ -81,5 +81,7 @@ Route::middleware(['auth'])->group(function(){
         Route::post('/import', ['uses'=>'PriceController@download','as'=>'importPrice']);
         //prices/export
         Route::get('/export/{id}',['uses'=>'PriceController@upload','as'=>'exportPrice']);
+        //prices/transfer
+        Route::post('/transfer',['uses'=>'PriceController@transfer','as'=>'transferPrice']);
     });
 });

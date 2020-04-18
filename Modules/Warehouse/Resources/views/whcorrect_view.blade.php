@@ -13,12 +13,30 @@
     <!-- START BREADCRUMB -->
     <ul class="breadcrumb">
         <li><a href="{{ route('main') }}">Рабочий стол</a></li>
-        <li><a href="{{ route('prices') }}">{{ $title }}</a></li>
-        <li class="active"><a href="{{ route('priceView',['id'=>$id]) }}">{{ $head }}</a></li>
+        <li><a href="{{ route('wh_corrects') }}">{{ $title }}</a></li>
+        <li class="active"><a href="{{ route('wh_correctsView',['id'=>$id]) }}">{{ $head }}</a></li>
     </ul>
     <!-- END BREADCRUMB -->
+    @if (session('error'))
+        <div class="row">
+            <div class="alert alert-error panel-remove col-md-8 col-md-offset-2">
+                <a href="#" class="close" data-dismiss="alert">&times;</a>
+                {{ session('error') }}
+            </div>
+        </div>
+    @endif
+    <!-- page content -->
+    @if (session('status'))
+        <div class="row">
+            <div class="alert alert-success panel-remove col-md-8 col-md-offset-2">
+                <a href="#" class="close" data-dismiss="alert">&times;</a>
+                {{ session('status') }}
+            </div>
+        </div>
+    @endif
     <!-- page content -->
     <div class="container-fluid container-fullw bg-white">
+        <div id="loader"></div> <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
         <div class="row">
             <!-- New Position Modal -->
             <div class="modal fade" id="newPos" tabindex="-1" role="dialog" aria-labelledby="newPos"
@@ -36,7 +54,7 @@
 
                             <div class="form-group">
                                 <div class="col-xs-8">
-                                    {!! Form::hidden('price_id',$id,['class' => 'form-control','required'=>'required','id'=>'price_id']) !!}
+                                    {!! Form::hidden('doc_id',$id,['class' => 'form-control','required'=>'required','id'=>'doc_id']) !!}
                                 </div>
                             </div>
 
@@ -50,25 +68,27 @@
                             </div>
 
                             <div class="form-group">
+                                {!! Form::label('cell','Ячейка:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('cell',old('cell'),['class' => 'form-control','placeholder'=>'Укажите складскую ячейку','id'=>'cell'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
                                 <label class="col-xs-3 control-label">
-                                    Цена для сайта, руб: <span class="symbol required" aria-required="true"></span>
+                                    Количество: <span class="symbol required" aria-required="true"></span>
                                 </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('cost_1',old('cost_1'),['class' => 'form-control','placeholder'=>'Введите цену продажи','required'=>'required','id'=>'cost1'])!!}
+                                    {!! Form::text('qty',old('qty'),['class' => 'form-control','placeholder'=>'Укажите количество','required'=>'required','id'=>'qty'])!!}
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('cost_2','Цена в 1С, руб:',['class' => 'col-xs-3 control-label'])   !!}
+                                <label class="col-xs-3 control-label">
+                                    Единица измерения: <span class="symbol required" aria-required="true"></span>
+                                </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('cost_2',old('cost_2'),['class' => 'form-control','placeholder'=>'Укажите цену из 1С','id'=>'cost2'])!!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                {!! Form::label('cost_3','Цена рыночная, руб:',['class' => 'col-xs-3 control-label'])   !!}
-                                <div class="col-xs-8">
-                                    {!! Form::text('cost_3',old('cost_3'),['class' => 'form-control','placeholder'=>'Укажите цену рынка','id'=>'cost3'])!!}
+                                    {!! Form::select('unit_id',$usel, old('unit_id'), ['class' => 'form-control','required'=>'required','id'=>'unit_id']); !!}
                                 </div>
                             </div>
 
@@ -103,32 +123,41 @@
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('cost_3','Артикул:',['class' => 'col-xs-3 control-label'])   !!}
+                                {!! Form::label('vendor_code','Артикул:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('vendor_code','',['class' => 'form-control typeahead','placeholder'=>'Введите артикул','disabled'=>'disabled','id'=>'vendor_code'])!!}
+                                    {!! Form::text('vendor_code','',['class' => 'form-control typeahead','disabled'=>'disabled','id'=>'vendor_code'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('analog_code','Аналоги:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('analog_code','',['class' => 'form-control typeahead','disabled'=>'disabled','id'=>'analog_code'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('cell','Ячейка:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('cell',old('cell'),['class' => 'form-control','placeholder'=>'Укажите складскую ячейку','id'=>'ecell'])!!}
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label class="col-xs-3 control-label">
-                                    Цена для сайта, руб: <span class="symbol required" aria-required="true"></span>
+                                    Количество: <span class="symbol required" aria-required="true"></span>
                                 </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('cost_1',old('cost_1'),['class' => 'form-control','placeholder'=>'Введите цену продажи','required'=>'required','id'=>'ecost1'])!!}
+                                    {!! Form::text('qty',old('qty'),['class' => 'form-control','placeholder'=>'Укажите количество','required'=>'required','id'=>'eqty'])!!}
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('cost_2','Цена в 1С, руб:',['class' => 'col-xs-3 control-label'])   !!}
+                                <label class="col-xs-3 control-label">
+                                    Единица измерения: <span class="symbol required" aria-required="true"></span>
+                                </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('cost_2',old('cost_2'),['class' => 'form-control','placeholder'=>'Укажите цену из 1С','id'=>'ecost2'])!!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                {!! Form::label('cost_3','Цена рыночная, руб:',['class' => 'col-xs-3 control-label'])   !!}
-                                <div class="col-xs-8">
-                                    {!! Form::text('cost_3',old('cost_3'),['class' => 'form-control','placeholder'=>'Укажите цену рынка','id'=>'ecost3'])!!}
+                                    {!! Form::select('unit_id',$usel, old('unit_id'), ['class' => 'form-control','required'=>'required','id'=>'eunit_id']); !!}
                                 </div>
                             </div>
 
@@ -142,8 +171,8 @@
                 </div>
             </div>
             <!-- Edit Position Modal -->
-            <!-- Import Price Modal -->
-            <div class="modal fade" id="importPrice" tabindex="-1" role="dialog" aria-labelledby="importPrice"
+            <!-- Import Doc Modal -->
+            <div class="modal fade" id="importDoc" tabindex="-1" role="dialog" aria-labelledby="importDoc"
                  aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -153,8 +182,8 @@
                             </button>
                             <h4 class="modal-title">Загрузка данных из Excel</h4>
                         </div>
+                        {!! Form::open(['url' => route('importWhCorrect'),'class'=>'form-horizontal','method'=>'POST','files'=>'true','data-function'=>'no_delete']) !!}
                         <div class="modal-body">
-                            {!! Form::open(['url' => '#','id'=>'import_price','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
 
                             <div class="form-group">
                                 <label class="col-xs-3 control-label">
@@ -165,36 +194,69 @@
                                 </div>
                             </div>
 
-                            {!! Form::close() !!}
                         </div>
                         <div class="modal-footer">
-                            <span class="pull-left" id="file-loader"><img src="/images/file-loader.gif"></span>
-                            <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
                             <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                            <button type="button" class="btn btn-primary" id="btn_import">Сохранить</button>
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
                         </div>
+                        {!! Form::close() !!}
                     </div>
                 </div>
             </div>
-            <!-- Import Price Modal -->
+            <!-- Import Doc Modal -->
+            <!-- Export Doc Modal -->
+            <div class="modal fade" id="exportDoc" tabindex="-1" role="dialog" aria-labelledby="exportDoc"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                            </button>
+                            <h4 class="modal-title">Выгрузка шаблона</h4>
+                        </div>
+                        {!! Form::open(['url' => route('exportWhCorrect'),'class'=>'form-horizontal','method'=>'POST','data-function'=>'no_delete']) !!}
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class=" col-md-9 col-md-offset-1 control-label">
+                                    Для документа <b>{{ $head }}</b>
+                                </label>
+                                {!! Form::hidden('doc_id',$id,['class' => 'form-control','required'=>'required']) !!}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-primary" id="btn_export">Сохранить</button>
+                        </div>
+                        {!! Form::close() !!}
+                    </div>
+                </div>
+            </div>
+            <!-- Export Doc Modal -->
             <h2 class="text-center">{{ $head }}</h2>
             <div class="panel-heading">
-                <button type="button" class="btn btn-primary btn-sm btn-o" data-toggle="modal"
-                        data-target="#newPos">
-                    <i class="fa fa-plus" aria-hidden="true"></i>
-                    Новая позиция
-                </button>
-                <button type="button" class="btn btn-primary btn-sm btn-o" id="import" data-toggle="modal"
-                        data-target="#importPrice">
-                    <i class="fa fa-download" aria-hidden="true"></i>
-                    Импорт
-                </button>
-                <a href="{{ route('exportPrice',['id'=>$id]) }}">
-                    <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-upload"
-                                                                                  aria-hidden="true"></i>
-                        Экспорт
+                @if($status)
+                    <button type="button" class="btn btn-primary btn-sm btn-o" data-toggle="modal"
+                            data-target="#newPos">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                        Новая позиция
                     </button>
-                </a>
+                    <button type="button" class="btn btn-primary btn-sm btn-o" id="import" data-toggle="modal"
+                            data-target="#exportDoc">
+                        <i class="fa fa-upload" aria-hidden="true"></i>
+                        Выгрузить шаблон
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm btn-o" id="import" data-toggle="modal"
+                            data-target="#importDoc">
+                        <i class="fa fa-download" aria-hidden="true"></i>
+                        Загрузить из шаблона
+                    </button>
+
+                    <button type="button" class="btn btn-primary btn-sm btn-o" id="btn_write">
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                        Провести документ
+                    </button>
+                @endif
             </div>
             <div class="col-md-12">
                 <div class=" table-responsive">
@@ -205,12 +267,14 @@
                                 <th>Артикул</th>
                                 <th>Аналоги</th>
                                 <th>Наименование</th>
-                                <th>Модель</th>
-                                <th>Цена сайт</th>
-                                <th>Цена 1С</th>
-                                <th>Цена рынка</th>
-                                <th>Дата правки</th>
-                                <th>Действия</th>
+                                <th>Ячейка</th>
+                                <th>Кол-во</th>
+                                <th>Цена за ед, руб</th>
+                                <th>Ед. упаковки</th>
+                                <th>Итого, руб</th>
+                                @if($status)
+                                    <th>Действия</th>
+                                @endif
                             </tr>
                             </thead>
                             <tbody>
@@ -219,26 +283,25 @@
                                     <td>{{ $row->good->vendor_code }}</td>
                                     <td>{{ $row->good->analog_code }}</td>
                                     <td>{{ $row->good->title }}</td>
-                                    <td>{{ $row->good->model }}</td>
-                                    <td>{{ $row->cost_1 }}</td>
-                                    <td>{{ $row->cost_2 }}</td>
-                                    <td>{{ $row->cost_3 }}</td>
-                                    <td>{{ $row->updated_at }}</td>
-                                    <td style="width:130px;">
-                                        <div class="form-group" role="group">
-                                            <button class="btn btn-success btn-sm row_edit" type="button"
-                                                    data-toggle="modal" data-target="#editPos"
-                                                    title="Редактировать запись"><i class="fa fa-edit fa-lg"
-                                                                                    aria-hidden="true"></i>
-                                            </button>
-                                            <button class="btn btn-info btn-sm row_transfer" type="button"
-                                                    title="Передать на сайт"><i class="fa fa-refresh fa-lg"
-                                                                                aria-hidden="true"></i></button>
-                                            <button class="btn btn-danger btn-sm row_delete" type="button"
-                                                    title="Удалить запись"><i class="fa fa-trash fa-lg"
-                                                                              aria-hidden="true"></i></button>
-                                        </div>
-                                    </td>
+                                    <td>{{ $row->cell }}</td>
+                                    <td>{{ $row->qty }}</td>
+                                    <td>{{ $row->price }}</td>
+                                    <td>{{ $row->unit->title }}</td>
+                                    <td>{{ $row->amount }}</td>
+                                    @if($status)
+                                        <td style="width:80px;">
+                                            <div class="form-group" role="group">
+                                                <button class="btn btn-success btn-sm row_edit" type="button"
+                                                        data-toggle="modal" data-target="#editPos"
+                                                        title="Редактировать запись"><i class="fa fa-edit fa-lg"
+                                                                                        aria-hidden="true"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-sm row_delete" type="button"
+                                                        title="Удалить запись"><i class="fa fa-trash fa-lg"
+                                                                                  aria-hidden="true"></i></button>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                             </tbody>
@@ -256,7 +319,6 @@
     <script src="/js/bootstrap-typeahead.min.js"></script>
     @include('confirm')
     <script>
-        let row_id;
         $('#search_code').typeahead({
             hint: true,
             highlight: true,
@@ -326,7 +388,7 @@
             } else {
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('posPriceAdd') }}',
+                    url: '{{ route('posWhcAdd') }}',
                     data: $('#new_pos').serialize(),
                     success: function (res) {
                         //alert(res);
@@ -340,19 +402,18 @@
                         if (typeof obj === 'object') {
                             const addedRow = table.row.add([
                                 $('#search_code').val(),
-                                obj.analog,
+                                obj.analog_code,
                                 obj.title,
-                                obj.model,
-                                $('#cost1').val(),
-                                $('#cost2').val(),
-                                $('#cost3').val(),
-                                now(),
+                                $('#cell').val(),
+                                $('#qty').val(),
+                                obj.price,
+                                $("#unit_id option:selected").text(),
+                                obj.amount,
                                 '<div class="form-group" role="group"><button class="btn btn-success btn-sm row_edit" type="button" data-toggle="modal" data-target="#editPos" title="Редактировать запись"><i class="fa fa-edit fa-lg" aria-hidden="true"></i></button>' +
-                                '\n<button class="btn btn-info btn-sm row_transfer" type="button" title="Передать на сайт"><i class="fa fa-refresh fa-lg"aria-hidden="true"></i></button>' +
                                 '\n<button class="btn btn-danger btn-sm row_delete" type="button" title="Удалить запись"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button></div>'
                             ]).draw();
                             const addedRowNode = addedRow.node();
-                            $(addedRowNode).attr('id', 'row'+obj.id);
+                            $(addedRowNode).attr('id', 'row' + obj.id);
                             $('#new_pos')[0].reset();
                             $(".modal").modal("hide");
                         }
@@ -369,12 +430,12 @@
                 e.preventDefault();
                 $('#edit_pos')[0].reset();
                 let id = $(this).parent().parent().parent().attr("id");
-                let code = $(this).parent().parent().prevAll().eq(6).text();
-                row_id = id;
+                let code = $(this).parent().parent().prevAll().eq(7).text();
+                let analog = $(this).parent().parent().prevAll().eq(6).text();
                 //alert('id=' + id);
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('findPosition') }}',
+                    url: '{{ route('findPosWhc') }}',
                     data: {'id': id},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
@@ -385,9 +446,10 @@
                         if (typeof obj === 'object') {
                             $('#eid').val(obj.id);
                             $('#vendor_code').val(code);
-                            $('#ecost1').val(obj.cost_1);
-                            $('#ecost2').val(obj.cost_2);
-                            $('#ecost3').val(obj.cost_3);
+                            $('#analog_code').val(analog);
+                            $('#ecell').val(obj.cell);
+                            $('#eqty').val(obj.qty);
+                            $("#unit_id option[value='" + obj.unit_id + "']").attr("selected", "selected");
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -402,59 +464,30 @@
         $(document).on({
             click: function (e) {
                 e.preventDefault();
-                let id = $(this).parent().parent().parent().attr("id");
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('transferPrice') }}',
-                    data: {'id': id},
-                    headers: {
-                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        //alert(res);
-                        if(res=='OK'){
-                            alert('Запись на сайте успешно обновлена!');
-                        }
-                        if(res=='ERR'){
-                            alert('В процессе синхронизации данных на сайт произошла ошибка!');
-                        }
-                        if(res=='NOT'){
-                            alert('У вас нет прав для выполнения операции выгрузки на сайт!');
-                        }
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        alert(xhr.status);
-                        alert(thrownError);
-                    }
-                });
-            }
-        }, ".row_transfer");
-
-        $(document).on({
-            click: function (e) {
-                e.preventDefault();
                 var id = $(this).parent().parent().parent().attr("id");
                 //alert('id=' + id);
                 let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
                 if (x) {
                     $.ajax({
                         type: 'POST',
-                        url: '{{ route('posPriceDel') }}',
+                        url: '{{ route('posWhcDel') }}',
                         data: {'id': id},
                         headers: {
                             'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function (res) {
                             //alert(res);
-                            if(res=='OK'){
+                            if (res == 'OK') {
                                 $('#' + id).hide();
                             }
-                            if(res=='NO'){
+                            if (res == 'NO') {
                                 alert('У вас нет прав для выполнения операции удаления!');
                             }
-                            if(res=='ERR'){
+                            if (res == 'ERR') {
                                 alert('В процессе удаления произошла ошибка!');
                             }
+                            if (res == 'NOT')
+                                alert('Выполнение операции запрещено!');
                         },
                         error: function (xhr, ajaxOptions, thrownError) {
                             alert(xhr.status);
@@ -466,6 +499,43 @@
                 }
             }
         }, ".row_delete");
+
+        $('#btn_write').click(function (e) {
+            e.preventDefault();
+            let id = $('#doc_id').val();
+            let x = confirm("Выбранный документ будет проведен! Продолжить (Да/Нет)?");
+            if (x) {
+                $('#loader').show();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('writeWhCorrect') }}',
+                    data: {'id': id},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'OK') {
+                            alert('Документ успешно проведен!');
+                            location.reload();
+                        }
+                        if (res == 'NO') {
+                            alert('У вас нет прав для выполнения операции проведения документа!');
+                        }
+                        if (res == 'ERR') {
+                            alert('При попытке проведения документа возникла ошибка!');
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+                $('#loader').hide();
+            } else {
+                return false;
+            }
+        });
 
         $('#btn_save').click(function (e) {
             e.preventDefault();
@@ -487,7 +557,7 @@
             } else {
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('posPriceEdit') }}',
+                    url: '{{ route('posWhcEdit') }}',
                     data: $('#edit_pos').serialize(),
                     success: function (res) {
                         //alert(res);
@@ -498,11 +568,20 @@
                         if (res == 'ERR')
                             alert('При обновлении данных возникла ошибка!');
                         if (res == 'OK') {
+                            //$(".modal").modal("hide");
+                            location.reload();
+                        }
+                        let obj = jQuery.parseJSON(res);
+                        if (typeof obj === 'object') {
                             $(".modal").modal("hide");
-                            $('#'+row_id).children('td').eq(4).text($('#ecost1').val());
-                            $('#'+row_id).children('td').eq(5).text($('#ecost2').val());
-                            $('#'+row_id).children('td').eq(6).text($('#ecost3').val());
-                            $('#'+row_id).children('td').eq(7).text(now());
+
+                            $('#row'+obj.id).children('td').eq(0).text($('#vendor_code').val());
+                            $('#row'+obj.id).children('td').eq(1).text($('#analog_code').val());
+                            $('#row'+obj.id).children('td').eq(3).text($('#ecell').val());
+                            $('#row'+obj.id).children('td').eq(4).text($('#eqty').val());
+                            $('#row'+obj.id).children('td').eq(5).text(obj.price);
+                            $('#row'+obj.id).children('td').eq(6).text($("#eunit_id option:selected").text());
+                            $('#row'+obj.id).children('td').eq(7).text(obj.amount);
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -513,10 +592,10 @@
             }
         });
 
-        $('#btn_import').click(function (e) {
+        /*$('#btn_import').click(function (e) {
             e.preventDefault();
             let error = 0;
-            $("#import_price").find(":input").each(function () {// проверяем каждое поле ввода в форме
+            $("#import_doc").find(":input").each(function () {// проверяем каждое поле ввода в форме
                 if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
                     if (!$(this).val()) {// если поле пустое
                         $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
@@ -535,11 +614,11 @@
                 formData.append('file', $('#file').prop("files")[0]);
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('importPrice') }}',
+                    url: '{{ route('importWhCorrect') }}',
                     processData: false,
                     contentType: false,
-                    cache:false,
-                    dataType : 'text',
+                    cache: false,
+                    dataType: 'text',
                     data: formData,
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
@@ -553,7 +632,7 @@
                         let obj = jQuery.parseJSON(res);
                         if (typeof obj === 'object') {
                             $(".modal").modal("hide");
-                            alert('Обработано строк '+obj.num+' из '+obj.rows+'!');
+                            alert('Обработано строк ' + obj.num + ' из ' + obj.rows + '!');
                             location.reload();
                         }
                     },
@@ -562,18 +641,7 @@
                     }
                 });
             }
-        });
-
-        function now(){
-            Data = new Date();
-            Year = Data.getFullYear();
-            Month = Data.getMonth()+1;
-            Day = Data.getDate();
-            Hour = Data.getHours();
-            Minutes = Data.getMinutes();
-            Seconds = Data.getSeconds();
-            return Year+'-'+Month+'-'+Day+' '+Hour+':'+Minutes+':'+Seconds;
-        }
+        });*/
 
     </script>
 @endsection

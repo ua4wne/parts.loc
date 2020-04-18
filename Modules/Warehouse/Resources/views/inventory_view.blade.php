@@ -115,9 +115,16 @@
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('cost_3','Артикул:',['class' => 'col-xs-3 control-label'])   !!}
+                                {!! Form::label('vendor_code','Артикул:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('vendor_code','',['class' => 'form-control typeahead','placeholder'=>'Введите артикул','disabled'=>'disabled','id'=>'vendor_code'])!!}
+                                    {!! Form::text('vendor_code','',['class' => 'form-control typeahead','disabled'=>'disabled','id'=>'vendor_code'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('analog_code','Аналоги:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('analog_code','',['class' => 'form-control typeahead','disabled'=>'disabled','id'=>'analog_code'])!!}
                                 </div>
                             </div>
 
@@ -227,37 +234,43 @@
                             <thead>
                             <tr>
                                 <th>Артикул</th>
+                                <th>Аналоги</th>
                                 <th>Наименование</th>
                                 <th>Ячейка</th>
                                 <th>Кол-во</th>
                                 <th>Цена за ед, руб</th>
                                 <th>Ед. упаковки</th>
                                 <th>Итого, руб</th>
-                                <th>Действия</th>
+                                @if($status)
+                                    <th>Действия</th>
+                                @endif
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($rows as $k => $row)
                                 <tr id="row{{ $row->id }}">
                                     <td>{{ $row->good->vendor_code }}</td>
+                                    <td>{{ $row->good->analog_code }}</td>
                                     <td>{{ $row->good->title }}</td>
                                     <td>{{ $row->cell }}</td>
                                     <td>{{ $row->qty }}</td>
                                     <td>{{ $row->price }}</td>
                                     <td>{{ $row->unit->title }}</td>
                                     <td>{{ $row->amount }}</td>
-                                    <td style="width:80px;">
-                                        <div class="form-group" role="group">
-                                            <button class="btn btn-success btn-sm row_edit" type="button"
-                                                    data-toggle="modal" data-target="#editPos"
-                                                    title="Редактировать запись"><i class="fa fa-edit fa-lg"
-                                                                                    aria-hidden="true"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm row_delete" type="button"
-                                                    title="Удалить запись"><i class="fa fa-trash fa-lg"
-                                                                              aria-hidden="true"></i></button>
-                                        </div>
-                                    </td>
+                                    @if($status)
+                                        <td style="width:80px;">
+                                            <div class="form-group" role="group">
+                                                <button class="btn btn-success btn-sm row_edit" type="button"
+                                                        data-toggle="modal" data-target="#editPos"
+                                                        title="Редактировать запись"><i class="fa fa-edit fa-lg"
+                                                                                        aria-hidden="true"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-sm row_delete" type="button"
+                                                        title="Удалить запись"><i class="fa fa-trash fa-lg"
+                                                                                  aria-hidden="true"></i></button>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                             </tbody>
@@ -358,6 +371,7 @@
                         if (typeof obj === 'object') {
                             const addedRow = table.row.add([
                                 $('#search_code').val(),
+                                obj.analog_code,
                                 obj.title,
                                 $('#cell').val(),
                                 $('#qty').val(),
@@ -385,7 +399,8 @@
                 e.preventDefault();
                 $('#edit_pos')[0].reset();
                 let id = $(this).parent().parent().parent().attr("id");
-                let code = $(this).parent().parent().prevAll().eq(6).text();
+                let code = $(this).parent().parent().prevAll().eq(7).text();
+                let analog = $(this).parent().parent().prevAll().eq(6).text();
                 //alert('id=' + id);
                 $.ajax({
                     type: 'POST',
@@ -400,6 +415,7 @@
                         if (typeof obj === 'object') {
                             $('#eid').val(obj.id);
                             $('#vendor_code').val(code);
+                            $('#analog_code').val(analog);
                             $('#ecell').val(obj.cell);
                             $('#eqty').val(obj.qty);
                             $('#eprice').val(obj.price);

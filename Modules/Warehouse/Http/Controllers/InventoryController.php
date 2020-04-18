@@ -256,7 +256,7 @@ class InventoryController extends Controller
             //вызываем event
             event(new AddEventLogs('info', Auth::id(), $msg));
             $row = InventoryTable::where(['inventory_id' => $input['doc_id'], 'good_id' => $input['good_id'],'cell' => $input['cell']])->first();
-            $result = ['id' => $row->id, 'title' => $row->good->title, 'amount'=>$amount];
+            $result = ['id' => $row->id, 'title' => $row->good->title, 'amount'=>$amount, 'analog_code'=>$row->good->analog_code];
             return json_encode($result);
         }
     }
@@ -392,8 +392,8 @@ class InventoryController extends Controller
     }
 
     public function writeToStock(Request $request){
-        if (!Role::granted('wh_doc')) {
-            return 'NO';
+        if (!Role::granted('wh_work')) {
+            return 'NOT';
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
