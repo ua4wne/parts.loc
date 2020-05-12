@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OrgForm extends Model
+class Statuse extends Model
 {
-    protected $table = 'org_forms';
+    //указываем имя таблицы
+    protected $table = 'statuses';
 
-    protected $fillable = ['title','nameRU','nameEN'];
+    protected $fillable = ['title', 'style'];
 
     public function user()
     {

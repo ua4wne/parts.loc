@@ -231,7 +231,7 @@ class PriceController extends Controller
             event(new AddEventLogs('info', Auth::id(), $msg));
             //return redirect()->route('priceView',['id'=>$price_id])->with('status', $msg);
             $row = PriceTable::where(['price_id' => $input['price_id'], 'good_id' => $input['good_id']])->first();
-            $result = ['id' => $row->id, 'title' => $row->good->title, 'analog' => $row->good->analog_code,'model' => $row->good->model,'updated_at'=>$row->updated_at];
+            $result = ['id' => $row->id, 'title' => $row->good->title, 'analog' => $row->good->analog_code,'model' => $row->good->model,'updated_at'=>$row->updated_at,'barcode' => $row->good->barcode];
             return json_encode($result);
         }
     }

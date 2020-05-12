@@ -210,6 +210,7 @@
                                 <th>Цена 1С</th>
                                 <th>Цена рынка</th>
                                 <th>Дата правки</th>
+                                <th>Штрихкод</th>
                                 <th>Действия</th>
                             </tr>
                             </thead>
@@ -224,6 +225,7 @@
                                     <td>{{ $row->cost_2 }}</td>
                                     <td>{{ $row->cost_3 }}</td>
                                     <td>{{ $row->updated_at }}</td>
+                                    <td>{{ $row->good->barcode }}</td>
                                     <td style="width:130px;">
                                         <div class="form-group" role="group">
                                             <button class="btn btn-success btn-sm row_edit" type="button"
@@ -347,6 +349,7 @@
                                 $('#cost2').val(),
                                 $('#cost3').val(),
                                 now(),
+                                obj.barcode,
                                 '<div class="form-group" role="group"><button class="btn btn-success btn-sm row_edit" type="button" data-toggle="modal" data-target="#editPos" title="Редактировать запись"><i class="fa fa-edit fa-lg" aria-hidden="true"></i></button>' +
                                 '\n<button class="btn btn-info btn-sm row_transfer" type="button" title="Передать на сайт"><i class="fa fa-refresh fa-lg"aria-hidden="true"></i></button>' +
                                 '\n<button class="btn btn-danger btn-sm row_delete" type="button" title="Удалить запись"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button></div>'

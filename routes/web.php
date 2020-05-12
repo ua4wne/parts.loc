@@ -60,6 +60,46 @@ Route::middleware(['auth'])->group(function(){
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'CurrencyController@edit','as'=>'currencyEdit']);
     });
 
+    //countries/ группа обработки роутов справочника countries
+    Route::group(['prefix'=>'countries'], function(){
+        Route::get('/',['uses'=>'CountryController@index','as'=>'countries']);
+        //countries/add
+        Route::match(['get','post'],'/add',['uses'=>'CountryController@create','as'=>'countryAdd']);
+        //countries/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'CountryController@edit','as'=>'countryEdit']);
+        //countries/import
+        Route::post('/import', ['uses'=>'CountryController@download','as'=>'importCountries']);
+        //countries/export
+        Route::get('/export',['uses'=>'CountryController@upload','as'=>'exportCountries']);
+    });
+
+    //deliveries/ группа обработки роутов справочника deliveries
+    Route::group(['prefix'=>'deliveries'], function(){
+        Route::get('/',['uses'=>'DeliveryController@index','as'=>'deliveries']);
+        //deliveries/add
+        Route::match(['get','post'],'/add',['uses'=>'DeliveryController@create','as'=>'deliveryAdd']);
+        //deliveries/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'DeliveryController@edit','as'=>'deliveryEdit']);
+    });
+
+    //hopers/ группа обработки роутов справочника hopers
+    Route::group(['prefix'=>'hopers'], function(){
+        Route::get('/',['uses'=>'HoperationController@index','as'=>'hopers']);
+        //hopers/add
+        Route::match(['get','post'],'/add',['uses'=>'HoperationController@create','as'=>'hoperAdd']);
+        //hopers/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'HoperationController@edit','as'=>'hoperEdit']);
+    });
+
+    //stats/ группа обработки роутов справочника stats
+    Route::group(['prefix'=>'stats'], function(){
+        Route::get('/',['uses'=>'StatusController@index','as'=>'stats']);
+        //stats/add
+        Route::match(['get','post'],'/add',['uses'=>'StatusController@create','as'=>'statusAdd']);
+        //stats/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'StatusController@edit','as'=>'statusEdit']);
+    });
+
     //prices/ группа обработки роутов prices
     Route::group(['prefix'=>'prices'], function(){
         Route::get('/',['uses'=>'PriceController@index','as'=>'prices']);

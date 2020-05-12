@@ -11,7 +11,7 @@
     <!-- START BREADCRUMB -->
     <ul class="breadcrumb">
         <li><a href="{{ route('main') }}">Рабочий стол</a></li>
-        <li class="active"><a href="{{ route('orgforms') }}">{{ $title }}</a></li>
+        <li class="active"><a href="{{ route('deliveries') }}">{{ $title }}</a></li>
     </ul>
     <!-- END BREADCRUMB -->
     @if (session('error'))
@@ -39,7 +39,7 @@
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
             <div class="panel-heading">
-                <a href="{{route('orgformAdd')}}">
+                <a href="{{route('deliveryAdd')}}">
                     <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-plus"
                                                                                   aria-hidden="true"></i> Новая
                         запись
@@ -52,27 +52,25 @@
                         <table class="table table-bordered">
                             <thead>
                             <tr>
-                                <th>Название (РУС)</th>
-                                <th>Название (EN)</th>
-                                <th>Полное название</th>
+                                <th>Наименование</th>
                                 <th>Автор</th>
-                                <th>Дата правки</th>
+                                <th>Дата создания</th>
+                                <th>Дата обновления</th>
                                 <th>Действия</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($rows as $k => $row)
                                 <tr>
-                                    <td>{{ $row->nameRU }}</td>
-                                    <td>{{ $row->nameEN }}</td>
                                     <td>{{ $row->title }}</td>
                                     <td>{{ $row->user->name }}</td>
+                                    <td>{{ $row->created_at }}</td>
                                     <td>{{ $row->updated_at }}</td>
-                                    <td style="width:110px;">
-                                        {!! Form::open(['url'=>route('orgformEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
+                                    <td style="width:100px;">
+                                        {!! Form::open(['url'=>route('deliveryEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
                                         {{ method_field('DELETE') }}
                                         <div class="form-group" role="group">
-                                            <a href="{{route('orgformEdit',['id'=>$row->id])}}">
+                                            <a href="{{route('deliveryEdit',['id'=>$row->id])}}">
                                                 <button class="btn btn-success" type="button"
                                                         title="Редактировать запись"><i class="fa fa-edit fa-lg>"
                                                                                         aria-hidden="true"></i></button>

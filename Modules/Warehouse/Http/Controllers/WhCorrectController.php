@@ -493,9 +493,11 @@ class WhCorrectController extends Controller
                 foreach ($rows as $row){
                     Stock::updateOrCreate(['warehouse_id' => $warehouse_id, 'good_id' => $row->good_id, 'cell' => $row->cell], ['qty' => $row->qty,
                         'unit_id' => $row->unit_id, 'cost' => $row->amount, 'created_at' => date('Y-m-d H:i:s')]);
-                    //ищем пустую ячейку с таким товаром и удаляем ее из базы
-                    $tmp = Stock::where(['warehouse_id' => $warehouse_id, 'good_id' => $row->good_id, 'cell' => null])->first();
-                    if(!empty($tmp)) $tmp->delete();
+                    if(!empty($row->cell)){
+                        //ищем пустую ячейку с таким товаром и удаляем ее из базы
+                        $tmp = Stock::where(['warehouse_id' => $warehouse_id, 'good_id' => $row->good_id, 'cell' => null])->first();
+                        if(!empty($tmp)) $tmp->delete();
+                    }
                 }
                 $doc->status = 0;
                 $doc->update();

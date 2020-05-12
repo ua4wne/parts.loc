@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OrgForm extends Model
+class Delivery extends Model
 {
-    protected $table = 'org_forms';
+    //указываем имя таблицы
+    protected $table = 'delivery_methods';
 
-    protected $fillable = ['title','nameRU','nameEN'];
+    protected $fillable = ['title'];
 
     public function user()
     {

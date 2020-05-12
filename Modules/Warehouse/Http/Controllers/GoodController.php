@@ -288,6 +288,7 @@ class GoodController extends Controller
                         $row[1] = str_replace(' ', '-', trim($row[1]));
                     }
                     if (!empty($row[1])) {
+                        $row[1] = trim($row[1]);
                         Good::updateOrCreate(['vendor_code' => $row[1]], ['category_id' => $cat_id, 'group_id' => $group_id,
                             'title' => $title, 'bx_group' => $row[0], 'analog_code' => $analog, 'brand' => $row[4], 'model' => $row[5],
                             'unit_id' => $unit_id, 'vat' => $vat, 'gtd' => $gtd]);
@@ -457,6 +458,26 @@ class GoodController extends Controller
                 curl_close($ch);
                 return $output;
             }
+        }
+    }
+
+    public function delSpace(Request $request)
+    {
+        if (!Role::granted('wh_edit')) {
+            return 'NO';
+        }
+        if ($request->isMethod('post')) {
+            //$input = $request->except('_token'); //параметр _token нам не нужен
+            $cnt = 0;
+            $rows = Good::select(['id','vendor_code'])->get();
+            foreach ($rows as $row){
+                if(strlen($row->vendor_code) != strlen(trim($row->vendor_code))){
+                    $row->vendor_code = trim($row->vendor_code);
+                    $row->update();
+                    $cnt++;
+                }
+            }
+            return 'Обработано записей - '.$cnt;
         }
     }
 }

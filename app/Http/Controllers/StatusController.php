@@ -3,36 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Events\AddEventLogs;
-use App\Models\OrgForm;
-use Modules\Admin\Entities\Role;
+use App\Models\Statuse;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\Admin\Entities\Role;
 use Validator;
 
-class OrgFormController extends Controller
+class StatusController extends Controller
 {
     public function index(){
         if(!Role::granted('view_refs')){//вызываем event
             abort(503,'У Вас нет прав на просмотр справочников!');
         }
-        if (view()->exists('orgforms')) {
-            $rows = OrgForm::paginate(env('PAGINATION_SIZE'));
-            $title = 'Организационные формы';
+        if(view()->exists('stats')){
+            $rows = Statuse::orderBy('title','asc')->paginate(env('PAGINATION_SIZE')); //all();
             $data = [
-                'title' => $title,
-                'head' => 'Организационные формы для юрлиц',
+                'title' => 'Статусы',
+                'head' => 'Статусы документов',
                 'rows' => $rows,
             ];
-            return view('orgforms', $data);
+
+            return view('stats',$data);
         }
         abort(404);
     }
 
     public function create(Request $request){
-        if(!Role::granted('edit_refs')){//вызываем event
-            $msg = 'Попытка создания новой записи в справочнике организационных форм!';
+        if(!User::hasRole('admin')){//вызываем event
+            $msg = 'Попытка создания нового статуса документа!';
             event(new AddEventLogs('access',Auth::id(),$msg));
-            abort(503,'У Вас нет прав на создание записи!');
+            abort(503,'У Вас нет прав на создание записи. Создавать и изменять статусы может только администратор!');
         }
         if($request->isMethod('post')){
             $input = $request->except('_token'); //параметр _token нам не нужен
@@ -43,51 +44,50 @@ class OrgFormController extends Controller
                 'string' => 'Значение поля должно быть строковым!',
             ];
             $validator = Validator::make($input,[
-                'nameRU' => 'required|string|max:5',
-                'nameEN' => 'nullable|string|max:5',
-                'title' => 'required|string|max:100',
+                'title' => 'required|string|max:30',
+                'style' => 'required|string|max:150',
             ],$messages);
             if($validator->fails()){
-                return redirect()->route('orgformAdd')->withErrors($validator)->withInput();
+                return redirect()->route('statusAdd')->withErrors($validator)->withInput();
             }
             //dd($input);
-            $orgform = new OrgForm();
-            $orgform->fill($input);
-            $orgform->created_at = date('Y-m-d');
-            $orgform->user_id = Auth::id();
-            if($orgform->save()){
-                $msg = 'Новая форма '. $input['nameRU'] .' успешно добавлена в справочник организационных форм!';
+            $status = new Statuse();
+            $status->fill($input);
+            $status->created_at = date('Y-m-d');
+            $status->user_id = Auth::id();
+            if($status->save()){
+                $msg = 'Новый статус '. $input['title'] .' успешно добавлен в справочник!';
                 //вызываем event
                 event(new AddEventLogs('info',Auth::id(),$msg));
-                return redirect('/orgforms')->with('status',$msg);
+                return redirect()->route('stats')->with('status',$msg);
             }
         }
-        if(view()->exists('orgform_add')){
+        if(view()->exists('status_add')){
             $data = [
-                'title' => 'Организационные формы',
+                'title' => 'Статусы документов',
                 'head' => 'Новая запись',
             ];
-            return view('orgform_add', $data);
+            return view('status_add', $data);
         }
         abort(404);
     }
 
     public function edit($id,Request $request){
-        $model = OrgForm::find($id);
+        $model = Statuse::find($id);
         if($request->isMethod('delete')){
-            if(!Role::granted('delete_refs')){
-                $msg = 'Попытка удаления записи '.$model->title.' из справочника организационных форм.';
+            if(!User::hasRole('admin')){
+                $msg = 'Попытка удаления статуса '.$model->title.' из справочника.';
                 event(new AddEventLogs('access',Auth::id(),$msg));
                 abort(503,'У Вас нет прав на удаление записи!');
             }
-            $msg = 'Запись '. $model->title .' была удалена из справочника организационных форм!';
+            $msg = 'Статус '. $model->title .' был удален из справочника!';
             $model->delete();
             //вызываем event
             event(new AddEventLogs('info',Auth::id(),$msg));
-            return redirect('/orgforms')->with('status',$msg);
+            return redirect('/stats')->with('status',$msg);
         }
-        if(!Role::granted('edit_refs')){
-            $msg = 'Попытка редактирования записи '.$model->title.' в справочнике организационных форм.';
+        if(!User::hasRole('admin')){
+            $msg = 'Попытка редактирования статуса '.$model->title.' в справочнике.';
             //вызываем event
             event(new AddEventLogs('access',Auth::id(),$msg));
             abort(503,'У Вас нет прав на редактирование записи!');
@@ -100,30 +100,29 @@ class OrgFormController extends Controller
                 'string' => 'Значение поля должно быть строковым!',
             ];
             $validator = Validator::make($input,[
-                'nameRU' => 'required|string|max:5',
-                'nameEN' => 'nullable|string|max:5',
-                'title' => 'required|string|max:100',
+                'title' => 'required|string|max:30',
+                'style' => 'required|string|max:150',
             ],$messages);
             if($validator->fails()){
-                return redirect()->route('orgformEdit',['id'=>$id])->withErrors($validator)->withInput();
+                return redirect()->route('statusEdit',['id'=>$id])->withErrors($validator)->withInput();
             }
             $model->fill($input);
             $model->user_id = Auth::id();
             if($model->update()){
-                $msg = 'Данные записи '. $model->title .' из справочника организационных форм обновлены!';
+                $msg = 'Данные статуса '. $model->title .' обновлены в справочнике!';
                 //вызываем event
                 event(new AddEventLogs('info',Auth::id(),$msg));
-                return redirect('/orgforms')->with('status',$msg);
+                return redirect()->route('stats')->with('status',$msg);
             }
         }
         $old = $model->toArray(); //сохраняем в массиве предыдущие значения полей модели
-        if(view()->exists('orgform_edit')){
+        if(view()->exists('status_edit')){
             $data = [
-                'title' => 'Организационные формы',
+                'title' => 'Статусы документов',
                 'head' => 'Редактирование записи '.$old['title'],
                 'data' => $old,
             ];
-            return view('orgform_edit',$data);
+            return view('status_edit',$data);
         }
         abort(404);
     }

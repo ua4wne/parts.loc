@@ -436,6 +436,11 @@
                                     Экспорт
                                 </button>
                             </a>
+                            @if(\App\User::hasRole('admin'))
+                            <button type="button" class="btn btn-primary btn-sm btn-o" id="del_space"><i class="fa fa-magic" aria-hidden="true"></i>
+                                    Удалить пробелы
+                                </button>
+                            @endif
                             <p class="text-center panel-title panel-info" id="goods">Номенклатура</p>
                         </div>
                         <div class=" table-responsive">
@@ -662,6 +667,25 @@
                     }
                 });
             }
+        });
+
+        $('#del_space').click(function () {
+            //e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('delSpace') }}',
+                data: {'action': 'delspace'},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function(){
+                    $('#loader').show();
+                },
+                success: function (res) {
+                    $('#loader').hide();
+                    alert(res);
+                }
+            });
         });
 
         $(document).on({

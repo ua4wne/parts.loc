@@ -33,6 +33,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/transfer',['uses'=>'GoodController@transfer','as'=>'transferGood']);
         //goods/vendor
         Route::get('/vendor',['uses'=>'GoodController@ajaxData','as'=>'getCode']);
+        //goods/del-space
+        Route::post('/del-space',['uses'=>'GoodController@delSpace','as'=>'delSpace']);
     });
 
     //categories/ группа обработки роутов categories

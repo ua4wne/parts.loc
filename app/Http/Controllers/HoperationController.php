@@ -3,34 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Events\AddEventLogs;
-use App\Models\OrgForm;
-use Modules\Admin\Entities\Role;
+use App\Models\Hoperation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\Admin\Entities\Role;
 use Validator;
 
-class OrgFormController extends Controller
+class HoperationController extends Controller
 {
     public function index(){
         if(!Role::granted('view_refs')){//вызываем event
             abort(503,'У Вас нет прав на просмотр справочников!');
         }
-        if (view()->exists('orgforms')) {
-            $rows = OrgForm::paginate(env('PAGINATION_SIZE'));
-            $title = 'Организационные формы';
+        if(view()->exists('hopers')){
+            $rows = Hoperation::orderBy('title','asc')->paginate(env('PAGINATION_SIZE')); //all();
             $data = [
-                'title' => $title,
-                'head' => 'Организационные формы для юрлиц',
+                'title' => 'Хозяйственные операции',
+                'head' => 'Хозяйственные операции',
                 'rows' => $rows,
             ];
-            return view('orgforms', $data);
+
+            return view('hopers',$data);
         }
         abort(404);
     }
 
     public function create(Request $request){
         if(!Role::granted('edit_refs')){//вызываем event
-            $msg = 'Попытка создания новой записи в справочнике организационных форм!';
+            $msg = 'Попытка создания новой записи в справочнике хозопераций!';
             event(new AddEventLogs('access',Auth::id(),$msg));
             abort(503,'У Вас нет прав на создание записи!');
         }
@@ -43,51 +43,49 @@ class OrgFormController extends Controller
                 'string' => 'Значение поля должно быть строковым!',
             ];
             $validator = Validator::make($input,[
-                'nameRU' => 'required|string|max:5',
-                'nameEN' => 'nullable|string|max:5',
                 'title' => 'required|string|max:100',
             ],$messages);
             if($validator->fails()){
-                return redirect()->route('orgformAdd')->withErrors($validator)->withInput();
+                return redirect()->route('hoperAdd')->withErrors($validator)->withInput();
             }
             //dd($input);
-            $orgform = new OrgForm();
-            $orgform->fill($input);
-            $orgform->created_at = date('Y-m-d');
-            $orgform->user_id = Auth::id();
-            if($orgform->save()){
-                $msg = 'Новая форма '. $input['nameRU'] .' успешно добавлена в справочник организационных форм!';
+            $hoper = new Hoperation();
+            $hoper->fill($input);
+            $hoper->created_at = date('Y-m-d');
+            $hoper->user_id = Auth::id();
+            if($hoper->save()){
+                $msg = 'Новая хозоперация '. $input['title'] .' успешно добавлена в справочник!';
                 //вызываем event
                 event(new AddEventLogs('info',Auth::id(),$msg));
-                return redirect('/orgforms')->with('status',$msg);
+                return redirect()->route('hopers')->with('status',$msg);
             }
         }
-        if(view()->exists('orgform_add')){
+        if(view()->exists('hoper_add')){
             $data = [
-                'title' => 'Организационные формы',
+                'title' => 'Хозяйственные операции',
                 'head' => 'Новая запись',
             ];
-            return view('orgform_add', $data);
+            return view('hoper_add', $data);
         }
         abort(404);
     }
 
     public function edit($id,Request $request){
-        $model = OrgForm::find($id);
+        $model = Hoperation::find($id);
         if($request->isMethod('delete')){
             if(!Role::granted('delete_refs')){
-                $msg = 'Попытка удаления записи '.$model->title.' из справочника организационных форм.';
+                $msg = 'Попытка удаления записи '.$model->title.' из справочника хозопераций.';
                 event(new AddEventLogs('access',Auth::id(),$msg));
                 abort(503,'У Вас нет прав на удаление записи!');
             }
-            $msg = 'Запись '. $model->title .' была удалена из справочника организационных форм!';
+            $msg = 'Хозоперация '. $model->title .' была удалена из справочника!';
             $model->delete();
             //вызываем event
             event(new AddEventLogs('info',Auth::id(),$msg));
-            return redirect('/orgforms')->with('status',$msg);
+            return redirect('/hopers')->with('status',$msg);
         }
         if(!Role::granted('edit_refs')){
-            $msg = 'Попытка редактирования записи '.$model->title.' в справочнике организационных форм.';
+            $msg = 'Попытка редактирования записи '.$model->title.' в справочнике хозопераций.';
             //вызываем event
             event(new AddEventLogs('access',Auth::id(),$msg));
             abort(503,'У Вас нет прав на редактирование записи!');
@@ -100,30 +98,28 @@ class OrgFormController extends Controller
                 'string' => 'Значение поля должно быть строковым!',
             ];
             $validator = Validator::make($input,[
-                'nameRU' => 'required|string|max:5',
-                'nameEN' => 'nullable|string|max:5',
-                'title' => 'required|string|max:100',
+                'title' => 'required|string|max:50',
             ],$messages);
             if($validator->fails()){
-                return redirect()->route('orgformEdit',['id'=>$id])->withErrors($validator)->withInput();
+                return redirect()->route('hoperEdit',['id'=>$id])->withErrors($validator)->withInput();
             }
             $model->fill($input);
             $model->user_id = Auth::id();
             if($model->update()){
-                $msg = 'Данные записи '. $model->title .' из справочника организационных форм обновлены!';
+                $msg = 'Данные хозоперации '. $model->title .' обновлены в справочнике!';
                 //вызываем event
                 event(new AddEventLogs('info',Auth::id(),$msg));
-                return redirect('/orgforms')->with('status',$msg);
+                return redirect()->route('hopers')->with('status',$msg);
             }
         }
         $old = $model->toArray(); //сохраняем в массиве предыдущие значения полей модели
-        if(view()->exists('orgform_edit')){
+        if(view()->exists('hoper_edit')){
             $data = [
-                'title' => 'Организационные формы',
+                'title' => 'Хозоперации',
                 'head' => 'Редактирование записи '.$old['title'],
                 'data' => $old,
             ];
-            return view('orgform_edit',$data);
+            return view('hoper_edit',$data);
         }
         abort(404);
     }
