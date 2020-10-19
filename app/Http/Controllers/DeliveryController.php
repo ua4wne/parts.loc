@@ -18,8 +18,8 @@ class DeliveryController extends Controller
         if(view()->exists('deliveries')){
             $rows = Delivery::orderBy('title','asc')->paginate(env('PAGINATION_SIZE')); //all();
             $data = [
-                'title' => 'Способы доставки',
-                'head' => 'Способы доставки',
+                'title' => 'Транспортные компании',
+                'head' => 'Транспортные компании',
                 'rows' => $rows,
             ];
 
@@ -30,7 +30,7 @@ class DeliveryController extends Controller
 
     public function create(Request $request){
         if(!Role::granted('edit_refs')){//вызываем event
-            $msg = 'Попытка создания новой записи в справочнике способов доставки!';
+            $msg = 'Попытка создания новой записи в справочнике транспортных компаний!';
             event(new AddEventLogs('access',Auth::id(),$msg));
             abort(503,'У Вас нет прав на создание записи!');
         }
@@ -54,7 +54,7 @@ class DeliveryController extends Controller
             $delivery->created_at = date('Y-m-d');
             $delivery->user_id = Auth::id();
             if($delivery->save()){
-                $msg = 'Новая страна '. $input['title'] .' успешно добавлена в справочник!';
+                $msg = 'Новая транспортная компания '. $input['title'] .' успешно добавлена в справочник!';
                 //вызываем event
                 event(new AddEventLogs('info',Auth::id(),$msg));
                 return redirect()->route('deliveries')->with('status',$msg);
@@ -62,7 +62,7 @@ class DeliveryController extends Controller
         }
         if(view()->exists('delivery_add')){
             $data = [
-                'title' => 'Способы доставки',
+                'title' => 'Транспортные компании',
                 'head' => 'Новая запись',
             ];
             return view('delivery_add', $data);
@@ -74,18 +74,18 @@ class DeliveryController extends Controller
         $model = Delivery::find($id);
         if($request->isMethod('delete')){
             if(!Role::granted('delete_refs')){
-                $msg = 'Попытка удаления записи '.$model->title.' из справочника способов доставки.';
+                $msg = 'Попытка удаления транспортной компании '.$model->title.' из справочника.';
                 event(new AddEventLogs('access',Auth::id(),$msg));
                 abort(503,'У Вас нет прав на удаление записи!');
             }
-            $msg = 'Способ доставки '. $model->title .' была удален из справочника!';
+            $msg = 'Транспортная компания '. $model->title .' была удалена из справочника!';
             $model->delete();
             //вызываем event
             event(new AddEventLogs('info',Auth::id(),$msg));
-            return redirect('/deliveries')->with('status',$msg);
+            return redirect()->route('deliveries')->with('status',$msg);
         }
         if(!Role::granted('edit_refs')){
-            $msg = 'Попытка редактирования записи '.$model->title.' в справочнике способов доставки.';
+            $msg = 'Попытка редактирования записи '.$model->title.' в справочнике транспортных компаний.';
             //вызываем event
             event(new AddEventLogs('access',Auth::id(),$msg));
             abort(503,'У Вас нет прав на редактирование записи!');
@@ -106,7 +106,7 @@ class DeliveryController extends Controller
             $model->fill($input);
             $model->user_id = Auth::id();
             if($model->update()){
-                $msg = 'Данные способа доставки '. $model->title .' обновлены в справочнике!';
+                $msg = 'Данные транспортной компании '. $model->title .' обновлены в справочнике!';
                 //вызываем event
                 event(new AddEventLogs('info',Auth::id(),$msg));
                 return redirect()->route('deliveries')->with('status',$msg);
@@ -115,7 +115,7 @@ class DeliveryController extends Controller
         $old = $model->toArray(); //сохраняем в массиве предыдущие значения полей модели
         if(view()->exists('delivery_edit')){
             $data = [
-                'title' => 'Способы доставки',
+                'title' => 'Транспортные компании',
                 'head' => 'Редактирование записи '.$old['title'],
                 'data' => $old,
             ];

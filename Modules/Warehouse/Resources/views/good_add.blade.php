@@ -76,6 +76,22 @@
             </div>
 
             <div class="form-group">
+                {!! Form::label('code','Код:',['class' => 'col-xs-3 control-label'])   !!}
+                <div class="col-xs-8">
+                    {!! Form::text('code',old('code'),['class' => 'form-control','placeholder'=>'Введите код номенклатуры','maxlength'=>'10'])!!}
+                    {!! $errors->first('code', '<p class="text-danger">:message</p>') !!}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {!! Form::label('catalog_num','Каталожный №:',['class' => 'col-xs-3 control-label'])   !!}
+                <div class="col-xs-8">
+                    {!! Form::text('catalog_num',old('code'),['class' => 'form-control','placeholder'=>'Введите номер по каталогу','maxlength'=>'30'])!!}
+                    {!! $errors->first('catalog_num', '<p class="text-danger">:message</p>') !!}
+                </div>
+            </div>
+
+            <div class="form-group">
                 {!! Form::label('analog_code','Коды аналогов:',['class' => 'col-xs-3 control-label'])   !!}
                 <div class="col-xs-8">
                     {!! Form::text('analog_code',old('analog_code'),['class' => 'form-control','placeholder'=>'Введите артикулы аналогов через запятую','maxlength'=>'64'])!!}

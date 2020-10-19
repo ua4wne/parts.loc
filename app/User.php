@@ -55,10 +55,12 @@ class User extends Authenticatable
     public static function hasRole($code){
         // получить id текущего залогиненного юзера
         $user_id = Auth::id();
-        $roles = User::find($user_id)->roles;
-        foreach ($roles as $role){
-            if($role->code==$code || $role->code=='admin')
-                return TRUE;
+        if(!empty($user_id)){
+            $roles = User::find($user_id)->roles;
+            foreach ($roles as $role){
+                if($role->code==$code || $role->code=='admin')
+                    return TRUE;
+            }
         }
         return FALSE;
     }

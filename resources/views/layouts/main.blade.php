@@ -89,13 +89,17 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
+                            <li><a href="{{ route('banks') }}"><span class="title"> Банки </span></a></li>
+                            <li><a href="{{ route('brands') }}"><span class="title"> Бренды </span></a></li>
                             <li><a href="{{ route('currency') }}"><span class="title"> Валюты </span></a></li>
-                            <li><a href="#"><span class="title"> Контрагенты </span></a></li>
+                            <li><a href="{{ route('typefirms') }}"><span class="title"> Виды контрагентов </span></a></li>
+                            <li><a href="{{ route('firms') }}"><span class="title"> Контрагенты </span></a></li>
                             <li><a href="{{ route('orgs') }}"><span class="title"> Организации </span></a></li>
                             <li><a href="{{ route('orgforms') }}"><span class="title"> Организационные формы </span></a></li>
-                            <li><a href="{{ route('deliveries') }}"><span class="title"> Способы доставки </span></a></li>
+                            <li><a href="{{ route('methods') }}"><span class="title"> Способы доставки </span></a></li>
                             <li><a href="{{ route('stats') }}"><span class="title"> Статусы документов </span></a></li>
                             <li><a href="{{ route('countries') }}"><span class="title"> Страны </span></a></li>
+                            <li><a href="{{ route('deliveries') }}"><span class="title"> Транспортные компании </span></a></li>
                             <li><a href="{{ route('hopers') }}"><span class="title"> Хозяйственные операции </span></a></li>
                         </ul>
                     </li>
@@ -111,6 +115,8 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
+                            <li><a href="{{ route('orders') }}"><span class="title">Заказ поставщику</span></a></li>
+                            <li><a href="{{ route('purchases') }}"><span class="title">Приобретение товаров и услуг</span></a></li>
                             <li><a href="{{ route('wh_corrects') }}"><span class="title">Корректировка остатков</span></a></li>
                             <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
                             <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
@@ -366,14 +372,14 @@
                         <div class="col-sm-4">
                             <div class="panel panel-white no-radius text-center">
                                 <div class="panel-body">
-                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-smile-o fa-stack-1x fa-inverse"></i> </span>
-                                    <h2 class="StepTitle">Manage Users</h2>
+                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-book fa-stack-1x fa-inverse"></i> </span>
+                                    <h2 class="StepTitle">Продажи</h2>
                                     <p class="text-small">
-                                        To add users, you need to be signed in as the super user.
+                                        Заказы клиентов.
                                     </p>
                                     <p class="links cl-effect-1">
                                         <a href>
-                                            view more
+                                            подробнее
                                         </a>
                                     </p>
                                 </div>
@@ -382,14 +388,14 @@
                         <div class="col-sm-4">
                             <div class="panel panel-white no-radius text-center">
                                 <div class="panel-body">
-                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-paperclip fa-stack-1x fa-inverse"></i> </span>
-                                    <h2 class="StepTitle">Manage Orders</h2>
+                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-shopping-cart fa-stack-1x fa-inverse"></i> </span>
+                                    <h2 class="StepTitle">Закупки</h2>
                                     <p class="text-small">
-                                        The Manage Orders tool provides a view of all your orders.
+                                        Заказы поставщикам.
                                     </p>
                                     <p class="cl-effect-1">
-                                        <a href>
-                                            view more
+                                        <a href="{{ route('orders') }}">
+                                            подробнее
                                         </a>
                                     </p>
                                 </div>

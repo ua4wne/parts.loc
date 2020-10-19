@@ -93,6 +93,35 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'UnitController@edit','as'=>'unitEdit']);
     });
 
+    //specifications/ группа обработки роутов specifications
+    Route::group(['prefix'=>'specifications'], function(){
+        Route::get('/view/{id}',['uses'=>'SpecificationController@index','as'=>'specifications']);
+        //specifications/add
+        Route::match(['get','post'],'/add/{id}',['uses'=>'SpecificationController@create','as'=>'spfcAdd']);
+        //specifications/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'SpecificationController@edit','as'=>'spfcEdit']);
+    });
+
+    //brands/ группа обработки роутов brands
+    Route::group(['prefix'=>'brands'], function(){
+        Route::get('/',['uses'=>'BrandController@index','as'=>'brands']);
+        //brands/add
+        Route::match(['get','post'],'/add',['uses'=>'BrandController@create','as'=>'brandAdd']);
+        //brands/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'BrandController@edit','as'=>'brandEdit']);
+        //brands/import
+        Route::post('/import', ['uses'=>'BrandController@download','as'=>'importBrand']);
+    });
+
+    //specifications/ группа обработки роутов specifications
+    Route::group(['prefix'=>'specifications'], function(){
+        Route::get('/',['uses'=>'SpecificationController@index','as'=>'specifications']);
+        //specifications/add
+        Route::match(['get','post'],'/add',['uses'=>'SpecificationController@create','as'=>'specAdd']);
+        //specifications/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'SpecificationController@edit','as'=>'specEdit']);
+    });
+
     //inventories/ группа обработки роутов inventories
     Route::group(['prefix'=>'wh_corrects'], function(){
         Route::get('/',['uses'=>'WhCorrectController@index','as'=>'wh_corrects']);

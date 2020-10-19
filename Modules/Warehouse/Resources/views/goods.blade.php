@@ -154,7 +154,7 @@
                             <div class="form-group">
                                 {!! Form::label('descr','Код группы на сайте:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('bx_group',old('bx_group'),['class' => 'form-control','placeholder'=>'Введите код группы','maxlength'=>'5'])!!}
+                                    {!! Form::text('bx_group',old('bx_group'),['class' => 'form-control','placeholder'=>'Введите код группы на сайте','maxlength'=>'5'])!!}
                                 </div>
                             </div>
 
@@ -164,6 +164,22 @@
                                 </label>
                                 <div class="col-xs-8">
                                     {!! Form::text('vendor_code',old('vendor_code'),['class' => 'form-control','placeholder'=>'Введите артикул','maxlength'=>'64','id'=>'vendor_code'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('code','Код 1C:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('code',old('code'),['class' => 'form-control','placeholder'=>'Введите код из программы 1С','maxlength'=>'10', 'id'=>'code'])!!}
+                                    {!! $errors->first('code', '<p class="text-danger">:message</p>') !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('catalog_num','Каталожный №:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('catalog_num',old('code'),['class' => 'form-control','placeholder'=>'Введите номер по каталогу','maxlength'=>'30','id'=>'catalog_num'])!!}
+                                    {!! $errors->first('catalog_num', '<p class="text-danger">:message</p>') !!}
                                 </div>
                             </div>
 
@@ -313,7 +329,7 @@
                             <div class="form-group">
                                 {!! Form::label('descr','Код группы на сайте:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('bx_group',old('bx_group'),['class' => 'form-control','placeholder'=>'Введите код группы','maxlength'=>'5','id'=>'ebx_group'])!!}
+                                    {!! Form::text('bx_group',old('bx_group'),['class' => 'form-control','placeholder'=>'Введите код группы на сайте','maxlength'=>'5','id'=>'ebx_group'])!!}
                                 </div>
                             </div>
 
@@ -323,6 +339,22 @@
                                 </label>
                                 <div class="col-xs-8">
                                     {!! Form::text('vendor_code',old('vendor_code'),['class' => 'form-control','placeholder'=>'Введите артикул','maxlength'=>'64','id'=>'evendor_code'])!!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('code','Код 1C:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('code',old('code'),['class' => 'form-control','placeholder'=>'Введите код из программы 1С','maxlength'=>'10', 'id'=>'ecode'])!!}
+                                    {!! $errors->first('code', '<p class="text-danger">:message</p>') !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('catalog_num','Каталожный №:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('catalog_num',old('code'),['class' => 'form-control','placeholder'=>'Введите номер по каталогу','maxlength'=>'30','id'=>'ecatalog_num'])!!}
+                                    {!! $errors->first('catalog_num', '<p class="text-danger">:message</p>') !!}
                                 </div>
                             </div>
 
@@ -451,8 +483,8 @@
                                     <th>Название</th>
                                     <th>Артикул</th>
                                     <th>Аналоги</th>
-                                    <th>Производитель</th>
-                                    <th>Модель</th>
+                                    <th>Код 1C</th>
+                                    <th>Каталожный №</th>
                                     <th>Штрихкод</th>
                                     <th>Дата правки</th>
                                     <th>Действия</th>
@@ -467,8 +499,8 @@
                                             <td>{{ $row->title }}</td>
                                             <td>{{ $row->vendor_code }}</td>
                                             <td>{{ $row->analog_code }}</td>
-                                            <td>{{ $row->brand }}</td>
-                                            <td>{{ $row->model }}</td>
+                                            <td>{{ $row->code }}</td>
+                                            <td>{{ $row->catalog_num }}</td>
                                             <td>{{ $row->barcode }}</td>
                                             <td>{{ $row->updated_at }}</td>
                                             <td style="width: 120px">
@@ -644,8 +676,8 @@
                                 $('#title').val(),
                                 $('#vendor_code').val(),
                                 $('#analog_code').val(),
-                                $('#brand').val(),
-                                $('#model').val(),
+                                $('#code').val(),
+                                $('#catalog_num').val(),
                                 $('#barcode').val(),
                                 now(),
                                 '<div class="form-group" role="group"><button class="btn btn-success btn-sm row_edit" type="button" data-toggle="modal" data-target="#editGood" title="Редактировать запись"><i class="fa fa-edit fa-lg" aria-hidden="true"></i></button>' +
@@ -713,6 +745,8 @@
                             $('#edescr').val(obj.descr);
                             $('#ebx_group').val(obj.bx_group);
                             $('#evendor_code').val(obj.vendor_code);
+                            $('#ecode').val(obj.code);
+                            $('#ecatalog_num').val(obj.catalog_num);
                             $('#eanalog_code').val(obj.analog_code);
                             $('#ebrand').val(obj.brand);
                             $('#emodel').val(obj.model);
@@ -843,8 +877,8 @@
                             $('#'+row_id).children('td').eq(1).text($('#etitle').val());
                             $('#'+row_id).children('td').eq(2).text($('#evendor_code').val());
                             $('#'+row_id).children('td').eq(3).text($('#eanalog_code').val());
-                            $('#'+row_id).children('td').eq(4).text($('#ebrand').val());
-                            $('#'+row_id).children('td').eq(5).text($('#emodel').val());
+                            $('#'+row_id).children('td').eq(4).text($('#ecode').val());
+                            $('#'+row_id).children('td').eq(5).text($('#ecatalog_num').val());
                             $('#'+row_id).children('td').eq(6).text($('#ebarcode').val());
                             $('#'+row_id).children('td').eq(7).text(now());
                         }

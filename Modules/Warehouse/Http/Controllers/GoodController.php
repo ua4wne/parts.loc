@@ -95,6 +95,8 @@ class GoodController extends Controller
                 'bx_group' => 'nullable|integer',
                 'vendor_code' => 'required|string|max:64',
                 'analog_code' => 'nullable|string|max:180',
+                'code' => 'nullable|string|max:10',
+                'catalog_num' => 'nullable|string|max:30',
                 'brand' => 'nullable|string|max:200',
                 'model' => 'nullable|string|max:200',
                 'unit_id' => 'required|integer',
@@ -115,10 +117,12 @@ class GoodController extends Controller
             $good->created_at = date('Y-m-d');
             // создаст или обновит запись в модели $good в зависимости от того
             // есть такая запись или нет
-            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'], 'title' => $input['title'],
-                'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'brand' => $input['brand'],
-                'model' => $input['model'], 'unit_id' => $input['unit_id'], 'weight' => $input['weight'], 'capacity' => $input['capacity'], 'length' => $input['length'],
-                'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
+            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'],
+                'group_id' => $input['group_id'], 'title' => $input['title'], 'descr' => $input['descr'], 'bx_group' => $input['bx_group'],
+                'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'code' => $input['code'],
+                'catalog_num' => $input['catalog_num'], 'brand' => $input['brand'], 'model' => $input['model'], 'unit_id' => $input['unit_id'],
+                'weight' => $input['weight'], 'capacity' => $input['capacity'], 'length' => $input['length'],'area' => $input['area'],
+                'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
 
             $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
             //вызываем event
@@ -156,6 +160,8 @@ class GoodController extends Controller
                 'bx_group' => 'nullable|integer',
                 'vendor_code' => 'required|string|max:64',
                 'analog_code' => 'nullable|string|max:180',
+                'code' => 'nullable|string|max:10',
+                'catalog_num' => 'nullable|string|max:30',
                 'brand' => 'nullable|string|max:200',
                 'model' => 'nullable|string|max:200',
                 'unit_id' => 'required|integer',
@@ -177,10 +183,11 @@ class GoodController extends Controller
             }
 
             // есть такая запись или нет
-            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'], 'title' => $input['title'],
-                'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'brand' => $input['brand'],
-                'model' => $input['model'], 'unit_id' => $input['unit_id'], 'weight' => $input['weight'], 'capacity' => $input['capacity'], 'length' => $input['length'],
-                'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
+            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'],
+                'title' => $input['title'], 'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'],
+                'analog_code' => $input['analog_code'], 'code' => $input['code'], 'catalog_num' => $input['catalog_num'],'brand' => $input['brand'],
+                'model' => $input['model'], 'unit_id' => $input['unit_id'], 'weight' => $input['weight'], 'capacity' => $input['capacity'],
+                'length' => $input['length'], 'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
 
             $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
             //вызываем event
@@ -216,8 +223,9 @@ class GoodController extends Controller
             if (!empty($goods)) {
                 $content = '';
                 foreach ($goods as $good) {
-                    $content .= '<tr id="row' . $good->id . '"><td>' . $good->group->title . '</td><td>' . $good->title . '</td><td>' . $good->vendor_code . '</td><td>' . $good->analog_code . '</td>
-                                <td>' . $good->brand . '</td><td>' . $good->model . '</td><td>' . $good->barcode . '</td><td>';
+                    $content .= '<tr id="row' . $good->id . '"><td>' . $good->group->title . '</td>
+                    <td><a href="/specifications/view/'.$good->id.'">' . $good->title . '</a></td><td>' . $good->vendor_code . '</td>
+                    <td>' . $good->analog_code . '</td><td>' . $good->code . '</td><td>' . $good->catalog_num . '</td><td>' . $good->barcode . '</td><td>';
                     $content .= $good->updated_at;
                     $content .= '</td><td style="width: 120px">
                                                 <div class="form-group" role="group">

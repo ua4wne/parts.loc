@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Delivery extends Model
 {
     //указываем имя таблицы
-    protected $table = 'delivery_methods';
+    protected $table = 'deliveries';
 
     protected $fillable = ['title'];
 

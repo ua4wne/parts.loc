@@ -2,5 +2,6 @@
     "Admin": true,
     "HR": true,
     "Warehouse": true,
-    "Report": true
+    "Report": true,
+    "Workflow": true
 }

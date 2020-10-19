@@ -26,7 +26,7 @@
                     Наименование: <span class="symbol required" aria-required="true"></span>
                 </label>
                 <div class="col-xs-8">
-                    {!! Form::text('title',$data['title'],['class' => 'form-control','placeholder'=>'Введите наименование','maxlength'=>'50','required'=>'required'])!!}
+                    {!! Form::text('title',$data['title'],['class' => 'form-control','placeholder'=>'Введите наименование','maxlength'=>'100','required'=>'required'])!!}
                     {!! $errors->first('title', '<p class="text-danger">:message</p>') !!}
                 </div>
             </div>

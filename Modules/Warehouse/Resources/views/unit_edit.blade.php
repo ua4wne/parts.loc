@@ -33,7 +33,7 @@
 
             <div class="form-group">
                 <label class="col-xs-3 control-label">
-                    Код: <span class="symbol required" aria-required="true"></span>
+                    Сокращение: <span class="symbol required" aria-required="true"></span>
                 </label>
                 <div class="col-xs-8">
                     {!! Form::text('short_name',$data['short_name'],['class' => 'form-control','placeholder'=>'Введите описание','maxlength'=>'7','required'=>'required'])!!}

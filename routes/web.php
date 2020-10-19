@@ -73,6 +73,15 @@ Route::middleware(['auth'])->group(function(){
         Route::get('/export',['uses'=>'CountryController@upload','as'=>'exportCountries']);
     });
 
+    //delivery-methods/ группа обработки роутов справочника delivery-methods
+    Route::group(['prefix'=>'delivery-methods'], function(){
+        Route::get('/',['uses'=>'DeliveryMethodController@index','as'=>'methods']);
+        //delivery-methods/add
+        Route::match(['get','post'],'/add',['uses'=>'DeliveryMethodController@create','as'=>'methodAdd']);
+        //delivery-methods/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'DeliveryMethodController@edit','as'=>'methodEdit']);
+    });
+
     //deliveries/ группа обработки роутов справочника deliveries
     Route::group(['prefix'=>'deliveries'], function(){
         Route::get('/',['uses'=>'DeliveryController@index','as'=>'deliveries']);
@@ -98,6 +107,15 @@ Route::middleware(['auth'])->group(function(){
         Route::match(['get','post'],'/add',['uses'=>'StatusController@create','as'=>'statusAdd']);
         //stats/edit
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'StatusController@edit','as'=>'statusEdit']);
+    });
+
+    //firm-types/ группа обработки роутов справочника firm-types
+    Route::group(['prefix'=>'firm-types'], function(){
+        Route::get('/',['uses'=>'FirmTypeController@index','as'=>'typefirms']);
+        //firm-types/add
+        Route::match(['get','post'],'/add',['uses'=>'FirmTypeController@create','as'=>'firm_typeAdd']);
+        //firm-types/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'FirmTypeController@edit','as'=>'firm_typeEdit']);
     });
 
     //prices/ группа обработки роутов prices
