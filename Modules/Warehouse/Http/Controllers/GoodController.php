@@ -433,6 +433,15 @@ class GoodController extends Controller
         return response()->json($codes);
     }
 
+    public function getAnalog(Request $request)
+    {
+        $query = $request->get('query', '');
+        //нужно чтобы возвращалось поле name иначе них.. не работает!!!
+        //подите прочь, я возмущен и раздосадован...
+        $codes = DB::select("select id,analog_code as name from goods where analog_code like '%$query%'");
+        return response()->json($codes);
+    }
+
     public function transfer(Request $request){
         if (!User::hasRole('content_manager')) {
             return 'NOT';

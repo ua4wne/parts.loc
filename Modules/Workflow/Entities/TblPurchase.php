@@ -9,7 +9,7 @@ class TblPurchase extends Model
     //указываем имя таблицы
     protected $table = 'tbl_purchases';
 
-    protected $fillable = ['purchase_id','order_id','good_id','qty','unit_id','price1','price2','vat'];
+    protected $fillable = ['purchase_id','order_id','good_id','sub_good_id','qty','unit_id','price1','price2','vat'];
 
     public function purchase()
     {
@@ -24,6 +24,11 @@ class TblPurchase extends Model
     public function good()
     {
         return $this->belongsTo('Modules\Warehouse\Entities\Good','good_id','id');
+    }
+
+    public function sub_good()
+    {
+        return $this->belongsTo('Modules\Warehouse\Entities\Good','sub_good_id','id');
     }
 
     public function unit()

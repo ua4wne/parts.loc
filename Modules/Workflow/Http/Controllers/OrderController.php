@@ -414,13 +414,15 @@ class OrderController extends Controller
                 $input['comment'] = Specification::find($input['comment'])->title;
             $model = new TblOrder();
             $model->fill($input);
+            $model->created_at = date('Y-m-d H:i:s');
+            $model->sub_good_id = $model->good_id;
             if ($model->save()) {
                 $msg = 'Добавлена новая позиция ' . $model->good->title . ' к заказу поставщику №' . $model->order->doc_num;
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 $content = '<tr id="' . $model->id . '">
                     <td>' . $model->good->vendor_code . '</td>
-                    <td>' . $model->good->catalog_num . '</td>
+                    <td>Оригинал</td>
                     <td>' . $model->good->title . '</td>
                     <td>' . $model->comment . '</td>
                     <td>' . $model->qty . '</td>
@@ -462,17 +464,20 @@ class OrderController extends Controller
             unset($input['ecomment']);
             $err_id = $input['err_id'];
             unset($input['err_id']);
-            $model = new TblOrder();
-            $model->fill($input);
-            if ($model->save()) {
-                $msg = 'Добавлена новая позиция ' . $model->good->title . ' к заказу поставщику №' . $model->order->doc_num;
-                //вызываем event
-                event(new AddEventLogs('info', Auth::id(), $msg));
-                //удаляем позицию из таблицы ошибок
-                OrderError::find($err_id)->delete();
-                $content = '<tr id="' . $model->id . '">
+            $dbl = TblOrder::where(['order_id'=>$input['order_id'],'good_id'=>$input['good_id']])->first();
+            if(empty($dbl)){
+                $model = new TblOrder();
+                $model->fill($input);
+                $model->sub_good_id = $model->good_id;
+                if ($model->save()) {
+                    $msg = 'Добавлена новая позиция ' . $model->good->title . ' к заказу поставщику №' . $model->order->doc_num;
+                    //вызываем event
+                    event(new AddEventLogs('info', Auth::id(), $msg));
+                    //удаляем позицию из таблицы ошибок
+                    OrderError::find($err_id)->delete();
+                    $content = '<tr id="' . $model->id . '">
                     <td>' . $model->good->vendor_code . '</td>
-                    <td>' . $model->good->catalog_num . '</td>
+                    <td>Оригинал</td>
                     <td>' . $model->good->title . '</td>
                     <td>' . $model->comment . '</td>
                     <td>' . $model->qty . '</td>
@@ -483,21 +488,27 @@ class OrderController extends Controller
                     <td>' . $model->vat_amount . '</td>
                     <td>' . $model->purchase . '</td>
                     <td style="width:70px;">    <div class="form-group" role="group">';
-                if ($model->good->has_specification) {
-                    $content .= '<button class="btn btn-info btn-sm pos_spec"
+                    if ($model->good->has_specification) {
+                        $content .= '<button class="btn btn-info btn-sm pos_spec"
                                                                         type="button" title="Характеристики"><i
                                                                         class="fa fa-cog fa-lg" aria-hidden="true"></i>
                                                                 </button>';
-                }
-                $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
+                    }
+                    $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
                             <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
                         </div>
                     </td>
                 </tr>';
-                $amount = $model->order->amount + $model->order->vat_amount;
-                $num = TblOrder::where('order_id', $model->order_id)->count('id');
-                $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
-                return json_encode($result);
+                    $amount = $model->order->amount + $model->order->vat_amount;
+                    $num = TblOrder::where('order_id', $model->order_id)->count('id');
+                    $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
+                    return json_encode($result);
+                }
+            }
+            else{
+                //удаляем позицию из таблицы ошибок
+                OrderError::find($err_id)->delete();
+                return 'DBL';
             }
         }
         return 'NO';
@@ -603,6 +614,7 @@ class OrderController extends Controller
                                 $pos = new TblOrder();
                                 $pos->order_id = $order->id;
                                 $pos->good_id = $good->id;
+                                $pos->sub_good_id = $good->id;
                                 $pos->qty = $qty;
                                 $pos->unit_id = $good->unit_id;
                                 $pos->price = $price;

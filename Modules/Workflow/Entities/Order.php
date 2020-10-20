@@ -74,4 +74,19 @@ class Order extends Model
         }
         return round($amount,2);
     }
+
+    public function getFreePosAttribute(){
+        //число позиций в заказе
+        $order_pos_count = TblOrder::where('order_id',$this->id)->count();
+        //общее количество в заказе
+        $order_qty_sum = TblOrder::where('order_id',$this->id)->sum('qty');
+        //сколько позиций забрали в поступления
+        $pos_count = TblPurchase::where('order_id',$this->id)->count();
+        //какое количество забрали в поступления
+        $qty_sum = TblPurchase::where('order_id',$this->id)->sum('qty');
+        if(($pos_count >= $order_pos_count) && $order_qty_sum <= $qty_sum)
+            return false; //нечего брать, все уже забрали
+        else
+            return true;
+    }
 }

@@ -237,12 +237,38 @@ class PurchaseController extends Controller
 
     public function findByOrder(Request $request)
     {
-        $query = $request->get('query', '');
-        //нужно чтобы возвращалось поле name иначе них.. не работает!!!
-        //подите прочь, я возмущен и раздосадован...
-        $codes = DB::select("SELECT id, doc_num AS `name` FROM orders WHERE doc_num like '%$query%'
-                                    AND statuse_id IN (SELECT id FROM statuses WHERE title !='Закрыт')");
-        return response()->json($codes);
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $content = '';
+            $firm = Firm::where('name', $input['firm'])->first();
+            if (!empty($firm->id)) {
+                $orders = Order::where('firm_id', $firm->id)->get();
+                if (!empty($orders)) {
+                    foreach ($orders as $order) {
+                        if ($order->statuse->title == 'Закрыт') continue;
+                        if ($order->free_pos) {
+                            $content .= '<option value="' . $order->id . '">' . $order->doc_num . '</option>' . PHP_EOL;
+                        }
+                    }
+                }
+            }
+            return $content;
+        }
+    }
+
+    public function findByAnalog(Request $request)
+    {
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $content = '';
+            $goods = Good::where('analog_code', $input['analog_code'])->get();
+            if (!empty($goods)) {
+                foreach ($goods as $good) {
+                    $content .= '<option value="' . $good->id . '">' . $good->title . '</option>' . PHP_EOL;
+                }
+            }
+            return $content;
+        }
     }
 
     public function getOrderPos(Request $request)
@@ -250,15 +276,19 @@ class PurchaseController extends Controller
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $order = Order::where(['doc_num' => $input['by_order']])->first();
-            $purchase_id = $input['id_doc'];
-            if ($order->statuse->title != 'Закрыт') {
+            //$purchase_id = $input['id_doc'];
+            if ($order->statuse->title != 'Закрыт' && $order->free_pos) {
                 $content = '';
-                $pos = DB::select("SELECT * FROM tbl_orders WHERE order_id=$order->id AND good_id NOT IN (SELECT good_id FROM tbl_purchases WHERE order_id = $order->id)");
+                //$pos = DB::select("SELECT * FROM tbl_orders WHERE order_id=$order->id AND good_id NOT IN (SELECT good_id FROM tbl_purchases WHERE order_id = $order->id)");
+                $pos = TblOrder::where('order_id', $order->id)->get();
                 if (!empty($pos)) {
                     foreach ($pos as $row) {
-                        $good = Good::find($row->good_id);
-                        $title = $good->title . ' (' . $good->vendor_code . ')';
-                        $content .= '<option value="' . $row->id . '">' . $title . '</option>' . PHP_EOL;
+                        $free_qty = $this->getFreeQty($order->id, $row->good_id);
+                        if ($free_qty > 0) {
+                            $good = Good::find($row->good_id);
+                            $title = $good->title . ' (' . $good->vendor_code . ') - ' . $free_qty;
+                            $content .= '<option value="' . $row->id . '">' . $title . '</option>' . PHP_EOL;
+                        }
                     }
                     return $content;
                 }
@@ -286,7 +316,7 @@ class PurchaseController extends Controller
                         $new = new TblPurchase();
                         $new->purchase_id = $doc_id;
                         $new->good_id = $pos->good_id;
-                        $new->qty = $pos->qty;
+                        $new->qty = $this->getFreeQty($pos->order_id, $pos->good_id);
                         $new->unit_id = $pos->unit_id;
                         $new->price1 = $pos->price;
                         $new->price2 = $pos->price;
@@ -361,16 +391,29 @@ class PurchaseController extends Controller
             return 'BAD';
         }
         if ($request->isMethod('post')) {
-            $input = $request->except('_token'); //параметр _token нам не нужен
+            $input = $request->except('_token','analog_code'); //параметр _token нам не нужен
             $pos = TblPurchase::find($input['pos_id']);
             if (!empty($pos)) {
                 unset($input['pos_id']);
                 $pos->fill($input);
                 if ($pos->update()) {
                     $doc = Purchase::find($pos->purchase_id);
-                    $amount = $doc->amount + $doc->vat_amount;
-                    $num = TblPurchase::where('purchase_id', $pos->purchase_id)->count('id');
-                    $result = ['vat_amount' => $pos->vat_amount, 'sum' => $pos->amount, 'num' => $num, 'amount' => $amount, 'unit' => $pos->unit->title];
+                    //обновляем связанную запись
+                    if(!empty($input['sub_good_id'])){
+                        $tbl = TblOrder::where(['order_id'=>$pos->order_id,'good_id'=>$pos->good_id])->first();
+                        $tbl->sub_good_id = $pos->sub_good_id;
+                        $tbl->update();
+                        $amount = $doc->amount + $doc->vat_amount;
+                        $num = TblPurchase::where('purchase_id', $pos->purchase_id)->count('id');
+                        $result = ['vat_amount' => $pos->vat_amount, 'sum' => $pos->amount, 'num' => $num, 'amount' => $amount,
+                            'unit' => $pos->unit->title,'code'=>$pos->sub_good->vendor_code,'title'=>$pos->sub_good->title];
+                    }
+                    else{
+                        $amount = $doc->amount + $doc->vat_amount;
+                        $num = TblPurchase::where('purchase_id', $pos->purchase_id)->count('id');
+                        $result = ['vat_amount' => $pos->vat_amount, 'sum' => $pos->amount, 'num' => $num, 'amount' => $amount,
+                            'unit' => $pos->unit->title,'code'=>'Оригинал','title'=>$pos->good->title];
+                    }
                     return json_encode($result);
                 }
                 return 'ERR';
@@ -431,7 +474,7 @@ class PurchaseController extends Controller
                         //смотрим есть ли такой документ и не закрыт ли он
                         $order = Order::where('doc_num', trim($row[4]))->where('statuse_id', '!=', $lock)->first();
                         if (empty($order)) {
-                            $err .= 'стр. №'.$num.' - Заказ поставщику №' . $row[4] . ' отсутствует в базе или имеет статус "Закрыт"!' . PHP_EOL;
+                            $err .= 'стр. №' . $num . ' - Заказ поставщику №' . $row[4] . ' отсутствует в базе или имеет статус "Закрыт"!' . PHP_EOL;
                         } else {
                             //смотрим заполнено ли поле артикула, аналога или каталожный номер
                             $vendor_code = trim($row[0]);
@@ -446,7 +489,7 @@ class PurchaseController extends Controller
                                 //смотрим, присутствует ли эта номенклатура в заказе
                                 $pos = TblOrder::where(['order_id' => $order->id, 'good_id' => $good_id])->first();
                                 if (empty($pos)) {
-                                    $err .= 'стр. №'.$num.' - Номенклатура ' . $pos->good->title . ' отсутствует в заказе поставщику №' . $row[4] . '!' . PHP_EOL;
+                                    $err .= 'стр. №' . $num . ' - Номенклатура ' . $pos->good->title . ' отсутствует в заказе поставщику №' . $row[4] . '!' . PHP_EOL;
                                     $num++;
                                     continue;
                                 }
@@ -458,18 +501,16 @@ class PurchaseController extends Controller
                                     $vat = 0;
                                     TblPurchase::updateOrCreate(['purchase_id' => $purchase_id, 'order_id' => $order->id, 'good_id' => $good_id],
                                         ['qty' => $qty, 'unit_id' => 1, 'price1' => $price, 'price2' => $price, 'vat' => $vat]);
+                                } else {
+                                    $err .= 'стр. №' . $num . ' - Номенклатура "' . $pos->good->title . '" из заказа поставщику №' . $row[4] .
+                                        ' уже загружена в приобретение №' . Purchase::find($free->purchase_id)->doc_num . PHP_EOL;
                                 }
-                                else{
-                                    $err .= 'стр. №'.$num.' - Номенклатура "'.$pos->good->title. '" из заказа поставщику №'. $row[4].
-                                        ' уже загружена в приобретение №'. Purchase::find($free->purchase_id)->doc_num.PHP_EOL;
-                                }
-                            }
-                            else{
-                                $err .= 'стр. №'.$num . ' - Не определена номенклатура! Не указаны или не верно указаны: артикул, аналог или каталожный номер.' . PHP_EOL;
+                            } else {
+                                $err .= 'стр. №' . $num . ' - Не определена номенклатура! Не указаны или не верно указаны: артикул, аналог или каталожный номер.' . PHP_EOL;
                             }
                         }
                     } else {
-                        $err .= 'стр. №'.$num . ' - Не указан номер заказа поставщику!' . PHP_EOL;
+                        $err .= 'стр. №' . $num . ' - Не указан номер заказа поставщику!' . PHP_EOL;
                     }
                     $num++;
                 }
@@ -481,5 +522,17 @@ class PurchaseController extends Controller
             return json_encode($result);
         }
         return 'ERR';
+    }
+
+    private function getFreeQty($order_id, $good_id)
+    {
+        //смотрим общее количество в заказе
+        $order_qty = TblOrder::where(['order_id' => $order_id, 'good_id' => $good_id])->sum('qty');
+        //смотрим общее количество в поступлениях
+        $purchase_qty = TblPurchase::where(['order_id' => $order_id, 'good_id' => $good_id])->sum('qty');
+        if ($order_qty > $purchase_qty)
+            return $order_qty - $purchase_qty;
+        else
+            return 0;
     }
 }

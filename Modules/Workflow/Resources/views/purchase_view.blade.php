@@ -65,6 +65,20 @@
                     </div>
 
                     <div class="form-group">
+                        {!! Form::label('analog_code', 'Аналог:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::text('analog_code', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить код аналога','id'=>'by_analog'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {!! Form::label('sub_good_id', 'Наименование:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::select('sub_good_id', [], '',['class' => 'form-control','id'=>'sub_good']); !!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         {!! Form::label('qty','Количество:',['class' => 'col-xs-3 control-label'])   !!}
                         <div class="col-xs-8">
                             {!! Form::number('qty','',['class' => 'form-control','placeholder'=>'Введите количество','required'=>'required','min' => 1, 'max' => 1000,'id'=>'eqty'])!!}
@@ -82,13 +96,6 @@
                         {!! Form::label('price2','Цена:',['class' => 'col-xs-3 control-label'])   !!}
                         <div class="col-xs-8">
                             {!! Form::text('price2',old('price2'),['class' => 'form-control','placeholder'=>'Укажите цену','required'=>'required','id'=>'eprice2'])!!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        {!! Form::label('vat','Ставка НДС:',['class' => 'col-xs-3 control-label'])   !!}
-                        <div class="col-xs-8">
-                            {!! Form::text('vat','',['class' => 'form-control','placeholder'=>'Укажите ставку НДС','required'=>'required','id'=>'evat'])!!}
                         </div>
                     </div>
 
@@ -125,15 +132,15 @@
                     {!! Form::open(['url' => '#','id'=>'add_pos','class'=>'form-horizontal','method'=>'POST']) !!}
 
                     <div class="form-group">
-                    <fieldset>
-                        <legend>Поиск по заказам поставщику:</legend>
-                        <div class="form-group">
-                            {!! Form::label('by_order', '№ документа:',['class'=>'col-xs-3 control-label']) !!}
-                            <div class="col-xs-8">
-                                {!! Form::text('by_order', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить № заявки поставщику','id'=>'by_order'])!!}
+                        <fieldset>
+                            <legend>Заказы поставщику:</legend>
+                            <div class="form-group">
+                                {!! Form::label('by_order', '№ документа:',['class'=>'col-xs-3 control-label']) !!}
+                                <div class="col-xs-8">
+                                    {!! Form::select('by_order',[], '', ['class' => 'form-control','id'=>'by_order'])!!}
+                                </div>
                             </div>
-                        </div>
-                    </fieldset>
+                        </fieldset>
                     </div>
 
                     <div class="form-group">
@@ -290,7 +297,8 @@
                                 </div>
                             </div>
                             {!! Form::close() !!}
-                            <h4 class="pull-right" id="rem"> К оплате с НДС: {{ $purchase->amount + $purchase->vat_amount }} руб.</h4>
+                            <h4 class="pull-right" id="rem"> К оплате с
+                                НДС: {{ $purchase->amount + $purchase->vat_amount }} руб.</h4>
                         </div>
                         <div class="tab-pane fade" id="goods">
                             <div class="panel-heading">
@@ -317,6 +325,7 @@
                                         <thead>
                                         <tr>
                                             <th>Артикул</th>
+                                            <th>Замена</th>
                                             <th>Номенклатура</th>
                                             <th>Характеристика</th>
                                             <th>Кол-во</th>
@@ -333,14 +342,22 @@
                                             @foreach($rows as $k => $row)
                                                 <tr id="{{ $row->id }}">
                                                     <td>{{ $row->good->vendor_code }}</td>
-                                                    <td>{{ $row->good->title }}</td>
+                                                    @if($row->good->vendor_code == $row->sub_good->vendor_code)
+                                                        <td>Оригинал</td>
+                                                        <td>{{ $row->good->title }}</td>
+                                                    @else
+                                                        <td>{{ $row->sub_good->vendor_code }}</td>
+                                                        <td>{{ $row->sub_good->title }}</td>
+                                                    @endif
                                                     <td>{{ $row->comment }}</td>
                                                     <td>{{ $row->qty }}</td>
                                                     <td>{{ $row->unit->title }}</td>
                                                     <td>{{ $row->price1 }}</td>
                                                     <td>{{ $row->price2 }}</td>
                                                     <td>{{ $row->amount }}</td>
-                                                    <td><a href="/orders/view/{{ $row->order->id }}" target="_blank">{{ $row->order->doc_num }} от {{$row->order->created_at}}</a></td>
+                                                    <td><a href="/orders/view/{{ $row->order->id }}"
+                                                           target="_blank">{{ $row->order->doc_num }}
+                                                            от {{$row->order->created_at}}</a></td>
                                                     <td style="width:100px;">
                                                         <div class="form-group" role="group">
                                                             <button class="btn btn-info btn-sm pos_edit"
@@ -382,12 +399,12 @@
             }
         });
 
-        $('#by_order').typeahead({
+        $('#by_analog').typeahead({
             hint: true,
             highlight: true,
             minLength: 3,
             ajax: {
-                url: "{{ route('searchByOrder') }}",
+                url: "{{ route('getAnalog') }}",
                 triggerLength: 1
             }
         });
@@ -430,7 +447,7 @@
             } else {
                 let formData = new FormData();
                 formData.append('file', $('#file').prop("files")[0]);
-                formData.append('doc_id',$('#doc_id').val())
+                formData.append('doc_id', $('#doc_id').val())
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('importPurchasePos') }}',
@@ -528,7 +545,7 @@
                             $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
                             $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
                             $("#doc_table").append(obj.content);
-                            $('#by_order').val('');
+                            $('#by_order').empty();
                             $('#order_pos').empty();
                             $(".modal").modal("hide");
                         }
@@ -541,43 +558,76 @@
             }
         });
 
-        $('#close').click(function(e){
+        $('#close').click(function (e) {
             e.preventDefault();
-            $('#by_order').val('');
+            $('#by_order').empty();
             $('#order_pos').empty();
         });
 
-        $('#eclose').click(function(e){
+        $('#eclose').click(function (e) {
             e.preventDefault();
             $('#evendor').val('');
             $('#egood').val('');
             $('#eqty').val('');
             $('#eprice2').val('');
-            $('#evat').val('');
+            $('#by_analog').val('');
+            $('#sub_good').empty();
             $('#pos_id').val('');
+        });
+
+        $('#by_order').focus(function () {
+            let firm = $('#search_firm').val();
+            $('#by_order').empty();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('searchByOrder') }}',
+                data: {'firm': firm},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    $("#by_order").prepend($(res));
+                }
+            });
+        });
+
+        $('#sub_good').focus(function () {
+            let analog = $('#by_analog').val();
+            $('#sub_good').empty();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('searchByAnalog') }}',
+                data: {'analog_code': analog},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    $("#sub_good").prepend($(res));
+                }
+            });
         });
 
         $("#order_pos").focus(function () {
             $("#order_pos").empty(); //очищаем от старых значений
-            let by_order = $("#by_order").val();
+            let by_order = $("#by_order option:selected").text(); //$("#by_order").text();
             let id_doc = $("#id_doc").val();
-            if(by_order.length>3){
+            if (by_order.length > 3) {
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('getOrderPos') }}',
-                    data: {'by_order': by_order,'id_doc': id_doc},
+                    data: {'by_order': by_order, 'id_doc': id_doc},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function (res) {
                         //alert(res);
-                        if(res=='LOCK'){
-                            alert('Заказ поставщику №'+by_order+' имеет статус "Закрыт". Добавление позиций из него не возможно!')
-                        }
-                        else if(res=='NO'){
-                            alert('В заказе поставщику №'+by_order+' нет ни одной позиции для загрузки!')
-                        }
-                        else{
+                        if (res == 'LOCK') {
+                            alert('Заказ поставщику №' + by_order + ' имеет статус "Закрыт". Добавление позиций из него не возможно!')
+                        } else if (res == 'NO') {
+                            alert('В заказе поставщику №' + by_order + ' нет ни одной позиции для загрузки!')
+                        } else {
                             $("#order_pos").prepend($(res));
                         }
                     }
@@ -614,12 +664,12 @@
                         if (typeof obj === 'object') {
                             $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
                             $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
-                            $('#' + id).children('td').eq(3).text($('#eqty').val());
-                            $('#' + id).children('td').eq(4).text(obj.unit);
-                            $('#' + id).children('td').eq(6).text($('#eprice2').val());
-                            $('#' + id).children('td').eq(7).text(obj.sum);
-                            $('#' + id).children('td').eq(8).text($('#evat').val());
-                            $('#' + id).children('td').eq(9).text(obj.vat_amount);
+                            $('#' + id).children('td').eq(1).text(obj.code);
+                            $('#' + id).children('td').eq(2).text(obj.title);
+                            $('#' + id).children('td').eq(4).text($('#eqty').val());
+                            $('#' + id).children('td').eq(5).text(obj.unit);
+                            $('#' + id).children('td').eq(7).text($('#eprice2').val());
+                            $('#' + id).children('td').eq(8).text(obj.sum);
                         }
                         if (res == 'BAD')
                             alert('Выполнение операции запрещено!');
@@ -638,16 +688,21 @@
             click: function () {
                 let row = $(this).parent().parent().parent();
                 $("#editPoc").modal("show");
-                $('#evendor').val(row.children('td').eq(0).text());
-                $('#egood').val(row.children('td').eq(1).text());
-                $('#eqty').val(row.children('td').eq(3).text());
-                $('#eunit option:selected').each(function(){
-                    this.selected=false;
+                if(row.children('td').eq(1).text()=="Оригинал")
+                    $('#evendor').val(row.children('td').eq(0).text());
+                else
+                    $('#evendor').val(row.children('td').eq(1).text());
+                $('#egood').val(row.children('td').eq(2).text());
+                $('#eqty').val(row.children('td').eq(4).text());
+                $('#eunit option:selected').each(function () {
+                    this.selected = false;
                 });
-                $("#eunit :contains('"+row.children('td').eq(4).text()+"')").attr("selected", "selected");
-                $('#eprice2').val(row.children('td').eq(6).text());
-                $('#evat').val(row.children('td').eq(8).text());
+                $("#eunit :contains('" + row.children('td').eq(5).text() + "')").attr("selected", "selected");
+                $('#eprice2').val(row.children('td').eq(7).text());
+                //$('#evat').val(row.children('td').eq(8).text());
                 $('#pos_id').val(row.attr('id'));
+                $('#by_analog').val('');
+                $('#sub_good').empty();
             }
         }, ".pos_edit");
 

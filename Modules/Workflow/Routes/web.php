@@ -117,7 +117,9 @@ Route::middleware(['auth'])->group(function () {
         //purchases/import
         Route::post('/import', ['uses'=>'PurchaseController@download','as'=>'importPurchasePos']);
         //purchases/find_by_order
-        Route::get('/find_by_order',['uses'=>'PurchaseController@findByOrder','as'=>'searchByOrder']);
+        Route::post('/find_by_order',['uses'=>'PurchaseController@findByOrder','as'=>'searchByOrder']);
+        //purchases/find_by_analog
+        Route::post('/find_by_analog',['uses'=>'PurchaseController@findByAnalog','as'=>'searchByAnalog']);
         //purchases/get_order_pos
         Route::post('/get_order_pos',['uses'=>'PurchaseController@getOrderPos','as'=>'getOrderPos']);
         //purchases/pos_edit

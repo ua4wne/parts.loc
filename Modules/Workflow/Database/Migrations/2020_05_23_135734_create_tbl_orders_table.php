@@ -19,6 +19,8 @@ class CreateTblOrdersTable extends Migration
             $table->foreign('order_id')->references('id')->on('orders');
             $table->integer('good_id')->unsigned();
             $table->foreign('good_id')->references('id')->on('goods');
+            $table->integer('sub_good_id')->unsigned();
+            $table->foreign('sub_good_id')->references('id')->on('goods');
             $table->string('comment',255)->nullable();
             $table->float('qty');
             $table->integer('unit_id')->unsigned();

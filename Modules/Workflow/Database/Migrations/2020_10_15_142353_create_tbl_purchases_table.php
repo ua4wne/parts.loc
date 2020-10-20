@@ -19,6 +19,8 @@ class CreateTblPurchasesTable extends Migration
             $table->foreign('purchase_id')->references('id')->on('purchases');
             $table->integer('good_id')->unsigned();
             $table->foreign('good_id')->references('id')->on('goods');
+            $table->integer('sub_good_id')->unsigned();
+            $table->foreign('sub_good_id')->references('id')->on('goods');
             $table->float('qty');
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');

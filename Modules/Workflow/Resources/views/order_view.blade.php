@@ -507,11 +507,11 @@
                             @endif
                             <div class="col-md-12">
                                 <div class="table-responsive">
-                                    <table id="doc_table" class="table table-striped table-bordered">
+                                    <table id="doc_table" class="table table-bordered">
                                         <thead>
                                         <tr>
                                             <th>Артикул</th>
-                                            <th>Каталожный №</th>
+                                            <th>Замена</th>
                                             <th>Номенклатура</th>
                                             <th>Характеристика</th>
                                             <th>Кол-во</th>
@@ -527,34 +527,45 @@
                                         @if($rows)
                                             <tbody id="t_body">
                                             @foreach($rows as $k => $row)
-                                                <tr id="{{ $row->id }}">
-                                                    <td>{{ $row->good->vendor_code }}</td>
-                                                    <td>{{ $row->good->catalog_num }}</td>
-                                                    <td>{{ $row->good->title }}</td>
-                                                    <td>{{ $row->comment }}</td>
-                                                    <td>{{ $row->qty }}</td>
-                                                    <td>{{ $row->unit->title }}</td>
-                                                    <td>{{ $row->price }}</td>
-                                                    <td>{{ $row->amount }}</td>
-                                                    <td>{{ $row->vat }}</td>
-                                                    <td>{{ $row->vat_amount }}</td>
-                                                    <td>{!! $row->purchase !!}</td>
-                                                    <td style="width:100px;">
-                                                        <div class="form-group" role="group">
-                                                            @if($row->good->has_specification)
-                                                                <button class="btn btn-info btn-sm pos_spec"
-                                                                        type="button" title="Характеристики"><i
-                                                                        class="fa fa-cog fa-lg" aria-hidden="true"></i>
+                                                @if($row->free_pos)
+                                                    <tr id="{{ $row->id }}">
+                                                @else
+                                                    <tr id="{{ $row->id }}" class="success">
+                                                        @endif
+                                                        <td>{{ $row->good->vendor_code }}</td>
+                                                        @if($row->good->vendor_code == $row->sub_good->vendor_code)
+                                                            <td>Оригинал</td>
+                                                            <td>{{ $row->good->title }}</td>
+                                                        @else
+                                                            <td>{{ $row->sub_good->vendor_code }}</td>
+                                                            <td>{{ $row->sub_good->title }}</td>
+                                                        @endif
+                                                        <td>{{ $row->comment }}</td>
+                                                        <td>{{ $row->qty }}</td>
+                                                        <td>{{ $row->unit->title }}</td>
+                                                        <td>{{ $row->price }}</td>
+                                                        <td>{{ $row->amount }}</td>
+                                                        <td>{{ $row->vat }}</td>
+                                                        <td>{{ $row->vat_amount }}</td>
+                                                        <td>{!! $row->purchase !!}</td>
+                                                        <td style="width:100px;">
+                                                            <div class="form-group" role="group">
+                                                                @if($row->good->has_specification)
+                                                                    <button class="btn btn-info btn-sm pos_spec"
+                                                                            type="button" title="Характеристики"><i
+                                                                            class="fa fa-cog fa-lg"
+                                                                            aria-hidden="true"></i>
+                                                                    </button>
+                                                                @endif
+                                                                <button class="btn btn-danger btn-sm pos_delete"
+                                                                        type="button" title="Удалить позицию"><i
+                                                                        class="fa fa-trash fa-lg"
+                                                                        aria-hidden="true"></i>
                                                                 </button>
-                                                            @endif
-                                                            <button class="btn btn-danger btn-sm pos_delete"
-                                                                    type="button" title="Удалить позицию"><i
-                                                                    class="fa fa-trash fa-lg" aria-hidden="true"></i>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    @endforeach
                                             </tbody>
                                         @endif
                                     </table>
@@ -811,10 +822,15 @@
                     success: function (res) {
                         //alert(res);
                         if (res == 'BAD') {
-                            alert('У Вас нет прав для редактирования документа!')
+                            alert('У Вас нет прав для редактирования документа!');
                         }
                         if (res == 'NO') {
-                            alert('Не известный запрос!')
+                            alert('Не известный запрос!');
+                        }
+                        if (res == 'DBL') {
+                            alert('Позиция уже присутствует в заявке!');
+                            $(".modal").modal("hide");
+                            hide_row(id);
                         }
                         let obj = jQuery.parseJSON(res);
                         if (typeof obj === 'object') {
@@ -987,7 +1003,7 @@
             click: function () {
                 let row = $(this).parent().parent().parent();
                 $("#errPoc").modal("show");
-                $('#search_evendor').val(row.children('td').eq(0).text());
+                $('#search_evendor').val(row.children('td').eq(0).text().trim());
                 $('#eqty').val(row.children('td').eq(1).text());
                 $('#eprice').val(row.children('td').eq(3).text());
                 $('#evat').val(row.children('td').eq(5).text());

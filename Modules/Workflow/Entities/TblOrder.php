@@ -21,6 +21,11 @@ class TblOrder extends Model
         return $this->belongsTo('Modules\Warehouse\Entities\Good','good_id','id');
     }
 
+    public function sub_good()
+    {
+        return $this->belongsTo('Modules\Warehouse\Entities\Good','sub_good_id','id');
+    }
+
     public function unit()
     {
         return $this->belongsTo('Modules\Warehouse\Entities\Unit','unit_id','id');
@@ -38,12 +43,32 @@ class TblOrder extends Model
     }
 
     public function getPurchaseAttribute() {
-        $doc = TblPurchase::where(['order_id'=>$this->order->id,'good_id'=>$this->good_id])->first();
-        if(!empty($doc->purchase_id))
-            $doc = Purchase::find($doc->purchase_id);
-        if(!empty($doc)){
-            return '<a href="/purchases/view/'.$doc->id.'" target="_blank">'.$doc->doc_num.' от '.$doc->created_at.'</a>';
+        $pos = TblPurchase::where(['order_id'=>$this->order->id,'good_id'=>$this->good_id])->get();
+        $html = '';
+        if(!empty($pos)){
+            foreach ($pos as $row){
+                if(!empty($row->purchase_id))
+                    $docs = Purchase::where('id',$row->purchase_id)->get();
+                if(!empty($docs)){
+                    foreach ($docs as $doc){
+                        $html .= '<a href="/purchases/view/'.$doc->id.'" target="_blank">'.$doc->doc_num.' от '.$doc->created_at.' - '.$row->qty.' ед.</a></br>';
+                    }
+
+                }
+            }
         }
-        return '';
+        return $html;
+    }
+
+    public function getFreePosAttribute(){
+
+        //общее количество в заказе
+        $order_qty = TblOrder::where(['order_id'=>$this->order_id,'good_id'=>$this->good_id])->sum('qty');
+        //какое количество забрали в поступления
+        $purchase_qty = TblPurchase::where(['order_id'=>$this->order_id,'good_id'=>$this->good_id])->sum('qty');
+        if($order_qty > $purchase_qty)
+            return $order_qty - $purchase_qty;
+        else
+            return 0;
     }
 }
