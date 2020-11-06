@@ -61,7 +61,6 @@ class PurchaseController extends Controller
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $input['amount'] = 0;
             $firm_id = Firm::where('name', $input['firm_id'])->first()->id;
             $input['firm_id'] = $firm_id;
 
@@ -74,8 +73,7 @@ class PurchaseController extends Controller
                 'string' => 'Значение поля должно быть строковым!',
             ];
             $validator = Validator::make($input, [
-                'doc_num' => 'required|unique:orders|string|max:15',
-                //'amount' => 'required|numeric',
+                'doc_num' => 'required|unique:purchases|string|max:15',
                 'firm_id' => 'required|integer',
                 'statuse_id' => 'required|integer',
                 'finish' => 'nullable|date',
@@ -230,9 +228,52 @@ class PurchaseController extends Controller
      * @param int $id
      * @return Response
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
-        return view('workflow::edit');
+        $purchase = Purchase::find($id);
+        if (!Role::granted('purchases')) {//вызываем event
+            $msg = 'Попытка редактирования приобретения №' . $purchase->doc_num . '!';
+            event(new AddEventLogs('access', Auth::id(), $msg));
+            abort(503, 'У Вас нет прав на редактирование документов приобретений товаров!');
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $firm_id = Firm::where('name', $input['firm_id'])->first()->id;
+            $input['firm_id'] = $firm_id;
+
+            $messages = [
+                'required' => 'Поле обязательно к заполнению!',
+                'unique' => 'Значение поля должно быть уникальным!',
+                'max' => 'Значение поля должно быть не более :max символов!',
+                'integer' => 'Значение поля должно быть целым числом!',
+                'numeric' => 'Значение поля должно быть числовым!',
+                'string' => 'Значение поля должно быть строковым!',
+            ];
+            $validator = Validator::make($input, [
+                //'doc_num' => 'required|string|max:15',
+                'firm_id' => 'required|integer',
+                'statuse_id' => 'required|integer',
+                'finish' => 'nullable|date',
+                'currency_id' => 'required|integer',
+                'hoperation_id' => 'required|integer',
+                'organisation_id' => 'required|integer',
+                'contract_id' => 'required|integer',
+                'warehouse_id' => 'required|integer',
+                'user_id' => 'required|integer',
+                'comment' => 'nullable|string|max:254',
+            ], $messages);
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            $purchase->fill($input);
+            if ($purchase->update()) {
+                $msg = 'Данные приобретения товаров и услуг № ' . $purchase->doc_num . ' были успешно обновлены!';
+                //вызываем event
+                event(new AddEventLogs('info', Auth::id(), $msg));
+                return redirect()->back()->with('status', $msg);
+            }
+        }
     }
 
     public function findByOrder(Request $request)

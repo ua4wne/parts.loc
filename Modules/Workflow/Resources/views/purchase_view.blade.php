@@ -302,19 +302,36 @@
                         </div>
                         <div class="tab-pane fade" id="goods">
                             <div class="panel-heading">
-                                <a href="#">
-                                    <button type="button" class="btn btn-primary btn-sm btn-o" id="new_pos"
-                                            data-toggle="modal" data-target="#newDoc">
-                                        <i class="fa fa-plus" aria-hidden="true"></i> Добавить
-                                    </button>
-                                </a>
-                                <a href="#">
-                                    <button type="button" class="btn btn-primary btn-sm btn-o" id="import"
-                                            data-toggle="modal"
-                                            data-target="#importDoc">
-                                        <i class="fa fa-file-excel-o" aria-hidden="true"></i> Загрузить из файла
-                                    </button>
-                                </a>
+                                @if($purchase->statuse->title != 'Закрыт')
+                                    <a href="#">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="new_pos"
+                                                data-toggle="modal" data-target="#newDoc">
+                                            <i class="fa fa-plus" aria-hidden="true"></i> Добавить
+                                        </button>
+                                    </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="import"
+                                                data-toggle="modal"
+                                                data-target="#importDoc">
+                                            <i class="fa fa-file-excel-o" aria-hidden="true"></i> Загрузить из файла
+                                        </button>
+                                    </a>
+                                    <div class="btn-group">
+                                        <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
+                                           href="#" aria-expanded="false">
+                                            Создать на основании <span class="caret"></span>
+                                        </a>
+                                        @if(!$purchase->free)
+                                            <ul role="menu" class="dropdown-menu dropdown-light">
+                                                <li>
+                                                    <a href="{{ route('newDeclaration',['id'=>$purchase->id]) }}">
+                                                        Таможенная декларация на импорт
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        @endif
+                                    </div>
+                                @endif
                                 <h4 class="pull-right" id="state"> Всего позиций: {{ count($rows) }} на сумму с
                                     НДС: {{ $purchase->amount + $purchase->vat_amount }} руб.</h4>
                             </div>
@@ -688,7 +705,7 @@
             click: function () {
                 let row = $(this).parent().parent().parent();
                 $("#editPoc").modal("show");
-                if(row.children('td').eq(1).text()=="Оригинал")
+                if (row.children('td').eq(1).text() == "Оригинал")
                     $('#evendor').val(row.children('td').eq(0).text());
                 else
                     $('#evendor').val(row.children('td').eq(1).text());

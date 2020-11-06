@@ -60,6 +60,15 @@ Route::middleware(['auth'])->group(function(){
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'CurrencyController@edit','as'=>'currencyEdit']);
     });
 
+    //expenses/ группа обработки роутов справочника expenses
+    Route::group(['prefix'=>'expenses'], function(){
+        Route::get('/',['uses'=>'ExpenseController@index','as'=>'expenses']);
+        //expenses/add
+        Route::match(['get','post'],'/add',['uses'=>'ExpenseController@create','as'=>'expenseAdd']);
+        //expenses/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'ExpenseController@edit','as'=>'expenseEdit']);
+    });
+
     //countries/ группа обработки роутов справочника countries
     Route::group(['prefix'=>'countries'], function(){
         Route::get('/',['uses'=>'CountryController@index','as'=>'countries']);

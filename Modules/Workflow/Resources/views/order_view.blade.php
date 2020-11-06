@@ -297,6 +297,11 @@
                                 Товары
                             </a>
                         </li>
+                        <li>
+                            <a href="#links" data-toggle="tab">
+                                Цепочка документов
+                            </a>
+                        </li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane fade in active" id="common">
@@ -568,6 +573,25 @@
                                                     @endforeach
                                             </tbody>
                                         @endif
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="links">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <table id="doc_table" class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>Документ</th>
+                                            <th>Статус</th>
+                                            <th>Дата создания</th>
+                                            <th>Автор</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {!! $tbody !!}
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>

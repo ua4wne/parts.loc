@@ -9,7 +9,8 @@ class Contact extends Model
     //указываем имя таблицы
     protected $table = 'contacts';
 
-    protected $fillable = ['firm_id','lname','mname','fname','position','phone','email','site','legal_address','fact_address','post_address'];
+    protected $fillable = ['firm_id','lname','mname','fname','position','phone','email','site','legal_address',
+        'fact_address','post_address'];
 
     public function firm()
     {

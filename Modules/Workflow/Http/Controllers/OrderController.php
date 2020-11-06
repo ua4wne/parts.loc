@@ -24,6 +24,7 @@ use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Order;
 use Modules\Workflow\Entities\OrderError;
 use Modules\Workflow\Entities\Purchase;
+use Modules\Workflow\Entities\TblDeclaration;
 use Modules\Workflow\Entities\TblOrder;
 use Modules\Workflow\Entities\TblPurchase;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -213,6 +214,36 @@ class OrderController extends Controller
             $err = OrderError::where('order_id', $id)->count('id');
             $vat = 0;
             if($order->has_vat) $vat = env('VAT');
+            //цепочка связанных документов
+            $links = TblPurchase::select('purchase_id')->where('order_id',$id)->orderBy('created_at','asc')->get();
+            $tbody = '';
+            if(!empty($links)){
+                foreach ($links as $row){
+                    $tbody .= '<tr><td class="text-bold"><a href="/purchases/view/'.$row->purchase->id.'" target="_blank">
+                    Приобретение товаров и услуг №' . $row->purchase->doc_num . '</a></td>';
+                    if(isset($row->purchase->statuse_id)){
+                        $tbody .= '<td>' . $row->purchase->statuse->title . '</td>';
+                    }
+                    else{
+                        $tbody .= '<td></td>';
+                    }
+                    $tbody .= '<td>'
+                        . $row->purchase->created_at . '</td><td>' . $row->purchase->user->name . '</td></tr>';
+                }
+                foreach ($links as $row){
+                    $decl = TblDeclaration::select('declaration_id')->where('purchase_id',$row->purchase->id)->first();
+                    $tbody .= '<tr><td class="text-bold"><a href="/declarations/view/'.$decl->declaration->id.'" target="_blank">
+                    Таможенная декларация на импорт №' . $decl->declaration->doc_num . '</a></td>';
+                    if(isset($decl->declaration->statuse_id)){
+                        $tbody .= '<td>' . $decl->declaration->statuse->title . '</td>';
+                    }
+                    else{
+                        $tbody .= '<td></td>';
+                    }
+                    $tbody .= '<td>'
+                        . $decl->declaration->created_at . '</td><td>' . $decl->declaration->user->name . '</td></tr>';
+                }
+            }
             $data = [
                 'title' => 'Заказы поставщику',
                 'head' => 'Заказ поставщику № ' . $order->doc_num,
@@ -229,6 +260,7 @@ class OrderController extends Controller
                 'rows' => $rows,
                 'err_rows' => $err_rows,
                 'err' => $err,
+                'tbody' => $tbody,
             ];
             return view('workflow::order_view', $data);
         }

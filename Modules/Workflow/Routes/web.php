@@ -124,6 +124,35 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/get_order_pos',['uses'=>'PurchaseController@getOrderPos','as'=>'getOrderPos']);
         //purchases/pos_edit
         Route::post('/pos_edit',['uses'=>'PurchaseController@PosEdit','as'=>'PurchasePosEdit']);
+        //purchases/new_declaration
+        Route::get('/new_declaration/{id}',['uses'=>'PurchaseController@newPurchase','as'=>'newDeclaration']);
+    });
+
+    //declarations/ группа обработки роутов declarations
+    Route::group(['prefix'=>'declarations'], function(){
+        Route::get('/',['uses'=>'DeclarationController@index','as'=>'declarations']);
+        //declarations/add
+        Route::match(['get','post'],'/add',['uses'=>'DeclarationController@create','as'=>'declarationAdd']);
+        //declarations/edit
+        Route::match(['get','post'],'/edit/{id}',['uses'=>'DeclarationController@edit','as'=>'declarationEdit']);
+        //declarations/view
+        Route::match(['get','post'],'/view/{id}',['uses'=>'DeclarationController@show','as'=>'declarationView']);
+        //declarations/del
+        Route::post('/del',['uses'=>'DeclarationController@delete','as'=>'declarationDelete']);
+        //declarations/addpos
+        Route::post('/addpos',['uses'=>'DeclarationController@addPosition','as'=>'addDeclarationPos']);
+        //declarations/delpos
+        Route::post('/delpos',['uses'=>'DeclarationController@delPosition','as'=>'delDeclarationPos']);
+        //declarations/find_purchases
+        Route::get('/find_purchases',['uses'=>'DeclarationController@findPurchases','as'=>'searchPurchases']);
+        //declarations/pos_edit
+        Route::post('/pos_edit',['uses'=>'DeclarationController@PosEdit','as'=>'DeclarationPosEdit']);
+        //declarations/get_purchases
+        Route::post('/get_purchases',['uses'=>'DeclarationController@getPurchases','as'=>'getPurchaseFromDeclaration']);
+        //declarations/del_purchase_pos
+        Route::post('/del_purchase_pos',['uses'=>'DeclarationController@delPurchasePos','as'=>'delPosPurchase']);
+        //declarations/cost_allocation
+        Route::post('/cost_allocation',['uses'=>'DeclarationController@CostAllocation','as'=>'CostAllocation']);
     });
 
 });

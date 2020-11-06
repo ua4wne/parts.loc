@@ -73,4 +73,8 @@ class Purchase extends Model
         }
         return round($amount,2);
     }
+
+    public function getFreeAttribute(){
+        return TblDeclaration::where('purchase_id',$this->id)->count('id'); //уже есть декларации с этого приобретения?
+    }
 }

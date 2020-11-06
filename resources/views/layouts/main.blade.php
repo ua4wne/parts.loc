@@ -98,6 +98,7 @@
                             <li><a href="{{ route('orgforms') }}"><span class="title"> Организационные формы </span></a></li>
                             <li><a href="{{ route('methods') }}"><span class="title"> Способы доставки </span></a></li>
                             <li><a href="{{ route('stats') }}"><span class="title"> Статусы документов </span></a></li>
+                            <li><a href="{{ route('expenses') }}"><span class="title"> Статьи затрат </span></a></li>
                             <li><a href="{{ route('countries') }}"><span class="title"> Страны </span></a></li>
                             <li><a href="{{ route('deliveries') }}"><span class="title"> Транспортные компании </span></a></li>
                             <li><a href="{{ route('hopers') }}"><span class="title"> Хозяйственные операции </span></a></li>
@@ -117,6 +118,7 @@
                         <ul class="sub-menu">
                             <li><a href="{{ route('orders') }}"><span class="title">Заказ поставщику</span></a></li>
                             <li><a href="{{ route('purchases') }}"><span class="title">Приобретение товаров и услуг</span></a></li>
+                            <li><a href="{{ route('declarations') }}"><span class="title">Таможенные декларации</span></a></li>
                             <li><a href="{{ route('wh_corrects') }}"><span class="title">Корректировка остатков</span></a></li>
                             <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
                             <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
