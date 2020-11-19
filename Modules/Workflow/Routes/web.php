@@ -155,4 +155,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cost_allocation',['uses'=>'DeclarationController@CostAllocation','as'=>'CostAllocation']);
     });
 
+    //pricing_rules/ группа обработки роутов pricing_rules
+    Route::group(['prefix'=>'pricing_rules'], function(){
+        Route::get('/',['uses'=>'PricingRuleController@index','as'=>'pricing_rules']);
+        //pricing_rules/add
+        Route::match(['get','post'],'/add',['uses'=>'PricingRuleController@create','as'=>'pricingRuleAdd']);
+        //pricing_rules/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'PricingRuleController@edit','as'=>'pricingRuleEdit']);
+
+    });
+
+    //sales/ группа обработки роутов sales
+    Route::group(['prefix'=>'sales'], function(){
+        Route::get('/',['uses'=>'SalesController@index','as'=>'sales']);
+
+    });
+
 });

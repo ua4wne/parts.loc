@@ -405,7 +405,7 @@
                             <div class="form-group">
                                 {!! Form::label('length','Длина, м:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('length',old('length'),['class' => 'form-control','placeholder'=>'Укажите длину','id'=>'elength'])!!}
+                              t('length',old('length'),['class' => 'form-control','placeholder'=>'Укажите длину','id'=>'elength'])!!}
                                 </div>
                             </div>
 

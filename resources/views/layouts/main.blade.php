@@ -119,9 +119,24 @@
                             <li><a href="{{ route('orders') }}"><span class="title">Заказ поставщику</span></a></li>
                             <li><a href="{{ route('purchases') }}"><span class="title">Приобретение товаров и услуг</span></a></li>
                             <li><a href="{{ route('declarations') }}"><span class="title">Таможенные декларации</span></a></li>
-                            <li><a href="{{ route('wh_corrects') }}"><span class="title">Корректировка остатков</span></a></li>
-                            <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
-                            <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
+                            <li class="open">
+                                <a href="javascript:;">
+                                    <span>Складские документы</span> <i class="icon-arrow"></i>
+                                </a>
+                                <ul class="sub-menu" style="display: block;">
+                                    <li><a href="{{ route('wh_corrects') }}"><span class="title">Корректировка остатков</span></a></li>
+                                    <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
+                                </ul>
+                            </li>
+                            <li class="open">
+                                <a href="javascript:;">
+                                    <span>Ценообразование</span> <i class="icon-arrow"></i>
+                                </a>
+                                <ul class="sub-menu" style="display: block;">
+                                    <li><a href="{{ route('prices') }}"><span class="title">Прайсы</span></a></li>
+                                    <li><a href="{{ route('pricing_rules') }}"><span class="title">Правила ценообразования</span></a></li>
+                                </ul>
+                            </li>
                         </ul>
                     </li>
                     <li>
@@ -371,23 +386,39 @@
                 @section('tile_widget')
                 <div class="container-fluid container-fullw bg-white">
                     <div class="row">
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <div class="panel panel-white no-radius text-center">
                                 <div class="panel-body">
-                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-book fa-stack-1x fa-inverse"></i> </span>
-                                    <h2 class="StepTitle">Продажи</h2>
+                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-magic fa-stack-1x fa-inverse"></i> </span>
+                                    <h2 class="StepTitle">Помощник продаж</h2>
                                     <p class="text-small">
-                                        Заказы клиентов.
+                                        Рабочее место менеджера.
                                     </p>
                                     <p class="links cl-effect-1">
-                                        <a href>
+                                        <a href="{{ route('sales') }}">
                                             подробнее
                                         </a>
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
+                            <div class="panel panel-white no-radius text-center">
+                                <div class="panel-body">
+                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-shopping-bag fa-stack-1x fa-inverse"></i> </span>
+                                    <h2 class="StepTitle">Продажи</h2>
+                                    <p class="text-small">
+                                        Заказы клиентов.
+                                    </p>
+                                    <p class="links cl-effect-1">
+                                        <a href="#">
+                                            подробнее
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
                             <div class="panel panel-white no-radius text-center">
                                 <div class="panel-body">
                                     <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-shopping-cart fa-stack-1x fa-inverse"></i> </span>
@@ -403,17 +434,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <div class="panel panel-white no-radius text-center">
                                 <div class="panel-body">
-                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-terminal fa-stack-1x fa-inverse"></i> </span>
-                                    <h2 class="StepTitle">Manage Database</h2>
+                                    <span class="fa-stack fa-2x"> <i class="fa fa-square fa-stack-2x text-primary"></i> <i class="fa fa-cubes fa-stack-1x fa-inverse"></i> </span>
+                                    <h2 class="StepTitle">Склады</h2>
                                     <p class="text-small">
-                                        Store, modify, and extract information from your database.
+                                        Складские запасы.
                                     </p>
-                                    <p class="links cl-effect-1">
-                                        <a href>
-                                            view more
+                                    <p class="cl-effect-1">
+                                        <a href="#">
+                                            подробнее
                                         </a>
                                     </p>
                                 </div>
