@@ -48,11 +48,11 @@
                     </button>
                 </a>
             </div>
-            <div class="col-md-6 panel panel-white">
+            <div class="col-md-5 panel panel-white">
                 <div class="row">
                     <fieldset>
                         <legend>Поиск номенклатуры</legend>
-                        <table class="table">
+                        <table class="table table-condensed">
                             <tr>
                                 <td>
                                     {!! Form::select('search',['name'=>'Наименование','vendor'=>'Артикул','analog'=>'Аналог',
@@ -60,13 +60,13 @@
                                 </td>
                                 <th>содержит:</th>
                                 <td>
-                                    {!! Form::text('name',old('name'),['class' => 'form-control','placeholder'=>'Начинайте ввод для поиска',
+                                    {!! Form::text('name',old('name'),['class' => 'form-control master','placeholder'=>'Начинайте ввод для поиска',
                                         'required'=>'required','id'=>'by_name'])!!}
-                                    {!! Form::text('vendor',old('vendor'),['class' => 'form-control','placeholder'=>'Начинайте ввод для поиска',
+                                    {!! Form::text('vendor',old('vendor'),['class' => 'form-control master','placeholder'=>'Начинайте ввод для поиска',
                                         'required'=>'required','id'=>'by_vendor'])!!}
-                                    {!! Form::text('analog',old('analog'),['class' => 'form-control','placeholder'=>'Начинайте ввод для поиска',
+                                    {!! Form::text('analog',old('analog'),['class' => 'form-control master','placeholder'=>'Начинайте ввод для поиска',
                                         'required'=>'required','id'=>'by_analog'])!!}
-                                    {!! Form::text('catalog',old('catalog'),['class' => 'form-control','placeholder'=>'Начинайте ввод для поиска',
+                                    {!! Form::text('catalog',old('catalog'),['class' => 'form-control master','placeholder'=>'Начинайте ввод для поиска',
                                         'required'=>'required','id'=>'by_catalog'])!!}
                                 </td>
                             </tr>
@@ -75,7 +75,7 @@
                 </div>
                 <div class="row">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered">
+                        <table class="table table-condensed table-bordered">
                             <thead>
                             <tr>
                                 <th>Код</th>
@@ -87,7 +87,7 @@
                             <tbody id="t_body">
                             @if($rows)
                                 @foreach($rows as $k => $row)
-                                    <tr id="{{ $row->id }}">
+                                    <tr id="{{ $row->id }}" class="clicable">
                                         <td>{{ $row->code }}</td>
                                         <td>{{ $row->vendor_code }}</td>
                                         <td>{{ $row->title }}</td>
@@ -100,7 +100,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 panel panel-white">
+            <div class="col-md-7 panel panel-white">
                 <div class="row">
                     <fieldset>
                         <legend>Покупатель</legend>
@@ -134,16 +134,72 @@
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane fade" id="common">
-                                    common
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Характеристика</th>
+                                                    <th>Значение</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="common_body">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tab-pane fade" id="stock">
                                     stock
                                 </div>
                                 <div class="tab-pane fade  in active" id="sales">
-                                    sales
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Цена</th>
+                                                    <th>Цена в валюте</th>
+                                                    <th>Курс</th>
+                                                    <th>Валюта</th>
+                                                    <th>Дата</th>
+                                                    <th>Кол-во</th>
+                                                    <th>Заказы клиентов</th>
+                                                    <th>Контрагент</th>
+                                                    <th>Ответственный</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="sales_body">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tab-pane fade" id="purchases">
-                                    purchases
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Цена</th>
+                                                    <th>Цена в валюте</th>
+                                                    <th>Курс</th>
+                                                    <th>Валюта</th>
+                                                    <th>Дата</th>
+                                                    <th>Кол-во</th>
+                                                    <th>Заказы поставщику</th>
+                                                    <th>Контрагент</th>
+                                                    <th>Ответственный</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="purchases_body">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -159,10 +215,15 @@
     <script src="/js/bootstrap-typeahead.min.js"></script>
     <script src="/js/select2.min.js"></script>
     <script>
+        let active_tab = 'sales'; //по умолчанию
+        let good_id = 0;
         $('.select2').css('width', '100%').select2({
             placeholder: "Выбор контрагента",
             allowClear: true
         })
+
+        $('.clicable').css('cursor', 'pointer');
+
         $("#firm_id").prepend($('<option value="0">Выберите организацию</option>'));
         $("#firm_id :first").attr("selected", "selected");
         $("#firm_id :first").attr("disabled", "disabled");
@@ -205,12 +266,101 @@
         $('#by_analog').typeahead({
             hint: true,
             highlight: true,
-            minLength: 3,
+            minLength: 5,
             ajax: {
                 url: "{{ route('getAnalog') }}",
                 triggerLength: 1
             }
         });
+
+        $('#by_name').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 5,
+            ajax: {
+                url: "{{ route('searchGood') }}",
+                triggerLength: 1
+            }
+        });
+
+        $('#by_vendor').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 5,
+            ajax: {
+                url: "{{ route('getCode') }}",
+                triggerLength: 1
+            }
+        });
+
+        $('#by_catalog').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 5,
+            ajax: {
+                url: "{{ route('getCatalogNum') }}",
+                triggerLength: 1
+            }
+        });
+
+        $('.master').change(function(){
+            let name = $(this).val();
+            let filter = $('#filter').val();
+            if(name.length > 10){
+                $('#t_body').empty();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('findGoodAnalogs') }}',
+                    data: {'name': name,'filter':filter},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        $("#t_body").prepend($(res));
+                        $('.clicable').css('cursor', 'pointer');
+                    }
+                });
+            }
+        });
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            let name = e.target.href.split('#');
+            active_tab = name[1];
+            if(good_id > 0)
+                getData(active_tab,good_id);
+            //console.log(active_tab);
+        })
+
+        $(document).on({
+            click: function () {
+                good_id = $(this).attr('id');
+                $('.clicable').each(function(i,elem) {
+                    if ($(this).hasClass("info")) {
+                        $(this).removeClass('info');
+                    }
+                });
+                $(this).addClass('info');
+                //console.log(active_tab + ' : ' + id);
+                getData(active_tab,good_id);
+            }
+        }, ".clicable");
+
+        function getData(name,id){
+            $("#"+name+"_body").empty();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('GoodParams') }}',
+                data: {'name': name,'good_id': id},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    $("#"+name+"_body").prepend($(res));
+                }
+            });
+        }
 
     </script>
 @endsection

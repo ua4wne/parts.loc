@@ -168,7 +168,10 @@ Route::middleware(['auth'])->group(function () {
     //sales/ группа обработки роутов sales
     Route::group(['prefix'=>'sales'], function(){
         Route::get('/',['uses'=>'SalesController@index','as'=>'sales']);
-
+        //sales/good_analog
+        Route::post('/good_analog',['uses'=>'SalesController@findGoodAnalogs','as'=>'findGoodAnalogs']);
+        //sales/good_params
+        Route::post('/good_params',['uses'=>'SalesController@GoodParams','as'=>'GoodParams']);
     });
 
 });

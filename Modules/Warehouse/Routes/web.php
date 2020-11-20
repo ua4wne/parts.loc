@@ -35,6 +35,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vendor',['uses'=>'GoodController@ajaxData','as'=>'getCode']);
         //goods/analog
         Route::get('/analog',['uses'=>'GoodController@getAnalog','as'=>'getAnalog']);
+        //goods/catalog_num
+        Route::get('/catalog_num',['uses'=>'GoodController@getCatalogNum','as'=>'getCatalogNum']);
         //goods/del-space
         Route::post('/del-space',['uses'=>'GoodController@delSpace','as'=>'delSpace']);
     });
@@ -116,13 +118,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     //specifications/ группа обработки роутов specifications
-    Route::group(['prefix'=>'specifications'], function(){
-        Route::get('/',['uses'=>'SpecificationController@index','as'=>'specifications']);
-        //specifications/add
-        Route::match(['get','post'],'/add',['uses'=>'SpecificationController@create','as'=>'specAdd']);
-        //specifications/edit
-        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'SpecificationController@edit','as'=>'specEdit']);
-    });
+//    Route::group(['prefix'=>'specifications'], function(){
+//        Route::get('/',['uses'=>'SpecificationController@index','as'=>'specifications']);
+//        //specifications/add
+//        Route::match(['get','post'],'/add',['uses'=>'SpecificationController@create','as'=>'specAdd']);
+//        //specifications/edit
+//        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'SpecificationController@edit','as'=>'specEdit']);
+//    });
 
     //inventories/ группа обработки роутов inventories
     Route::group(['prefix'=>'wh_corrects'], function(){
