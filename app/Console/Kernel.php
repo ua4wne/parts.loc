@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\AddFirstUser;
+use App\Console\Commands\CheckRates;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -15,6 +16,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         AddFirstUser::class,
+        CheckRates::class,
     ];
 
     /**
@@ -25,8 +27,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->command('currency:update')->twiceDaily(9, 13);; //запускаем два раза в день в 9 и 13 часов
     }
 
     /**
