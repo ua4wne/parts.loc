@@ -96,6 +96,7 @@
                             <li><a href="{{ route('firms') }}"><span class="title"> Контрагенты </span></a></li>
                             <li><a href="{{ route('orgs') }}"><span class="title"> Организации </span></a></li>
                             <li><a href="{{ route('orgforms') }}"><span class="title"> Организационные формы </span></a></li>
+                            <li><a href="{{ route('agreements') }}"><span class="title"> Соглашения об условиях продаж </span></a></li>
                             <li><a href="{{ route('methods') }}"><span class="title"> Способы доставки </span></a></li>
                             <li><a href="{{ route('stats') }}"><span class="title"> Статусы документов </span></a></li>
                             <li><a href="{{ route('expenses') }}"><span class="title"> Статьи затрат </span></a></li>
@@ -116,6 +117,7 @@
                             </div>
                         </a>
                         <ul class="sub-menu">
+                            <li><a href="{{ route('sale_orders') }}"><span class="title">Заказ клиента</span></a></li>
                             <li><a href="{{ route('orders') }}"><span class="title">Заказ поставщику</span></a></li>
                             <li><a href="{{ route('purchases') }}"><span class="title">Приобретение товаров и услуг</span></a></li>
                             <li><a href="{{ route('declarations') }}"><span class="title">Таможенные декларации</span></a></li>
@@ -411,7 +413,7 @@
                                         Заказы клиентов.
                                     </p>
                                     <p class="links cl-effect-1">
-                                        <a href="#">
+                                        <a href="{{ route('sale_orders') }}">
                                             подробнее
                                         </a>
                                     </p>

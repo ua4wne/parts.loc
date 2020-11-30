@@ -165,13 +165,37 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+    //agreements/ группа обработки роутов agreements
+    Route::group(['prefix'=>'agreements'], function(){
+        Route::get('/',['uses'=>'AgreementController@index','as'=>'agreements']);
+        //agreements/add
+        Route::match(['get','post'],'/add',['uses'=>'AgreementController@create','as'=>'agreementAdd']);
+        //agreements/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'AgreementController@edit','as'=>'agreementEdit']);
+
+    });
+
     //sales/ группа обработки роутов sales
     Route::group(['prefix'=>'sales'], function(){
-        Route::get('/',['uses'=>'SalesController@index','as'=>'sales']);
+        Route::get('/',['uses'=>'SaleController@index','as'=>'sales']);
+        //sales/orders
+        Route::get('/orders',['uses'=>'SaleController@orders','as'=>'sale_orders']);
         //sales/good_analog
-        Route::post('/good_analog',['uses'=>'SalesController@findGoodAnalogs','as'=>'findGoodAnalogs']);
+        Route::post('/good_analog',['uses'=>'SaleController@findGoodAnalogs','as'=>'findGoodAnalogs']);
         //sales/good_params
-        Route::post('/good_params',['uses'=>'SalesController@GoodParams','as'=>'GoodParams']);
+        Route::post('/good_params',['uses'=>'SaleController@GoodParams','as'=>'GoodParams']);
+        //sales/add
+        Route::match(['get','post'],'/add',['uses'=>'SaleController@create','as'=>'saleAdd']);
+        //sales/edit
+        Route::match(['get','post'],'/edit/{id}',['uses'=>'SaleController@edit','as'=>'saleEdit']);
+        //sales/view
+        Route::match(['get','post'],'/view/{id}',['uses'=>'SaleController@show','as'=>'saleView']);
+        //sales/del
+        Route::post('/del',['uses'=>'SaleController@delete','as'=>'saleDelete']);
+        //sales/addpos
+        Route::post('/addpos',['uses'=>'SaleController@addPosition','as'=>'addSalePos']);
+        //sales/delpos
+        Route::post('/delpos',['uses'=>'SaleController@delPosition','as'=>'delSalePos']);
     });
 
 });

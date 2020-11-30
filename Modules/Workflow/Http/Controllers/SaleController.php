@@ -2,15 +2,27 @@
 
 namespace Modules\Workflow\Http\Controllers;
 
+use App\Events\AddEventLogs;
+use App\Http\Controllers\Lib\LibController;
+use App\Models\Currency;
+use App\Models\Delivery;
+use App\Models\DeliveryMethod;
+use App\Models\Organisation;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Good;
 use Modules\Warehouse\Entities\Unit;
+use Modules\Warehouse\Entities\Warehouse;
+use Modules\Workflow\Entities\Agreement;
 use Modules\Workflow\Entities\Firm;
+use Modules\Workflow\Entities\Sale;
+use Validator;
 
-class SalesController extends Controller
+class SaleController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -40,13 +52,94 @@ class SalesController extends Controller
         abort(404);
     }
 
+    public function orders(){
+        if (view()->exists('workflow::sale_orders')) {
+            $rows = Sale::all();
+            $data = [
+                'title' => 'Заказы клиентов',
+                'head' => 'Заказы клиентов',
+                'rows' => $rows,
+            ];
+
+            return view('workflow::sale_orders', $data);
+        }
+        abort(404);
+    }
+
     /**
      * Show the form for creating a new resource.
      * @return Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('workflow::create');
+        if (!Role::granted('orders')) {//вызываем event
+            $msg = 'Попытка создания нового заказа клиента!';
+            event(new AddEventLogs('access', Auth::id(), $msg));
+            abort(503, 'У Вас нет прав на создание записи!');
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+        }
+        if (view()->exists('workflow::sale_add')) {
+            $users = User::where(['active' => 1])->get();
+            $usel = array();
+            foreach ($users as $val) {
+                $usel[$val->id] = $val->name;
+            }
+            $curs = Currency::all();
+            $cursel = array();
+            foreach ($curs as $val) {
+                $cursel[$val->id] = $val->title;
+            }
+            $orgs = Organisation::select('id', 'title')->where(['status' => 1])->get();
+            $orgsel = array();
+            foreach ($orgs as $val) {
+                $orgsel[$val->id] = $val->title;
+            }
+            $wxs = Warehouse::all();
+            $wxsel = array();
+            foreach ($wxs as $val) {
+                $wxsel[$val->id] = $val->title;
+            }
+            $doc_num = LibController::GenNumberDoc('sales');
+            $vat = env('VAT');
+            $units = Unit::all();
+            $unsel = array();
+            foreach ($units as $val) {
+                $unsel[$val->id] = $val->title;
+            }
+            $agreements = Agreement::select('id', 'title')->get();
+            $agrsel = array();
+            foreach ($agreements as $val) {
+                $agrsel[$val->id] = $val->title;
+            }
+            $methods = DeliveryMethod::all();
+            $dmethods = array();
+            foreach ($methods as $val) {
+                $dmethods[$val->id] = $val->title;
+            }
+            $deliveries = Delivery::all();
+            $delivs = array();
+            foreach ($deliveries as $val) {
+                $delivs[$val->id] = $val->title;
+            }
+            $data = [
+                'title' => 'Заказы клиентов',
+                'head' => 'Новый заказ клиента',
+                'usel' => $usel,
+                'cursel' => $cursel,
+                'orgsel' => $orgsel,
+                'doc_num' => $doc_num,
+                'wxsel' => $wxsel,
+                'vat' => $vat,
+                'unsel' => $unsel,
+                'agrsel' => $agrsel,
+                'dmethods' => $dmethods,
+                'delivs' => $delivs,
+            ];
+            return view('workflow::sale_add', $data);
+        }
+        abort(404);
     }
 
     public function findGoodAnalogs(Request $request)

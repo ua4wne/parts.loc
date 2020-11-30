@@ -64,4 +64,14 @@ class User extends Authenticatable
         }
         return FALSE;
     }
+
+    public static function isAuthor($id){
+        // получить id текущего залогиненного юзера
+        $user_id = Auth::id();
+        if(!empty($user_id)){
+            if($user_id == $id)
+                return TRUE;
+        }
+        return FALSE;
+    }
 }

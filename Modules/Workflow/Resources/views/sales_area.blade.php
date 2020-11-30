@@ -41,10 +41,15 @@
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
             <div class="panel-heading">
-                <a href="#">
+                <a href="{{ route('saleAdd') }}" target="_blank">
                     <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-rub"
                                                                                   aria-hidden="true"></i> Новая
                         продажа
+                    </button>
+                </a>
+                <a href="{{ route('sale_orders') }}" target="_blank">
+                    <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-address-book"
+                                                                                  aria-hidden="true"></i> Заказы клиентов
                     </button>
                 </a>
             </div>
