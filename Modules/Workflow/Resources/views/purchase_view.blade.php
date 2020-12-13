@@ -67,7 +67,7 @@
                     <div class="form-group">
                         {!! Form::label('analog_code', 'Аналог:',['class'=>'col-xs-3 control-label']) !!}
                         <div class="col-xs-8">
-                            {!! Form::text('analog_code', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить код аналога','id'=>'by_analog'])!!}
+                            {!! Form::text('analog_code', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить каталожный номер','id'=>'by_analog'])!!}
                         </div>
                     </div>
 

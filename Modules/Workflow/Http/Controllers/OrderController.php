@@ -215,7 +215,7 @@ class OrderController extends Controller
             $vat = 0;
             if($order->has_vat) $vat = env('VAT');
             //цепочка связанных документов
-            $links = TblPurchase::select('purchase_id')->where('order_id',$id)->orderBy('created_at','asc')->get();
+            $links = TblPurchase::select('purchase_id')->where('order_id',$id)->distinct()->get();
             $tbody = '';
             if(!empty($links)){
                 foreach ($links as $row){
@@ -232,16 +232,18 @@ class OrderController extends Controller
                 }
                 foreach ($links as $row){
                     $decl = TblDeclaration::select('declaration_id')->where('purchase_id',$row->purchase->id)->first();
-                    $tbody .= '<tr><td class="text-bold"><a href="/declarations/view/'.$decl->declaration->id.'" target="_blank">
+                    if(!empty($decl)){
+                        $tbody .= '<tr><td class="text-bold"><a href="/declarations/view/'.$decl->declaration->id.'" target="_blank">
                     Таможенная декларация на импорт №' . $decl->declaration->doc_num . '</a></td>';
-                    if(isset($decl->declaration->statuse_id)){
-                        $tbody .= '<td>' . $decl->declaration->statuse->title . '</td>';
+                        if(isset($decl->declaration->statuse_id)){
+                            $tbody .= '<td>' . $decl->declaration->statuse->title . '</td>';
+                        }
+                        else{
+                            $tbody .= '<td></td>';
+                        }
+                        $tbody .= '<td>'
+                            . $decl->declaration->created_at . '</td><td>' . $decl->declaration->user->name . '</td></tr>';
                     }
-                    else{
-                        $tbody .= '<td></td>';
-                    }
-                    $tbody .= '<td>'
-                        . $decl->declaration->created_at . '</td><td>' . $decl->declaration->user->name . '</td></tr>';
                 }
             }
             $data = [
@@ -363,10 +365,17 @@ class OrderController extends Controller
             $input = $request->except('_token'); //параметр _token нам не нужен
             $content = '';
             if (isset($input['vendor_code'])) {
-                $goods = Good::where('vendor_code', $input['vendor_code'])->get();
-                foreach ($goods as $row) {
-                    $content .= '<option value="' . $row->id . '">' . $row->title . '</option>' . PHP_EOL;
+                $good = Good::where('vendor_code', $input['vendor_code'])->first();
+                $content .= '<option value="' . $good->id . '">' . $good->title . '</option>' . PHP_EOL;
+                if(!empty($good->catalog_num)){
+                    $analogs = Good::where('catalog_num',$good->catalog_num)->where('id','!=',$good->id)->get();
+                    if(!empty($analogs)){
+                        foreach ($analogs as $row){
+                            $content .= '<option value="' . $row->id . '">' . $row->title . ' (аналог)</option>' . PHP_EOL;
+                        }
+                    }
                 }
+
             }
             return $content;
         }
@@ -381,9 +390,15 @@ class OrderController extends Controller
                 $tmp = explode('(',$input['by_name']);
                 $title = trim($tmp[0]);
                 $code = str_replace(')','',$tmp[1]);
-                $goods = Good::where(['title'=>$title,'vendor_code'=>$code])->get();
-                foreach ($goods as $row) {
-                    $content .= '<option value="' . $row->id . '">' . $row->title . '</option>' . PHP_EOL;
+                $good = Good::where(['title'=>$title,'vendor_code'=>$code])->first();
+                $content .= '<option value="' . $good->id . '">' . $good->title . '</option>' . PHP_EOL;
+                if(!empty($good->catalog_num)){
+                    $analogs = Good::where('catalog_num',$good->catalog_num)->where('id','!=',$good->id)->get();
+                    if(!empty($analogs)){
+                        foreach ($analogs as $row){
+                            $content .= '<option value="' . $row->id . '">' . $row->title . ' (аналог)</option>' . PHP_EOL;
+                        }
+                    }
                 }
             }
             return $content;
@@ -591,14 +606,14 @@ class OrderController extends Controller
 
     public function delete(Request $request)
     {
-        if (!Role::granted('orders')) {//вызываем event
-            return 'BAD';
-        }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $order_id = $input['order_id'];
             $order = Order::find($order_id);
             if (!empty($order)) {
+                if (!User::hasRole('admin') || !User::isAuthor($order->user_id)) {//вызываем event
+                    return 'BAD';
+                }
                 $msg = 'Удалена заявка поставщику № ' . $order->doc_num;
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));

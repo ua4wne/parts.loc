@@ -69,6 +69,15 @@ Route::middleware(['auth'])->group(function(){
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'ExpenseController@edit','as'=>'expenseEdit']);
     });
 
+    //cars/ группа обработки роутов справочника cars
+    Route::group(['prefix'=>'cars'], function(){
+        Route::get('/',['uses'=>'CarController@index','as'=>'cars']);
+        //cars/add
+        Route::match(['get','post'],'/add',['uses'=>'CarController@create','as'=>'carAdd']);
+        //cars/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'CarController@edit','as'=>'carEdit']);
+    });
+
     //countries/ группа обработки роутов справочника countries
     Route::group(['prefix'=>'countries'], function(){
         Route::get('/',['uses'=>'CountryController@index','as'=>'countries']);

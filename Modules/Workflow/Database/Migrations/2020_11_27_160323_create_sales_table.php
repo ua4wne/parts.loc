@@ -34,12 +34,12 @@ class CreateSalesTable extends Migration
             $table->foreign('delivery_id')->references('id')->on('deliveries');
             $table->string('destination',150);
             $table->string('contact',100);
-            $table->boolean('to_door')->default(0);
-            $table->boolean('delivery_in_price')->default(0);
+            $table->boolean('to_door')->nullable()->default(0);
+            $table->boolean('delivery_in_price')->nullable()->default(0);
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');
             $table->date('date_agreement')->nullable();
-            $table->boolean('has_vat')->default(0);
+            $table->boolean('has_vat')->nullable()->default(0);
             $table->boolean('state')->default(0);
             $table->string('doc_num_firm',15)->nullable();
             $table->date('date_firm')->nullable();

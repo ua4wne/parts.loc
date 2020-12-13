@@ -34,6 +34,7 @@ class CreateGoodsTable extends Migration
             $table->float('area')->nullable();
             $table->tinyInteger('vat')->nullable();
             $table->tinyInteger('gtd')->default(0);
+            $table->tinyInteger('wx_position')->default(0);
             $table->string('barcode',100)->nullable();
             $table->timestamps();
         });

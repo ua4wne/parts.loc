@@ -172,6 +172,13 @@
             </div>
 
             <div class="form-group">
+                {!! Form::label('wx_position','Складская позиция:',['class' => 'col-xs-3 control-label'])   !!}
+                <div class="col-xs-8">
+                    {!! Form::select('wx_position',['0'=>'Нет','1'=>'Да'], old('wx_position'), ['class' => 'form-control']); !!}
+                </div>
+            </div>
+
+            <div class="form-group">
                 {!! Form::label('barcode','Штрихкод:',['class' => 'col-xs-3 control-label'])   !!}
                 <div class="col-xs-8">
                     {!! Form::text('barcode',old('barcode'),['class' => 'form-control','placeholder'=>'Введите штрихкод','maxlength'=>'100'])!!}

@@ -102,6 +102,7 @@
                             <li><a href="{{ route('expenses') }}"><span class="title"> Статьи затрат </span></a></li>
                             <li><a href="{{ route('countries') }}"><span class="title"> Страны </span></a></li>
                             <li><a href="{{ route('deliveries') }}"><span class="title"> Транспортные компании </span></a></li>
+                            <li><a href="{{ route('cars') }}"><span class="title"> Транспортные средства </span></a></li>
                             <li><a href="{{ route('hopers') }}"><span class="title"> Хозяйственные операции </span></a></li>
                         </ul>
                     </li>
@@ -118,6 +119,7 @@
                         </a>
                         <ul class="sub-menu">
                             <li><a href="{{ route('sale_orders') }}"><span class="title">Заказ клиента</span></a></li>
+                            <li><a href="{{ route('applications') }}"><span class="title">Заявка менеджеру</span></a></li>
                             <li><a href="{{ route('orders') }}"><span class="title">Заказ поставщику</span></a></li>
                             <li><a href="{{ route('purchases') }}"><span class="title">Приобретение товаров и услуг</span></a></li>
                             <li><a href="{{ route('declarations') }}"><span class="title">Таможенные декларации</span></a></li>
@@ -211,6 +213,15 @@
                             <li><a href="{{ route('users') }}"><span class="title">Пользователи</span></a></li>
                             <li><a href="{{ route('roles') }}"><span class="title">Роли</span></a></li>
                             <li><a href="{{ route('actions') }}"><span class="title">Разрешения</span></a></li>
+                            <li class="open">
+                                <a href="javascript:;">
+                                    <span>Обмен с 1С</span> <i class="icon-arrow"></i>
+                                </a>
+                                <ul class="sub-menu" style="display: block;">
+                                    <li><a href="{{ route('good_exchange') }}"><span class="title">Номенклатура</span></a></li>
+                                    <li><a href="{{ route('spec_exchange') }}"><span class="title">Спецификации номенклатуры</span></a></li>
+                                </ul>
+                            </li>
                         </ul>
                     </li>
                 </ul>

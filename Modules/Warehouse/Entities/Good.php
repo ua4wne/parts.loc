@@ -9,7 +9,7 @@ class Good extends Model
     protected $table = 'goods';
 
     protected $fillable = ['category_id','group_id','title','descr','bx_group','vendor_code','code', 'catalog_num',
-                    'analog_code','brand', 'model','unit_id','weight','capacity','length','area','vat','gtd','barcode'];
+                    'analog_code','brand', 'model','unit_id','weight','capacity','length','area','vat','gtd','wx_position','barcode'];
 
     public function category()
     {

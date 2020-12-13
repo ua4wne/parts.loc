@@ -21,13 +21,13 @@
     <div class="container-fluid container-fullw bg-white">
         <div id="loader"></div> <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="panel panel-white">
                     <div class="panel-heading">
                         <p class="panel-title">Категории номенклатуры</p>
                     </div>
                     <div class="panel-body">
-                        <div id="categories" class="tree-demo jstree jstree-3 jstree-default" role="tree">
+                        <div id="categories" class="tree-demo jstree jstree-3 jstree-default panel-scroll height-330" role="tree">
 
                         </div>
                     </div>
@@ -256,6 +256,13 @@
                             </div>
 
                             <div class="form-group">
+                                {!! Form::label('wx_position','Складская позиция:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::select('wx_position',['0'=>'Нет','1'=>'Да'], old('wx_position'), ['class' => 'form-control','id'=>'wxpos']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
                                 {!! Form::label('barcode','Штрихкод:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
                                     {!! Form::text('barcode',old('barcode'),['class' => 'form-control','placeholder'=>'Введите штрихкод','maxlength'=>'100','id'=>'barcode'])!!}
@@ -405,7 +412,7 @@
                             <div class="form-group">
                                 {!! Form::label('length','Длина, м:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                              t('length',old('length'),['class' => 'form-control','placeholder'=>'Укажите длину','id'=>'elength'])!!}
+                                    {!! Form::text('length',old('length'),['class' => 'form-control','placeholder'=>'Укажите длину','id'=>'elength'])!!}
                                 </div>
                             </div>
 
@@ -431,6 +438,13 @@
                             </div>
 
                             <div class="form-group">
+                                {!! Form::label('wx_position','Складская позиция:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::select('wx_position',['0'=>'Нет','1'=>'Да'], old('wx_position'), ['class' => 'form-control','id'=>'ewxpos']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
                                 {!! Form::label('barcode','Штрихкод:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
                                     {!! Form::text('barcode',old('barcode'),['class' => 'form-control','placeholder'=>'Введите штрихкод','maxlength'=>'100','id'=>'ebarcode'])!!}
@@ -447,7 +461,7 @@
                 </div>
             </div>
             <!-- Edit Good Modal -->
-            <div class="col-md-10">
+            <div class="col-md-9">
                 <div class="panel panel-white">
                     <div class="panel-body">
                         <div class="panel-body">
@@ -757,6 +771,7 @@
                             $('#earea').val(obj.area);
                             $('#evat').val(obj.vat);
                             $("#egtd option[value='" + obj.gtd + "']").attr("selected", "selected");
+                            $("#ewxpos option[value='" + obj.wx_position + "']").attr("selected", "selected");
                             $('#ebarcode').val(obj.barcode);
                         }
                     },
@@ -772,7 +787,7 @@
         $(document).on({
             click: function (e) {
                 e.preventDefault();
-                var id = $(this).parent().parent().parent().attr("id");
+                let id = $(this).parent().parent().parent().attr("id");
                 //alert('id=' + id);
                     $.ajax({
                         type: 'POST',
@@ -843,6 +858,7 @@
         $('#btn_save').click(function (e) {
             e.preventDefault();
             let error = 0;
+            let id = "row" + $('#egood_id').val();
             $("#edit_good").find(":input").each(function () {// проверяем каждое поле ввода в форме
                 if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
                     if (!$(this).val()) {// если поле пустое
@@ -873,14 +889,14 @@
                         else {
                             //_viewGoods(res);
                             $(".modal").modal("hide");
-                            $('#'+row_id).children('td').eq(0).text($("#egroup_id option:selected").text());
-                            $('#'+row_id).children('td').eq(1).text($('#etitle').val());
-                            $('#'+row_id).children('td').eq(2).text($('#evendor_code').val());
-                            $('#'+row_id).children('td').eq(3).text($('#eanalog_code').val());
-                            $('#'+row_id).children('td').eq(4).text($('#ecode').val());
-                            $('#'+row_id).children('td').eq(5).text($('#ecatalog_num').val());
-                            $('#'+row_id).children('td').eq(6).text($('#ebarcode').val());
-                            $('#'+row_id).children('td').eq(7).text(now());
+                            $('#'+id).children('td').eq(0).text($("#egroup_id option:selected").text());
+                            $('#'+id).children('td').eq(1).text($('#etitle').val());
+                            $('#'+id).children('td').eq(2).text($('#evendor_code').val());
+                            $('#'+id).children('td').eq(3).text($('#eanalog_code').val());
+                            $('#'+id).children('td').eq(4).text($('#ecode').val());
+                            $('#'+id).children('td').eq(5).text($('#ecatalog_num').val());
+                            $('#'+id).children('td').eq(6).text($('#ebarcode').val());
+                            $('#'+id).children('td').eq(7).text(now());
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {

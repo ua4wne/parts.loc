@@ -33,14 +33,14 @@ Route::middleware(['auth'])->group(function() {
         Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'ActionController@edit','as'=>'actionEdit']);
     });
 
-    //events/ группа обработки роутов events
+    /*//events/ группа обработки роутов events
     Route::group(['prefix'=>'events'], function(){
         Route::get('/',['uses'=>'EventLogController@index','as'=>'events']);
         //events/delete
         Route::post('/delete',['uses'=>'EventLogController@delete','as'=>'eventDelete']);
         Route::get('/view-requests',['uses'=>'RequestController@index','as'=>'view-requests']);
         Route::post('/delrequest',['uses'=>'RequestController@delete','as'=>'requestDel']);
-    });
+    });*/
 
     //users/ группа обработки роутов users
     Route::group(['prefix'=>'users'], function(){
@@ -61,5 +61,14 @@ Route::middleware(['auth'])->group(function() {
         Route::post('/ajax/add_role',['uses'=>'Ajax\UserController@addRole','as'=>'addRole']);
         //users/ajax/get_role
         Route::post('/ajax/get_role',['uses'=>'Ajax\UserController@getRole','as'=>'getRole']);
+    });
+
+    //exchange/ группа обработки роутов exchange
+    Route::group(['prefix'=>'exchange'], function(){
+        //exchange/good
+        Route::match(['get','post'],'/good',['uses'=>'ExchangeController@Good','as'=>'good_exchange']);
+        //exchange/spec
+        Route::match(['get','post'],'/spec',['uses'=>'ExchangeController@GoodSpec','as'=>'spec_exchange']);
+
     });
 });

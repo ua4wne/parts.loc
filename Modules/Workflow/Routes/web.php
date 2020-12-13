@@ -196,6 +196,25 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/addpos',['uses'=>'SaleController@addPosition','as'=>'addSalePos']);
         //sales/delpos
         Route::post('/delpos',['uses'=>'SaleController@delPosition','as'=>'delSalePos']);
+        //sales/find_sale
+        Route::get('/find_sale',['uses'=>'SaleController@getSale','as'=>'getSale']);
+    });
+
+    //applications/ группа обработки роутов applications
+    Route::group(['prefix'=>'applications'], function(){
+        Route::get('/',['uses'=>'ApplicationController@index','as'=>'applications']);
+        //applications/add
+        Route::match(['get','post'],'/add',['uses'=>'ApplicationController@create','as'=>'applicationAdd']);
+        //applications/edit
+        Route::match(['get','post'],'/edit/{id}',['uses'=>'ApplicationController@edit','as'=>'applicationEdit']);
+        //applications/view
+        Route::match(['get','post'],'/view/{id}',['uses'=>'ApplicationController@show','as'=>'applicationView']);
+        //applications/del
+        Route::post('/del',['uses'=>'ApplicationController@delete','as'=>'applicationDelete']);
+        //applications/addpos
+        Route::post('/addpos',['uses'=>'ApplicationController@addPosition','as'=>'addApplicationPos']);
+        //applications/delpos
+        Route::post('/delpos',['uses'=>'ApplicationController@delPosition','as'=>'delApplicationPos']);
     });
 
 });

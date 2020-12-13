@@ -302,7 +302,7 @@ class PurchaseController extends Controller
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $content = '';
-            $goods = Good::where('analog_code', $input['analog_code'])->get();
+            $goods = Good::where('catalog_num', $input['analog_code'])->get();
             if (!empty($goods)) {
                 foreach ($goods as $good) {
                     $content .= '<option value="' . $good->id . '">' . $good->title . '</option>' . PHP_EOL;

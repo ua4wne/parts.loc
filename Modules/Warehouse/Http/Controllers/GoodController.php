@@ -106,6 +106,7 @@ class GoodController extends Controller
                 'area' => 'nullable|numeric',
                 'vat' => 'nullable|integer',
                 'gtd' => 'nullable|integer',
+                'wx_position' => 'nullable|integer',
                 'barcode' => 'nullable|string|max:100',
             ], $messages);
             if ($validator->fails()) {
@@ -122,7 +123,7 @@ class GoodController extends Controller
                 'vendor_code' => $input['vendor_code'], 'analog_code' => $input['analog_code'], 'code' => $input['code'],
                 'catalog_num' => $input['catalog_num'], 'brand' => $input['brand'], 'model' => $input['model'], 'unit_id' => $input['unit_id'],
                 'weight' => $input['weight'], 'capacity' => $input['capacity'], 'length' => $input['length'],'area' => $input['area'],
-                'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
+                'vat' => $input['vat'], 'gtd' => $input['gtd'], 'wx_position' => $input['wx_position'], 'barcode' => $input['barcode']]);
 
             $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
             //вызываем event
@@ -144,6 +145,7 @@ class GoodController extends Controller
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $id = $input['id'];
+            unset($input['id']);
             $model = Good::find($id);
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
@@ -171,27 +173,30 @@ class GoodController extends Controller
                 'area' => 'nullable|numeric',
                 'vat' => 'nullable|integer',
                 'gtd' => 'nullable|integer',
+                'wx_position' => 'nullable|integer',
                 'barcode' => 'nullable|string|max:100',
             ], $messages);
             if ($validator->fails()) {
                 //return redirect()->route('goodAdd')->withErrors($validator)->withInput();
                 return 'NO VALIDATE';
             }
-            if($model->vendor_code != $input['vendor_code']){ //если правили артикул
+            $model->fill($input);
+            /*if($model->vendor_code != $input['vendor_code']){ //если правили артикул
                 $model->vendor_code = $input['vendor_code'];
                 $model->save();
-            }
+            }*/
 
             // есть такая запись или нет
-            Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'],
+            /*Good::updateOrCreate(['vendor_code' => $input['vendor_code']], ['category_id' => $input['category_id'], 'group_id' => $input['group_id'],
                 'title' => $input['title'], 'descr' => $input['descr'], 'bx_group' => $input['bx_group'], 'vendor_code' => $input['vendor_code'],
                 'analog_code' => $input['analog_code'], 'code' => $input['code'], 'catalog_num' => $input['catalog_num'],'brand' => $input['brand'],
                 'model' => $input['model'], 'unit_id' => $input['unit_id'], 'weight' => $input['weight'], 'capacity' => $input['capacity'],
-                'length' => $input['length'], 'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'], 'barcode' => $input['barcode']]);
-
-            $msg = 'Номенклатура ' . $input['title'] . ' успешно добавлена\обновлена!';
-            //вызываем event
-            event(new AddEventLogs('info', Auth::id(), $msg));
+                'length' => $input['length'], 'area' => $input['area'], 'vat' => $input['vat'], 'gtd' => $input['gtd'],'wx_position' => $input['wx_position'], 'barcode' => $input['barcode']]);*/
+            if($model->update()){
+                $msg = 'Данные номенклатуры ' . $input['title'] . ' были успешно обновлены!';
+                //вызываем event
+                event(new AddEventLogs('info', Auth::id(), $msg));
+            }
             return $model->category_id;
         }
     }
@@ -262,6 +267,7 @@ class GoodController extends Controller
             $unit_id = 1; //$input['unit_id'];
             $vat = 20; //$input['vat'];
             $gtd = 0; //$input['gtd'];
+            $wx_pos = 0; //$input['wx_position'];
             $path = $request->file('file')->getRealPath();
             $excel = IOFactory::load($path);
             // Цикл по листам Excel-файла
@@ -299,7 +305,7 @@ class GoodController extends Controller
                         $row[1] = trim($row[1]);
                         Good::updateOrCreate(['vendor_code' => $row[1]], ['category_id' => $cat_id, 'group_id' => $group_id,
                             'title' => $title, 'bx_group' => $row[0], 'analog_code' => $analog, 'brand' => $row[4], 'model' => $row[5],
-                            'unit_id' => $unit_id, 'vat' => $vat, 'gtd' => $gtd]);
+                            'unit_id' => $unit_id, 'vat' => $vat, 'gtd' => $gtd, 'wx_position'=> $wx_pos]);
                         $num++;
                     }
                 }
@@ -360,7 +366,7 @@ class GoodController extends Controller
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Номенклатура');
             $k = 1;
-            $sheet->getStyle('A' . $k . ':P' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('A' . $k . ':Q' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('A1', 'Категория');
             $sheet->setCellValue('B1', 'Группа');
             $sheet->setCellValue('C1', 'Наименование');
@@ -377,7 +383,8 @@ class GoodController extends Controller
             $sheet->setCellValue('N1', 'Площадь');
             $sheet->setCellValue('O1', 'НДС');
             $sheet->setCellValue('P1', 'Учет ГТД');
-            $sheet->getStyle('A' . $k . ':P' . $k)->applyFromArray($styleArray);
+            $sheet->setCellValue('Q1', 'Складская позиция');
+            $sheet->getStyle('A' . $k . ':Q' . $k)->applyFromArray($styleArray);
             $k++;
             foreach ($goods as $row) {
                 $sheet->setCellValue('A' . $k, $row->category->category);
@@ -396,6 +403,7 @@ class GoodController extends Controller
                 $sheet->setCellValue('N' . $k, $row->area);
                 $sheet->setCellValue('O' . $k, $row->vat);
                 $sheet->setCellValue('P' . $k, $row->gtd);
+                $sheet->setCellValue('Q' . $k, $row->wx_position);
                 //$sheet->getStyle('A' . $k . ':P' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $k++;
             }
@@ -415,6 +423,7 @@ class GoodController extends Controller
             $sheet->getColumnDimension('N')->setAutoSize(true);
             $sheet->getColumnDimension('O')->setAutoSize(true);
             $sheet->getColumnDimension('P')->setAutoSize(true);
+            $sheet->getColumnDimension('Q')->setAutoSize(true);
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             $filename = "goods";
             header('Content-Disposition: attachment;filename=' . $filename . ' ');
@@ -438,18 +447,18 @@ class GoodController extends Controller
         $query = $request->get('query', '');
         //нужно чтобы возвращалось поле name иначе них.. не работает!!!
         //подите прочь, я возмущен и раздосадован...
-        $codes = DB::select("select id,analog_code as name from goods where analog_code like '%$query%'");
+        $codes = DB::select("select distinct catalog_num as name from goods where catalog_num like '%$query%'");
         return response()->json($codes);
     }
 
-    public function getCatalogNum(Request $request)
+    /*public function getCatalogNum(Request $request)
     {
         $query = $request->get('query', '');
         //нужно чтобы возвращалось поле name иначе них.. не работает!!!
         //подите прочь, я возмущен и раздосадован...
         $codes = DB::select("select id,catalog_num as name from goods where catalog_num like '%$query%'");
         return response()->json($codes);
-    }
+    }*/
 
     public function transfer(Request $request){
         if (!User::hasRole('content_manager')) {
