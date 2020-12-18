@@ -56,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['get','post','delete'],'/contracts/edit/{id}',['uses'=>'ContractController@edit','as'=>'contractEdit']);
         //firms/fill
         Route::post('/fill',['uses'=>'FirmController@fill','as'=>'firmFill']);
+        //firms/offer
+        Route::get('/offer/{id}',['uses'=>'OfferController@index','as'=>'offer']);
+        //firms/offer/add
+        Route::match(['get','post'],'/offer/add/{id}',['uses'=>'OfferController@create','as'=>'offerAdd']);
     });
 
     //orders/ группа обработки роутов orders

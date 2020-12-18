@@ -36,7 +36,7 @@ Route::middleware(['auth'])->group(function () {
         //goods/analog
         Route::get('/analog',['uses'=>'GoodController@getAnalog','as'=>'getAnalog']);
         //goods/catalog_num
-        //Route::get('/catalog_num',['uses'=>'GoodController@getCatalogNum','as'=>'getCatalogNum']);
+        Route::get('/catalog_num',['uses'=>'GoodController@getCatalogNum','as'=>'getCatalogNum']);
         //goods/del-space
         Route::post('/del-space',['uses'=>'GoodController@delSpace','as'=>'delSpace']);
     });

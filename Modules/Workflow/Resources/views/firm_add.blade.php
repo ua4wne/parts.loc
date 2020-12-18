@@ -57,6 +57,16 @@
 
                             <div class="form-group">
                                 <label class="col-xs-3 control-label">
+                                    Код поставщика:
+                                </label>
+                                <div class="col-xs-8">
+                                    {!! Form::text('vcode',old('vcode'),['class' => 'form-control','placeholder'=>'Введите код поставщика','maxlength'=>'12'])!!}
+                                    {!! $errors->first('vcode', '<p class="text-danger">:message</p>') !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-xs-3 control-label">
                                     ИНН: <span class="symbol required" aria-required="true"></span>
                                 </label>
                                 <div class="col-xs-8">
@@ -200,10 +210,18 @@
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('phone','Телефон:',['class' => 'col-xs-3 control-label'])   !!}
+                                {!! Form::label('phone','Телефон №1:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
                                     {!! Form::tel('phone',old('phone'),['class' => 'form-control','placeholder'=>'Укажите телефон','size'=>'20','id'=>'phone'])!!}
                                     {!! $errors->first('phone', '<p class="text-danger">:message</p>') !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('phones','Телефон №2:',['class' => 'col-xs-3 control-label'])   !!}
+                                <div class="col-xs-8">
+                                    {!! Form::tel('phones',old('phones'),['class' => 'form-control','placeholder'=>'Укажите телефон','size'=>'30'])!!}
+                                    {!! $errors->first('phones', '<p class="text-danger">:message</p>') !!}
                                 </div>
                             </div>
 

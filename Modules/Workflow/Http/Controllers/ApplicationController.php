@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Unit;
 use Modules\Workflow\Entities\Application;
+use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\TblApplication;
 use Validator;
@@ -155,6 +156,11 @@ class ApplicationController extends Controller
             foreach ($pris as $val) {
                 $psel[$val->id] = $val->title;
             }
+            $firms = Firm::select('id','title')->whereNotNUll('vcode')->get();
+            $firmsel = array();
+            foreach ($firms as $val) {
+                $firmsel[$val->id] = $val->title;
+            }
             $app = Application::find($id);
             $rows = TblApplication::where('application_id', $id)->get();
             $vat = env('VAT');
@@ -182,6 +188,7 @@ class ApplicationController extends Controller
                 'usel' => $usel,
                 'unsel' => $unsel,
                 'psel' => $psel,
+                'firmsel' => $firmsel,
                 'carsel' => $carsel,
                 'cursel' => $cursel,
                 'vat' => $vat,
@@ -260,13 +267,8 @@ class ApplicationController extends Controller
                     <td>' . $model->good->analog_code . '</td>
                     <td>' . $model->good->title . '</td>
                     <td>' . $model->qty . '</td>
-                    <td>' . $model->unit->title . '</td>
                     <td>' . $model->car->title . '</td>
-                    <td>' . $model->supplier_num . '</td>
-                    <td>' . $model->days . '</td>
-                    <td>' . $model->price . '</td>
-                    <td>' . $model->currency->title . '</td>
-                    <td>' . $model->comment . '</td>
+                    <td>' . $model->offers . '</td>
                     <td style="width:70px;">    <div class="form-group" role="group">';
                 $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
                             <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>

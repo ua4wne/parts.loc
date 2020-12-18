@@ -1,5 +1,7 @@
 @extends('layouts.main')
+@section('user_css')
 
+@endsection
 @section('dashboard')
 
 @endsection
@@ -87,13 +89,6 @@
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('unit_id', 'Ед. измерения:',['class'=>'col-xs-3 control-label']) !!}
-                        <div class="col-xs-8">
-                            {!! Form::select('unit_id', $unsel, old('unit_id'),['class' => 'form-control','required' => 'required']); !!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
                         {!! Form::label('car_id', 'Техника:',['class'=>'col-xs-3 control-label']) !!}
                         <div class="col-xs-8">
                             {!! Form::select('car_id',$carsel,old('car_id'),['class' => 'form-control','required'=>'required','id'=>'car_id'])!!}
@@ -114,18 +109,10 @@
                         </div>
                     </div>
 
-
                     <div class="form-group">
                         {!! Form::label('price','Цена:',['class' => 'col-xs-3 control-label'])   !!}
                         <div class="col-xs-8">
                             {!! Form::text('price','',['class' => 'form-control','placeholder'=>'Укажите цену','required'=>'required', 'id'=>'price'])!!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        {!! Form::label('currency_id','Валюта:',['class' => 'col-xs-3 control-label'])   !!}
-                        <div class="col-xs-8">
-                            {!! Form::select('currency_id',$cursel,old('currency_id'),['class' => 'form-control','required'=>'required','id'=>'currency_id'])!!}
                         </div>
                     </div>
 
@@ -154,6 +141,102 @@
         </div>
     </div>
     <!-- New Position Modal -->
+    <!-- Offer Modal -->
+    <div class="modal fade" id="getOffer" tabindex="-1" role="dialog" aria-labelledby="getOffer"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </button>
+                    <h4 class="modal-title">Запросить цены у поставщиков</h4>
+                </div>
+                <div class="modal-body">
+                    {!! Form::open(['url' => '#','id'=>'get_offer','class'=>'form-horizontal','method'=>'POST']) !!}
+
+                    <div class="form-group">
+                        {!! Form::label('firm_id', 'Поставщики:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::select('firm_id', $firmsel, old('firm_id'), ['class' => 'form-control',
+                            'required'=>'required','multiple','size'=>'3'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-offset-3 col-xs-6">
+                            <div class="checkbox clip-check check-primary">
+                                <input type="checkbox" id="all" value="1">
+                                <label for="all">
+                                    Выбрать всех поставщиков
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-8">
+                            {!! Form::hidden('application_id',$application->id,['class' => 'form-control','id'=>'id_doc','required'=>'required']) !!}
+                        </div>
+                    </div>
+
+                    {!! Form::close() !!}
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена
+                    </button>
+                    <button type="button" class="btn btn-primary" id="get_offer_btn">Запросить цены
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Offer Modal -->
+    <!-- Load Offer Modal -->
+    <div class="modal fade" id="LoadOffer" tabindex="-1" role="dialog" aria-labelledby="LoadOffer"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </button>
+                    <h4 class="modal-title">Загрузить предложенные цены</h4>
+                </div>
+                <div class="modal-body">
+                    {!! Form::open(['url' => '#','id'=>'import_doc','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
+
+                    <div class="form-group">
+                        {!! Form::label('firm_id', 'Поставщик:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::select('firm_id', $firmsel, old('firm_id'), ['class' => 'form-control',
+                            'required'=>'required'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-3 control-label">
+                            Файл Excel: <span class="symbol required" aria-required="true"></span>
+                        </label>
+                        <div class="col-xs-8">
+                            {!! Form::file('file', ['class' => 'form-control','data-buttonText'=>'Выберите файл Excel','data-buttonName'=>"btn-primary",'data-placeholder'=>"Файл не выбран",'required'=>'required','id'=>'file']) !!}
+                        </div>
+                    </div>
+
+                    {!! Form::close() !!}
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена
+                    </button>
+                    <button type="button" class="btn btn-primary" id="load_offer_btn">Загрузить цены
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Load Offer Modal -->
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
             <div class="col-md-12">
@@ -249,6 +332,18 @@
                                             <i class="fa fa-plus" aria-hidden="true"></i> Добавить
                                         </button>
                                     </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="get_offer"
+                                                data-toggle="modal" data-target="#getOffer">
+                                            <i class="fa fa-envelope-o" aria-hidden="true"></i> Запросить цены
+                                        </button>
+                                    </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="load_offer"
+                                                data-toggle="modal" data-target="#LoadOffer">
+                                            <i class="fa fa-download" aria-hidden="true"></i> Загрузить цены
+                                        </button>
+                                    </a>
                                     <div class="btn-group">
                                         <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
                                            href="#" aria-expanded="false">
@@ -273,13 +368,8 @@
                                             <th>Номера аналогов</th>
                                             <th>Наименование</th>
                                             <th>Кол-во</th>
-                                            <th>Ед.изм</th>
                                             <th>Техника</th>
-                                            <th>№ поставщика</th>
-                                            <th>Срок поставки</th>
-                                            <th>Цена</th>
-                                            <th>Валюта</th>
-                                            <th>Комментарий</th>
+                                            <th>Предложения поставщиков</th>
                                             <th>Действия</th>
                                         </tr>
                                         </thead>
@@ -291,13 +381,8 @@
                                                     <td>{{ $row->good->analog_code }}</td>
                                                     <td>{{ $row->good->title }}</td>
                                                     <td>{{ $row->qty }}</td>
-                                                    <td>{{ $row->unit->title }}</td>
                                                     <td>{{ $row->car->title }}</td>
-                                                    <td>{{ $row->supplier_num }}</td>
-                                                    <td>{{ $row->days }}</td>
-                                                    <td>{{ $row->price }}</td>
-                                                    <td>{{ $row->currency->title }}</td>
-                                                    <td>{{ $row->comment }}</td>
+                                                    <td>{!! $row->offers !!}</td>
                                                     <td style="width:70px;">
                                                         <div class="form-group" role="group">
                                                             <button class="btn btn-danger btn-sm pos_delete"
@@ -411,6 +496,17 @@
             $('#by_vendor').val('');
         });
 
+        $('#all').on('change', function () {
+            if ($('#all').prop('checked')) {
+                $('#firm_id option').each(function () {
+                    $(this).prop("selected", true);
+                });
+            } else {
+                $('#firm_id option').each(function () {
+                    $(this).prop("selected", false);
+                });
+            }
+        });
 
         $('#save_btn').click(function () {
             let error = 0;
@@ -517,92 +613,6 @@
             }
         });
 
-        $("#egood_id").focus(function () {
-            $("#egood_id").empty(); //очищаем от старых значений
-            let vendor_code = $("#search_evendor").val();
-            $.ajax({
-                type: 'POST',
-                url: '{{ route('searchByVendor') }}',
-                data: {'vendor_code': vendor_code},
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (res) {
-                    //alert(res);
-                    $("#egood_id").prepend($(res));
-                }
-            });
-        });
-
-        $("#comment").focus(function () {
-            $("#comment").empty(); //очищаем от старых значений
-            let id = $("#good_id").val();
-            $.ajax({
-                type: 'POST',
-                url: '{{ route('specByVendor') }}',
-                data: {'id': id},
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (res) {
-                    //alert(res);
-                    $("#comment").prepend($(res));
-                }
-            });
-        });
-
-        $("#ecomment").focus(function () {
-            $("#ecomment").empty(); //очищаем от старых значений
-            let id = $("#egood_id").val();
-            $.ajax({
-                type: 'POST',
-                url: '{{ route('specByVendor') }}',
-                data: {'id': id},
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (res) {
-                    //alert(res);
-                    $("#ecomment").prepend($(res));
-                }
-            });
-        });
-
-        $(document).on({
-            click: function () {
-                let id = $(this).parent().parent().parent().attr("id");
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('getSpecPos') }}',
-                    data: {'id': id},
-                    headers: {
-                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        //alert(res);
-                        $("#importSpfc").modal("show");
-                        $('#pos_id').val(id);
-                        $('#spec').empty(); //очищаем от предыдущих значений
-                        $('#spec').prepend(res);
-                    }
-                });
-            }
-        }, ".pos_spec");
-
-        $(document).on({
-            click: function () {
-                let row = $(this).parent().parent().parent();
-                $("#errPoc").modal("show");
-                $('#search_evendor').val(row.children('td').eq(0).text().trim());
-                $('#eqty').val(row.children('td').eq(1).text());
-                $('#eprice').val(row.children('td').eq(3).text());
-                $('#evat').val(row.children('td').eq(5).text());
-                $('#err_id').val(row.attr('id'));
-                $('#egood_id').empty();
-                $('#ecomment').empty();
-            }
-        }, ".pos_edit");
-
         $(document).on({
             click: function () {
                 let id = $(this).parent().parent().parent().attr("id");
@@ -636,35 +646,6 @@
                 }
             }
         }, ".pos_delete");
-
-        $(document).on({
-            click: function () {
-                let id = $(this).parent().parent().parent().attr("id");
-                let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
-                if (x) {
-                    $.ajax({
-                        type: 'POST',
-                        url: '{{ route('delErrPos') }}',
-                        data: {'id': id},
-                        headers: {
-                            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function (res) {
-                            //alert(res);
-                            if (res == 'OK') {
-                                hide_row(id);
-                            }
-                            if (res == 'BAD')
-                                alert('Выполнение операции запрещено!');
-                            if (res == 'NO')
-                                alert('Не известный метод!');
-                        }
-                    });
-                } else {
-                    return false;
-                }
-            }
-        }, ".err_delete");
 
         function hide_row(id) {
             let err = Number($('.badge-danger').text());

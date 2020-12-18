@@ -60,6 +60,7 @@ class FirmController extends Controller
             $validator = Validator::make($input,[
                 'firm_type_id' => 'required|integer',
                 'code' => 'required|string|max:12',
+                'vcode' => 'nullable|string|max:12',
                 'inn' => 'required|unique:firms|string|max:12',
                 'kpp' => 'nullable|string|max:9',
                 'okpo' => 'nullable|string|max:10',
@@ -77,6 +78,7 @@ class FirmController extends Controller
                 'fname' => 'required|string|max:70',
                 'position' => 'nullable|string|max:70',
                 'phone' => 'nullable|string|max:20',
+                'phones' => 'nullable|string|max:30',
                 'email' => 'nullable|email|max:50',
                 'site' => 'nullable|string|max:70',
                 'legal_address' => 'nullable|string|max:254',
@@ -90,6 +92,8 @@ class FirmController extends Controller
             $firm = new Firm();
             $firm->firm_type_id = $input['firm_type_id'];
             $firm->code = $input['code'];
+            if(!empty($input['vcode']))
+                $firm->vcode = $input['vcode'];
             $firm->inn = $input['inn'];
             if(!empty($input['kpp']))
                 $firm->kpp = $input['kpp'];
@@ -128,6 +132,7 @@ class FirmController extends Controller
                 $contact->fname = $input['fname'];
                 $contact->position = $input['position'];
                 $contact->phone = $input['phone'];
+                $contact->phones = $input['phone'];
                 $contact->email = $input['email'];
                 $contact->site = $input['site'];
                 $contact->legal_address = $input['legal_address'];
@@ -242,6 +247,7 @@ class FirmController extends Controller
             $validator = Validator::make($input,[
                 'firm_type_id' => 'required|integer',
                 'code' => 'required|string|max:12',
+                'vcode' => 'nullable|string|max:12',
                 'inn' => 'required|string|max:12',
                 'kpp' => 'nullable|string|max:9',
                 'okpo' => 'nullable|string|max:10',
@@ -295,6 +301,7 @@ class FirmController extends Controller
                 'fname' => 'required|string|max:70',
                 'position' => 'nullable|string|max:70',
                 'phone' => 'nullable|string|max:20',
+                'phones' => 'nullable|string|max:30',
                 'email' => 'nullable|email|max:50',
                 'site' => 'nullable|string|max:70',
                 'legal_address' => 'nullable|string|max:254',
@@ -306,7 +313,7 @@ class FirmController extends Controller
             }
             // есть такая запись или нет
             Contact::updateOrCreate(['firm_id' => $input['firm_id']], ['lname' => $input['lname'],'mname' => $input['mname'],'fname' => $input['fname'],
-                'position' => $input['position'],'phone' => $input['phone'],'email' => $input['email'],'site' => $input['site'],
+                'position' => $input['position'],'phone' => $input['phone'],'phones' => $input['phones'],'email' => $input['email'],'site' => $input['site'],
                 'legal_address' => $input['legal_address'],'fact_address' => $input['fact_address'],'post_address' => $input['post_address']]);
 
             $msg = 'Контакты контрагента ' . Firm::find($input['firm_id'])->title . ' успешно добавлены\обновлены!';

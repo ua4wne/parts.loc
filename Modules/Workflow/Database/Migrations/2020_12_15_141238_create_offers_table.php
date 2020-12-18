@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateTblApplicationsTable extends Migration
+class CreateOffersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,19 +13,20 @@ class CreateTblApplicationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('tbl_applications', function (Blueprint $table) {
+        Schema::create('offers', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('application_id')->unsigned();
-            $table->foreign('application_id')->references('id')->on('applications');
+            $table->integer('firm_id')->unsigned();
+            $table->foreign('firm_id')->references('id')->on('firms');
             $table->integer('good_id')->unsigned();
             $table->foreign('good_id')->references('id')->on('goods');
-            $table->float('qty');
+            $table->decimal('price');
+            $table->decimal('markup');
+            $table->integer('currency_id')->unsigned();
+            $table->foreign('currency_id')->references('id')->on('currency');
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
-            $table->integer('car_id')->unsigned();
-            $table->foreign('car_id')->references('id')->on('cars');
-            $table->integer('order_id')->nullable();
-            //$table->text('offers')->nullable();
+            $table->tinyInteger('delivery_time')->nullable();
+            $table->varchar('comment',255)->nullable();
             $table->timestamps();
         });
     }
@@ -37,6 +38,6 @@ class CreateTblApplicationsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tbl_applications');
+        Schema::dropIfExists('supplier_prices');
     }
 }

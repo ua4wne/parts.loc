@@ -9,11 +9,17 @@ class Firm extends Model
     //указываем имя таблицы
     protected $table = 'firms';
 
-    protected $fillable = ['firm_type_id','code','title','inn','kpp','okpo','name','country_id','tax_number','client','provider','other','foreigner','user_id'];
+    protected $fillable = ['firm_type_id','code','vcode','title','inn','kpp','okpo','name','country_id','tax_number',
+        'client','provider','other','foreigner','user_id'];
 
     public function firm_type()
     {
         return $this->belongsTo('App\Models\FirmType','firm_type_id','id');
+    }
+
+    public function country()
+    {
+        return $this->belongsTo('App\Models\Country','country_id','id');
     }
 
     public function contact()

@@ -136,6 +136,16 @@
                                         Цены в закупках
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="#offers" data-toggle="tab">
+                                        Цены в предложениях
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#requests" data-toggle="tab">
+                                        Цены в запросах
+                                    </a>
+                                </li>
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane fade" id="common">
@@ -200,6 +210,54 @@
                                                 </tr>
                                                 </thead>
                                                 <tbody id="purchases_body">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="offers">
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Цена</th>
+                                                    <th>Цена в валюте</th>
+                                                    <th>Курс</th>
+                                                    <th>Валюта</th>
+                                                    <th>Дата</th>
+                                                    <th>Кол-во</th>
+                                                    <th>Заказы поставщику</th>
+                                                    <th>Контрагент</th>
+                                                    <th>Ответственный</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="offer_body">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="requests">
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Цена</th>
+                                                    <th>Цена в валюте</th>
+                                                    <th>Курс</th>
+                                                    <th>Валюта</th>
+                                                    <th>Дата</th>
+                                                    <th>Кол-во</th>
+                                                    <th>Поставщик</th>
+                                                    <th>Контрагент</th>
+                                                    <th>Ответственный</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="request_body">
 
                                                 </tbody>
                                             </table>

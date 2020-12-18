@@ -47,6 +47,7 @@
                     <a href="{{ route('bank_accounts',['id'=>$firm->id]) }}"><span data-hover="Банковские_счета">Банковские счета</span></a>
                     <a href="{{ route('contracts',['id'=>$firm->id]) }}"><span data-hover="Договоры">Договоры</span></a>
                     <a href="#"><span data-hover="Документы">Документы</span></a>
+                    <a href="{{ route('offer',['id'=>$firm->id]) }}"><span data-hover="Прайс_лист">Прайс-лист</span></a>
                 </nav>
             </div>
             <div class="col-md-12">
@@ -75,6 +76,11 @@
                                     <th>Код:</th>
                                     <td>{!! Form::text('code',$firm->code,['class' => 'form-control','placeholder'=>'Введите код','maxlength'=>'12','required'=>'required'])!!}
                                         {!! $errors->first('code', '<p class="text-danger">:message</p>') !!}</td>
+                                </tr>
+                                <tr>
+                                    <th>Код поставщика:</th>
+                                    <td>{!! Form::text('vcode',$firm->vcode,['class' => 'form-control','placeholder'=>'Введите код поставщика','maxlength'=>'12'])!!}
+                                        {!! $errors->first('vcode', '<p class="text-danger">:message</p>') !!}</td>
                                 </tr>
                                 <tr>
                                     <th>ИНН:</th>
@@ -262,9 +268,14 @@
                                             {!! $errors->first('position', '<p class="text-danger">:message</p>') !!}</td>
                                     </tr>
                                     <tr>
-                                        <th>Телефон:</th>
+                                        <th>Телефон №1:</th>
                                         <td>{!! Form::tel('phone',$contact[0]->phone,['class' => 'form-control','placeholder'=>'Укажите телефон','size'=>'20','id'=>'phone'])!!}
                                             {!! $errors->first('phone', '<p class="text-danger">:message</p>') !!}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Телефон №2:</th>
+                                        <td>{!! Form::tel('phones',$contact[0]->phones,['class' => 'form-control','placeholder'=>'Укажите телефон','size'=>'30'])!!}
+                                            {!! $errors->first('phones', '<p class="text-danger">:message</p>') !!}</td>
                                     </tr>
                                     <tr>
                                         <th>E-mail:</th>
