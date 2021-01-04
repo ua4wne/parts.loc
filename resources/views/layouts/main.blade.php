@@ -157,6 +157,7 @@
                         <ul class="sub-menu">
                             <li><a href="{{ route('warehouses') }}"><span class="title">Склады</span></a></li>
                             <li><a href="{{ route('groups') }}"><span class="title"> Группы товаров </span></a></li>
+                            <li><a href="{{ route('locations') }}"><span class="title"> Места хранения </span></a></li>
                             <li><a href="{{ route('goods') }}"><span class="title"> Номенклатура </span></a></li>
                             <li><a href="{{ route('units') }}"><span class="title"> Единицы измерений </span></a></li>
                         </ul>
@@ -220,6 +221,7 @@
                                 <ul class="sub-menu" style="display: block;">
                                     <li><a href="{{ route('good_exchange') }}"><span class="title">Номенклатура</span></a></li>
                                     <li><a href="{{ route('spec_exchange') }}"><span class="title">Спецификации номенклатуры</span></a></li>
+                                    <li><a href="{{ route('stock_exchange') }}"><span class="title">Складские остатки</span></a></li>
                                 </ul>
                             </li>
                         </ul>

@@ -135,7 +135,7 @@ class GroupController extends Controller
         if (view()->exists('warehouse::group_edit')) {
             $data = [
                 'title' => 'Группы товаров',
-                'head' => 'Новая запись',
+                'head' => $model->title,
                 'data' => $old,
             ];
             return view('warehouse::group_edit', $data);

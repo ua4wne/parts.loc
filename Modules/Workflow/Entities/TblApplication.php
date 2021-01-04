@@ -9,21 +9,21 @@ class TblApplication extends Model
     //указываем имя таблицы
     protected $table = 'tbl_applications';
 
-    protected $fillable = ['application_id','good_id','qty','car_id','unit_id','order_id'];
+    protected $fillable = ['application_id', 'good_id', 'qty', 'car_id', 'unit_id', 'order_id', 'price'];
 
     public function application()
     {
-        return $this->belongsTo('Modules\Workflow\Entities\Application','application_id','id');
+        return $this->belongsTo('Modules\Workflow\Entities\Application', 'application_id', 'id');
     }
 
     public function good()
     {
-        return $this->belongsTo('Modules\Warehouse\Entities\Good','good_id','id');
+        return $this->belongsTo('Modules\Warehouse\Entities\Good', 'good_id', 'id');
     }
 
     public function car()
     {
-        return $this->belongsTo('App\Models\Car','car_id','id');
+        return $this->belongsTo('App\Models\Car', 'car_id', 'id');
     }
 
     public function order()
@@ -33,14 +33,21 @@ class TblApplication extends Model
 
     public function getOffersAttribute()
     {
-        $content = '<table><thead><tr><th>№ поставщика</th><th>Срок поставки</th><th>Цена</th><th>Комментарий</th></tr>
+        $content = '<table class="table table-condensed"><thead><tr><th>Поставщик</th><th>Срок поставки</th><th>Цена</th><th>Комментарий</th><th></th></tr>
                     </thead><tbody>';
-        $offers = Offer::where('good_id',$this->good_id)->get();
-        if(!empty($offers)){
-            foreach ($offers as $row){
-                $amount = $row->price * $row->markup;
-                $content .= '<tr><td>' . $row->firm->name . '</td><td>' . $row->delivery_time . '</td>
-                                 <td>' . round($amount,2) . '</td><td>' . $row->comment . '</td></tr>';
+        $offers = SetOffer::where('tbl_application_id', $this->id)->get();
+        if (!empty($offers)) {
+            foreach ($offers as $row) {
+                if ($this->application->state == 0) {
+
+                    $content .= '<tr id="ofr' . $row->id . '"><td>' . $row->firm->name . '</td><td>' . $row->delivery_time . '</td>
+                                 <td class="offer_pos">' . $row->amount . '</td><td>' . $row->comment . '</td><td><button class="btn btn-xs btn-primary btn-o">
+																<i class="fa fa-edit"></i>
+															</button></td></tr>';
+                } else {
+                    $content .= '<tr><td>' . $row->firm->name . '</td><td>' . $row->delivery_time . '</td>
+                                 <td>' . $row->amount . '</td><td>' . $row->comment . '</td><td></td></tr>';
+                }
             }
         }
         $content .= '</tbody></table>';

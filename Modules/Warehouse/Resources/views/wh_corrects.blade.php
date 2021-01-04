@@ -56,7 +56,6 @@
                                 <th>Дата создания</th>
                                 <th>№ документа</th>
                                 <th>Склад</th>
-                                <th>Прайс</th>
                                 <th>Основание</th>
                                 <th>Ответственный</th>
                                 <th>Действия</th>
@@ -79,7 +78,6 @@
                                         <td>{{ $row->created_at }}</td>
                                         <td>{{ $row->doc_num }}</td>
                                         <td>{{ $row->warehouse->title }}</td>
-                                        <td>{{ $row->price->title }}</td>
                                         <td>{{ $row->reason }}</td>
                                         <td>{{ $row->user->name }}</td>
                                         <td style="width:150px;">

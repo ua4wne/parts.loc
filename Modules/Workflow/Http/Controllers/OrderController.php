@@ -27,6 +27,7 @@ use Modules\Workflow\Entities\Purchase;
 use Modules\Workflow\Entities\TblDeclaration;
 use Modules\Workflow\Entities\TblOrder;
 use Modules\Workflow\Entities\TblPurchase;
+use Modules\Workflow\Entities\TblSale;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Validator;
 
@@ -289,7 +290,7 @@ class OrderController extends Controller
             if (empty($input['has_vat'])) $input['has_vat'] = 0;
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
-                'unique' => 'Значение поля должно быть уникальным!',
+                //'unique' => 'Значение поля должно быть уникальным!',
                 'max' => 'Значение поля должно быть не более :max символов!',
                 'integer' => 'Значение поля должно быть целым числом!',
                 'numeric' => 'Значение поля должно быть числовым!',
@@ -371,7 +372,7 @@ class OrderController extends Controller
                     $analogs = Good::where('catalog_num',$good->catalog_num)->where('id','!=',$good->id)->get();
                     if(!empty($analogs)){
                         foreach ($analogs as $row){
-                            $content .= '<option value="' . $row->id . '">' . $row->title . ' (аналог)</option>' . PHP_EOL;
+                            $content .= '<option value="' . $row->id . '">' . $row->title . ' (' . $row->vendor_code . ')</option>' . PHP_EOL;
                         }
                     }
                 }
@@ -426,7 +427,10 @@ class OrderController extends Controller
     {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $good_id = TblOrder::find($input['id'])->good_id;
+            if($input['tbl_id'] == 'order')
+                $good_id = TblOrder::find($input['id'])->good_id;
+            if($input['tbl_id'] == 'sale')
+                $good_id = TblSale::find($input['id'])->good_id;
             $specs = Specification::where('good_id', $good_id)->get();
             $content = '';
             foreach ($specs as $row) {
@@ -440,7 +444,10 @@ class OrderController extends Controller
     {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $pos = TblOrder::find($input['id']);
+            if($input['tbl_id'] == 'order')
+                $pos = TblOrder::find($input['id']);
+            if($input['tbl_id'] == 'sale')
+                $pos = TblSale::find($input['id']);
             if (!empty($pos)) {
                 $pos->comment = $input['title'];
                 if ($pos->update())

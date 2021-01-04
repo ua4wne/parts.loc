@@ -23,7 +23,7 @@
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
-            {!! Form::open(['url' => route('specEdit',['id'=>$data['id']]),'class'=>'form-horizontal','method'=>'POST', 'id'=>'form_wx']) !!}
+            {!! Form::open(['url' => route('spfcEdit',['id'=>$data['id']]),'class'=>'form-horizontal','method'=>'POST', 'id'=>'form_wx']) !!}
 
             <div class="form-group">
                 <label class="col-xs-3 control-label">

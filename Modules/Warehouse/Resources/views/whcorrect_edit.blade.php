@@ -32,15 +32,6 @@
 
             <div class="form-group">
                 <label class="col-xs-3 control-label">
-                    Прайс: <span class="symbol required" aria-required="true"></span>
-                </label>
-                <div class="col-xs-8">
-                    {!! Form::select('price_id',$psel, $data['price_id'], ['class' => 'form-control','required'=>'required']); !!}
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="col-xs-3 control-label">
                     Основание: <span class="symbol required" aria-required="true"></span>
                 </label>
                 <div class="col-xs-8">

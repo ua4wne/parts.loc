@@ -19,8 +19,8 @@ class CreateWhCorrects extends Migration
             $table->string('doc_num',15);
             $table->integer('warehouse_id')->unsigned();
             $table->foreign('warehouse_id')->references('id')->on('warehouses');
-            $table->integer('price_id')->unsigned();
-            $table->foreign('price_id')->references('id')->on('prices');
+            //$table->integer('price_id')->unsigned();
+            //$table->foreign('price_id')->references('id')->on('prices');
             $table->string('reason',150);
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');

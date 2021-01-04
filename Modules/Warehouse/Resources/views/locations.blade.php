@@ -14,7 +14,7 @@
     <!-- START BREADCRUMB -->
     <ul class="breadcrumb">
         <li><a href="{{ route('main') }}">Рабочий стол</a></li>
-        <li class="active"><a href="{{ route('applications') }}">{{ $title }}</a></li>
+        <li class="active"><a href="{{ route('locations') }}">{{ $title }}</a></li>
     </ul>
     <!-- END BREADCRUMB -->
     @if (session('error'))
@@ -42,47 +42,62 @@
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
             <div class="panel-heading">
-                <a href="{{route('applicationAdd')}}">
+                <a href="{{route('locationAdd')}}">
                     <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-plus"
                                                                                   aria-hidden="true"></i> Новая
-                        заявка
+                        запись
                     </button>
                 </a>
             </div>
             <div class="col-md-12">
-                <div class=" table-responsive">
+                <div class="table-responsive">
                     @if($rows)
                         <table id="mytable" class="table table-bordered">
                             <thead>
                             <tr>
-                                <th>Номер</th>
-                                <th>Дата</th>
+                                <th>Наименование</th>
+                                <th>Штрих-код</th>
+                                <th>Длина</th>
+                                <th>Ширина</th>
+                                <th>Высота</th>
+                                <th>Емкость, EPL</th>
                                 <th>Приоритет</th>
-                                <th>Важность</th>
-                                <th>Основание</th>
-                                <th>Постановщик</th>
-                                <th>Ответственный</th>
-                                <th>Статус</th>
+                                <th>Блок. вход</th>
+                                <th>Блок. выход</th>
                                 <th>Действия</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($rows as $k => $row)
-                                <tr {!! $row->statuse->style !!} }>
-                                    <td>{{ $row->doc_num }}</td>
-                                    <td>{{ $row->created_at }}</td>
-                                    <td>{{ $row->priority->title }}</td>
-                                    <td>{{ $row->rank }}</td>
-                                    <td>{{ $row->sale->doc_num }}</td>
-                                    <td>{{ $row->author->name }}</td>
-                                    <td>{{ $row->user->name }}</td>
-                                    <td>{{ $row->statuse->title }}</td>
-                                    <td style="width:100px;">
-                                        {!! Form::open(['url'=>route('applicationEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
-                                        {{ method_field('DELETE') }}<div class="form-group" role="group">
-                                            <a href="{{route('applicationView',['id'=>$row->id])}}">
-                                                <button class="btn btn-info" type="button"
-                                                        title="Просмотр записи"><i class="fa fa-eye fa-lg>"
+                                <tr>
+                                    <td>{{ $row->title }}</td>
+                                    <td>{{ $row->barcode }}</td>
+                                    <td>{{ $row->length }}</td>
+                                    <td>{{ $row->widht }}</td>
+                                    <td>{{ $row->height }}</td>
+                                    <td>{{ $row->capacity }}</td>
+                                    <td>{{ $row->priority }}</td>
+                                    <td>
+                                        @if($row->in_lock)
+                                            <span role="button" class="label label-danger">Да</span>
+                                        @else
+                                            <span role="button" class="label label-success">Нет</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($row->out_lock)
+                                            <span role="button" class="label label-danger">Да</span>
+                                        @else
+                                            <span role="button" class="label label-success">Нет</span>
+                                        @endif
+                                    </td>
+                                    <td style="width:110px;">
+                                        {!! Form::open(['url'=>route('locationEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
+                                        {{ method_field('DELETE') }}
+                                        <div class="form-group" role="group">
+                                            <a href="{{route('locationEdit',['id'=>$row->id])}}">
+                                                <button class="btn btn-success" type="button"
+                                                        title="Редактировать запись"><i class="fa fa-edit fa-lg>"
                                                                                         aria-hidden="true"></i></button>
                                             </a>
                                             {!! Form::button('<i class="fa fa-trash-o fa-lg>" aria-hidden="true"></i>',['class'=>'btn btn-danger','type'=>'submit','title'=>'Удалить запись']) !!}

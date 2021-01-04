@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Good;
+use Modules\Warehouse\Entities\Location;
+use Modules\Warehouse\Entities\Reservation;
+use Modules\Warehouse\Entities\Specification;
+use Modules\Warehouse\Entities\Stock;
 use Modules\Warehouse\Entities\Unit;
 use Modules\Warehouse\Entities\Warehouse;
 use Modules\Workflow\Entities\Agreement;
@@ -26,7 +30,7 @@ use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\TblSale;
 use Validator;
 
-class SaleController extends Controller
+class  SaleController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -56,7 +60,8 @@ class SaleController extends Controller
         abort(404);
     }
 
-    public function orders(){
+    public function orders()
+    {
         if (view()->exists('workflow::sale_orders')) {
             $rows = Sale::all();
             $data = [
@@ -218,7 +223,7 @@ class SaleController extends Controller
                 if (!empty($good)) {
                     $content .= '<tr id="' . $good->id . '" class="text-bold text-green clicable"><td>' . $good->code . '</td><td>' . $good->vendor_code . '</td>
                                 <td>' . $good->title . '</td><td>' . $good->category->category . '</td></tr>';
-                    if(!empty($good->catalog_num)){
+                    if (!empty($good->catalog_num)) {
                         $analogs = Good::where('catalog_num', $good->catalog_num)->where('id', '!=', $good->id)->get();
                         if (!empty($analogs)) {
                             foreach ($analogs as $row) {
@@ -258,6 +263,20 @@ class SaleController extends Controller
                             $content .= '<tr><td>Основная ед. изм.</td><td>' . $unit . '</td></tr>';
                             $content .= '<tr><td>Штрих-код</td><td>' . $good->barcode . '</td></tr>';
                             $content .= '<tr><td>Ставка НДС</td><td>' . $good->vat . '</td></tr>';
+                        }
+                        break;
+                    case 'stock':
+                        $rows = Stock::where('good_id', $id)->get();
+                        if (!empty($rows)) {
+                            foreach ($rows as $row) {
+                                $content .= '<tr><td>' . $row->warehouse->title . '</td>';
+                                $content .= '<td>' . $row->good->title . '</td>';
+                                $content .= '<td>' . $row->location->title . '</td>';
+                                $content .= '<td>' . $row->qty . '</td>';
+                                $content .= '<td>' . $row->unit->title . '</td>';
+                                $content .= '<td>' . $row->cost . '</td>';
+                                $content .= '<td>' . $row->consignment . '</td></tr>';
+                            }
                         }
                         break;
                 }
@@ -327,10 +346,8 @@ class SaleController extends Controller
                 $delivs[$val->id] = $val->title;
             }
             $rows = TblSale::where('sale_id', $id)->get();
-            //$err_rows = OrderError::where('sale_id', $id)->get();
-            //$err = OrderError::where('sale_id', $id)->count('id');
             $vat = 0;
-            if($sale->has_vat) $vat = env('VAT');
+            if ($sale->has_vat) $vat = env('VAT');
             $tbody = '';
             //цепочка связанных документов
             /*$links = TblPurchase::select('purchase_id')->where('order_id',$id)->distinct()->get();
@@ -391,9 +408,58 @@ class SaleController extends Controller
      * @param int $id
      * @return Response
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
-        return view('workflow::edit');
+        $sale = Sale::find($id);
+        if (!Role::granted('orders')) {//вызываем event
+            $msg = 'Попытка редактирования заявки клиента №' . $sale->doc_num . '!';
+            event(new AddEventLogs('access', Auth::id(), $msg));
+            abort(503, 'У Вас нет прав на редактирование заявок от клиентов!');
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            if (empty($input['has_vat'])) $input['has_vat'] = 0;
+            if (empty($input['to_door'])) $input['to_door'] = 0;
+            if (empty($input['delivery_in_price'])) $input['delivery_in_price'] = 0;
+            $messages = [
+                'required' => 'Поле обязательно к заполнению!',
+                'unique' => 'Значение поля должно быть уникальным!',
+                'max' => 'Значение поля должно быть не более :max символов!',
+                'integer' => 'Значение поля должно быть целым числом!',
+                'string' => 'Значение поля должно быть строковым!',
+            ];
+            $validator = Validator::make($input, [
+                'doc_num' => 'required|unique:orders|string|max:15',
+                'firm_id' => 'required|integer',
+                'organisation_id' => 'required|integer',
+                'contract_id' => 'required|integer',
+                'warehouse_id' => 'required|integer',
+                'currency_id' => 'required|integer',
+                'delivery_method_id' => 'required|integer',
+                'delivery_id' => 'required|integer',
+                'agreement_id' => 'required|integer',
+                'destination' => 'required|string|max:150',
+                'contact' => 'required|string|max:100',
+                'to_door' => 'nullable|integer',
+                'delivery_in_price' => 'nullable|integer',
+                'user_id' => 'required|integer',
+                'date_agreement' => 'nullable|date',
+                'has_vat' => 'nullable|integer',
+                'doc_num_firm' => 'nullable|string|max:15',
+                'date_firm' => 'nullable|date',
+                'comment' => 'nullable|string|max:254',
+            ], $messages);
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+            $sale->fill($input);
+            if ($sale->update()) {
+                $msg = 'Данные заказа клиента № ' . $sale->doc_num . ' были успешно обновлены!';
+                //вызываем event
+                event(new AddEventLogs('info', Auth::id(), $msg));
+                return redirect()->back()->with('status', $msg);
+            }
+        }
     }
 
     public function getSale(Request $request)
@@ -403,5 +469,240 @@ class SaleController extends Controller
         //подите прочь, я возмущен и раздосадован...
         $codes = DB::select("select id, `doc_num` as `name` from sales where `doc_num` like '%$query%'");
         return response()->json($codes);
+    }
+
+    public function addPosition(Request $request)
+    {
+        if (!Role::granted('sales')) {//вызываем event
+            return 'BAD';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
+            if (!empty($input['comment']))
+                $input['comment'] = Specification::find($input['comment'])->title;
+            $model = new TblSale();
+            $model->fill($input);
+            $model->created_at = date('Y-m-d H:i:s');
+            $model->reserved = 0;
+            if ($model->save()) {
+                $msg = 'Добавлена новая позиция ' . $model->good->title . ' к заказу клиента №' . $model->sale->doc_num;
+                //вызываем event
+                event(new AddEventLogs('info', Auth::id(), $msg));
+                $content = '<tr id="' . $model->id . '">
+                    <td>' . $model->good->vendor_code . '</td>
+                    <td>' . $model->good->title . '</td>
+                    <td>' . $model->comment . '</td>
+                    <td>' . $model->qty . '</td>
+                    <td>' . $model->reserved . '</td>
+                    <td>' . $model->unit->title . '</td>
+                    <td>' . $model->price . '</td>
+                    <td>' . $model->amount . '</td>
+                    <td>' . $model->vat . '</td>
+                    <td>' . $model->vat_amount . '</td>
+                    <td style="width:70px;">    <div class="form-group" role="group">';
+                if ($model->good->has_specification) {
+                    $content .= '<button class="btn btn-info btn-sm pos_spec"
+                                                                        type="button" title="Характеристики"><i
+                                                                        class="fa fa-cog fa-lg" aria-hidden="true"></i>
+                                                                </button>';
+                }
+                $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
+                            <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                        </div>
+                    </td>
+                </tr>';
+                $amount = $model->sale->amount + $model->sale->vat_amount;
+                $num = TblSale::where('sale_id', $model->sale_id)->count('id');
+                $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
+                return json_encode($result);
+            }
+        }
+        return 'NO';
+    }
+
+    public function delPosition(Request $request)
+    {
+        if (!Role::granted('sales')) {//вызываем event
+            return 'BAD';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $pos = TblSale::find($input['id']);
+            if (!empty($pos)) {
+                $sale_id = $pos->sale_id;
+                $msg = 'Удалена позиция ' . $pos->good->title . ' из зазаявки клиента №' . $pos->sale->doc_num;
+                $pos->delete();
+
+                //вызываем event
+                event(new AddEventLogs('info', Auth::id(), $msg));
+                $doc = Sale::find($sale_id);
+                $amount = $doc->amount + $doc->vat_amount;
+                $num = TblSale::where('sale_id', $sale_id)->count('id');
+                $result = ['num' => $num, 'amount' => $amount];
+                return json_encode($result);
+            }
+        }
+        return 'NO';
+    }
+
+    public function editPos(Request $request)
+    {
+        if (!Role::granted('sales')) {//вызываем event
+            return 'BAD';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
+            if (!empty($input['comment']))
+                $input['comment'] = Specification::find($input['comment'])->title;
+            $pos_id = $input['pos_id'];
+            unset($input['pos_id']);
+            $pos = TblSale::find($pos_id);
+            if (!empty($pos)) {
+                $pos->fill($input);
+                if ($pos->update()) {
+                    $amount = $pos->sale->amount + $pos->sale->vat_amount;
+                    $num = TblSale::where('sale_id', $pos->sale_id)->count('id');
+                    $result = ['vat_amount' => $pos->vat_amount, 'num' => $num, 'amount' => $amount];
+                    return json_encode($result);
+                }
+            }
+            return 'ERR';
+        }
+        return 'NO';
+    }
+
+    public function setReserv(Request $request)
+    {
+        if (!Role::granted('sales')) {//вызываем event
+            return 'BAD';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
+            if (empty($input['sale_id']))
+                return 'NO';
+            $rows = TblSale::where('sale_id', $input['sale_id'])->get();
+            if (!empty($rows)) {
+                //определяем склад
+                $whs_id = Sale::find($input['sale_id'])->warehouse_id;
+                foreach ($rows as $row) {
+                    $need_qty = $row->qty;
+                    if ($row->qty > $row->reserved) { //нужно резервировать товар?
+                        //определяем сумму необходимого резерва
+                        $need_qty -= $row->reserved_qty;
+                        //смотрим остатки на складе
+                        $free_qty = $this->getFreeQty($whs_id, $row->good_id);
+                        if ($need_qty && $free_qty) { //нужен резерв и есть остатки на складе
+                            //резервируем товар
+                            $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->good_id])->get();
+                            if (!empty($leftovers)) {
+                                foreach ($leftovers as $stock) {
+                                    if (!$stock->location->out_lock) { //ячейка не заблокирована на выход
+                                        $reserv = new Reservation();
+                                        $location = Location::find($stock->location_id);
+                                        if ($stock->qty >= $need_qty) {
+                                            $reserv->location_id = $location->id;
+                                            $reserv->tbl_sale_id = $row->id;
+                                            $reserv->qty = $stock->qty - $need_qty;
+                                            $reserv->created_at = date('Y-m-d H:i:s');
+                                            if ($reserv->save()) {
+                                                $stock->qty = $stock->qty - $need_qty; // уменьшаем кол-во на кол-во резерва
+                                                $stock->update();
+                                                $row->reserved += $reserv->qty;
+                                                $row->update();
+                                            }
+                                            break;
+                                        }
+                                        if ($stock->qty < $need_qty) {
+                                            $reserv->location_id = $location->id;
+                                            $reserv->tbl_sale_id = $row->id;
+                                            $reserv->qty = $stock->qty;
+                                            $reserv->created_at = date('Y-m-d H:i:s');
+                                            if ($reserv->save()) {
+                                                $stock->qty = 0; // уменьшаем кол-во на кол-во резерва
+                                                $stock->update();
+                                                $need_qty -= $reserv->qty;
+                                                $row->reserved += $reserv->qty;
+                                                $row->update();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+                return 'OK';
+            }
+        }
+        return 'NO';
+    }
+
+    public function dropReserv(Request $request)
+    {
+        if (!Role::granted('sales')) {//вызываем event
+            return 'BAD';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
+            if (empty($input['sale_id']))
+                return 'NO';
+            $rows = TblSale::where('sale_id', $input['sale_id'])->get();
+            if (!empty($rows)) {
+                //определяем склад
+                $whs_id = Sale::find($input['sale_id'])->warehouse_id;
+                foreach ($rows as $row) {
+                    //ищем резервирование позиции
+                    $reserv = Reservation::where('tbl_sale_id', $row->id)->get();
+                    if (!empty($reserv)) {
+                        //снимаем резервы
+                        foreach ($reserv as $pos) {
+                            //товар в ячейке на складе еще есть?
+                            $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->good_id])->get();
+                            if (empty($stock)) {
+                                $stock = new Stock();
+                                $stock->warehouse_id = $whs_id;
+                                $stock->good_id = $row->good_id;
+                                $stock->location_id = $pos->location_id;
+                                $stock->qty = $pos->qty;
+                                $stock->unit_id = $row->unit_id;
+                                $stock->cost = $row->price;
+                                if ($stock->save()) {
+                                    $row->qty -= $pos->qty;
+                                    $pos->delete();
+                                    $row->update();
+                                }
+                            } else {
+                                foreach ($stock as $st){
+                                    $st->qty = $pos->qty;
+                                    if ($st->update()) {
+                                        $row->reserved -= $pos->qty;
+                                        $pos->delete();
+                                        $row->update();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 'OK';
+        }
+        return 'NO';
+    }
+
+    private function getFreeQty($wx_id, $good_id)
+    {
+        //ищем остатки товара на складе
+        $qty = 0;
+        $leftovers = Stock::where(['warehouse_id' => $wx_id, 'good_id' => $good_id])->get();
+        if (!empty($leftovers)) {
+            foreach ($leftovers as $row) {
+                if (!$row->location->out_lock) { //ячейка не заблокирована на выход
+                    $qty += $row->qty;
+                }
+            }
+        }
+        return $qty;
     }
 }

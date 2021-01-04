@@ -19,12 +19,12 @@ class CreateTblWhCorrects extends Migration
             $table->foreign('wh_correct_id')->references('id')->on('wh_corrects');
             $table->integer('good_id')->unsigned();
             $table->foreign('good_id')->references('id')->on('goods');
-            $table->string('cell',10)->nullable();
+            $table->integer('location_id')->unsigned();
+            $table->foreign('location_id')->references('id')->on('locations');
             $table->float('qty');
-            $table->decimal('price');
+            $table->decimal('price')->nullable();
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
-            $table->decimal('amount');
             $table->timestamps();
         });
     }

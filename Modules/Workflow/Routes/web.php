@@ -202,6 +202,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/delpos',['uses'=>'SaleController@delPosition','as'=>'delSalePos']);
         //sales/find_sale
         Route::get('/find_sale',['uses'=>'SaleController@getSale','as'=>'getSale']);
+        //sales/edit-sale-pos
+        Route::post('/edit-sale-pos',['uses'=>'SaleController@editPos','as'=>'editSalePos']);
+        //sales/set-reserv
+        Route::post('/set-reserv',['uses'=>'SaleController@setReserv','as'=>'setReserv']);
+        //sales/drop-reserv
+        Route::post('/drop-reserv',['uses'=>'SaleController@dropReserv','as'=>'dropReserv']);
     });
 
     //applications/ группа обработки роутов applications
@@ -215,10 +221,22 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['get','post'],'/view/{id}',['uses'=>'ApplicationController@show','as'=>'applicationView']);
         //applications/del
         Route::post('/del',['uses'=>'ApplicationController@delete','as'=>'applicationDelete']);
+        //applications/close
+        Route::post('/close',['uses'=>'ApplicationController@close','as'=>'applicationClose']);
+        //applications/open
+        Route::post('/open',['uses'=>'ApplicationController@open','as'=>'applicationOpen']);
         //applications/addpos
         Route::post('/addpos',['uses'=>'ApplicationController@addPosition','as'=>'addApplicationPos']);
         //applications/delpos
         Route::post('/delpos',['uses'=>'ApplicationController@delPosition','as'=>'delApplicationPos']);
+        //applications/get-offer-price
+        Route::post('/get-offer-price',['uses'=>'ApplicationController@getPrice','as'=>'getOfferPrice']);
+        //applications/set-offer-price
+        Route::post('/set-offer-price',['uses'=>'ApplicationController@setPrice','as'=>'setOfferPrice']);
+        //applications/set-pos-price
+        Route::post('/set-pos-price',['uses'=>'ApplicationController@setPosPrice','as'=>'setPosPrice']);
+        //applications/set-pos-comment
+        Route::post('/set-pos-comment',['uses'=>'ApplicationController@setPosComment','as'=>'setPosComment']);
     });
 
 });

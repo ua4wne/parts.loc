@@ -68,9 +68,11 @@
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('cell','Ячейка:',['class' => 'col-xs-3 control-label'])   !!}
+                                <label class="col-xs-3 control-label">
+                                    Место хранения: <span class="symbol required" aria-required="true"></span>
+                                </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('cell',old('cell'),['class' => 'form-control','placeholder'=>'Укажите складскую ячейку','id'=>'cell'])!!}
+                                    {!! Form::select('location_id',$locsel, old('location_id'), ['class' => 'form-control','required'=>'required','id'=>'location_id']); !!}
                                 </div>
                             </div>
 
@@ -79,7 +81,7 @@
                                     Количество: <span class="symbol required" aria-required="true"></span>
                                 </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('qty',old('qty'),['class' => 'form-control','placeholder'=>'Укажите количество','required'=>'required','id'=>'qty'])!!}
+                                    {!! Form::number('qty','1',['class' => 'form-control','placeholder'=>'Укажите количество','min' => 0, 'max' => 1000,'required'=>'required','id'=>'qty'])!!}
                                 </div>
                             </div>
 
@@ -89,6 +91,13 @@
                                 </label>
                                 <div class="col-xs-8">
                                     {!! Form::select('unit_id',$usel, old('unit_id'), ['class' => 'form-control','required'=>'required','id'=>'unit_id']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('price', 'Цена:',['class'=>'col-xs-3 control-label']) !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('price',old('price'),['class' => 'form-control','placeholder'=>'Укажите цену','id'=>'price'])!!}
                                 </div>
                             </div>
 
@@ -125,21 +134,16 @@
                             <div class="form-group">
                                 {!! Form::label('vendor_code','Артикул:',['class' => 'col-xs-3 control-label'])   !!}
                                 <div class="col-xs-8">
-                                    {!! Form::text('vendor_code','',['class' => 'form-control typeahead','disabled'=>'disabled','id'=>'vendor_code'])!!}
+                                    {!! Form::text('vendor_code','',['class' => 'form-control typeahead','disabled'=>'disabled'])!!}
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                {!! Form::label('analog_code','Аналоги:',['class' => 'col-xs-3 control-label'])   !!}
+                                <label class="col-xs-3 control-label">
+                                    Место хранения: <span class="symbol required" aria-required="true"></span>
+                                </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('analog_code','',['class' => 'form-control typeahead','disabled'=>'disabled','id'=>'analog_code'])!!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                {!! Form::label('cell','Ячейка:',['class' => 'col-xs-3 control-label'])   !!}
-                                <div class="col-xs-8">
-                                    {!! Form::text('cell',old('cell'),['class' => 'form-control','placeholder'=>'Укажите складскую ячейку','id'=>'ecell'])!!}
+                                    {!! Form::select('location_id',$locsel, old('location_id'), ['class' => 'form-control','required'=>'required','id'=>'elocation_id']); !!}
                                 </div>
                             </div>
 
@@ -148,7 +152,7 @@
                                     Количество: <span class="symbol required" aria-required="true"></span>
                                 </label>
                                 <div class="col-xs-8">
-                                    {!! Form::text('qty',old('qty'),['class' => 'form-control','placeholder'=>'Укажите количество','required'=>'required','id'=>'eqty'])!!}
+                                    {!! Form::number('qty','1',['class' => 'form-control','placeholder'=>'Укажите количество','min' => 0, 'max' => 1000,'required'=>'required','id'=>'eqty'])!!}
                                 </div>
                             </div>
 
@@ -158,6 +162,13 @@
                                 </label>
                                 <div class="col-xs-8">
                                     {!! Form::select('unit_id',$usel, old('unit_id'), ['class' => 'form-control','required'=>'required','id'=>'eunit_id']); !!}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {!! Form::label('price', 'Цена:',['class'=>'col-xs-3 control-label']) !!}
+                                <div class="col-xs-8">
+                                    {!! Form::text('price',old('price'),['class' => 'form-control','placeholder'=>'Укажите цену','id'=>'eprice'])!!}
                                 </div>
                             </div>
 
@@ -265,7 +276,6 @@
                             <thead>
                             <tr>
                                 <th>Артикул</th>
-                                <th>Аналоги</th>
                                 <th>Наименование</th>
                                 <th>Ячейка</th>
                                 <th>Кол-во</th>
@@ -281,9 +291,8 @@
                             @foreach($rows as $k => $row)
                                 <tr id="row{{ $row->id }}">
                                     <td>{{ $row->good->vendor_code }}</td>
-                                    <td>{{ $row->good->analog_code }}</td>
                                     <td>{{ $row->good->title }}</td>
-                                    <td>{{ $row->cell }}</td>
+                                    <td>{{ $row->location->title }}</td>
                                     <td>{{ $row->qty }}</td>
                                     <td>{{ $row->price }}</td>
                                     <td>{{ $row->unit->title }}</td>
@@ -402,9 +411,8 @@
                         if (typeof obj === 'object') {
                             const addedRow = table.row.add([
                                 $('#search_code').val(),
-                                obj.analog_code,
                                 obj.title,
-                                $('#cell').val(),
+                                $("#location_id option:selected").text(),
                                 $('#qty').val(),
                                 obj.price,
                                 $("#unit_id option:selected").text(),
@@ -430,9 +438,8 @@
                 e.preventDefault();
                 $('#edit_pos')[0].reset();
                 let id = $(this).parent().parent().parent().attr("id");
-                let code = $(this).parent().parent().prevAll().eq(7).text();
-                let analog = $(this).parent().parent().prevAll().eq(6).text();
-                //alert('id=' + id);
+                let code = $(this).parent().parent().prevAll().eq(6).text();
+                //alert('code=' + code);
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('findPosWhc') }}',
@@ -446,10 +453,10 @@
                         if (typeof obj === 'object') {
                             $('#eid').val(obj.id);
                             $('#vendor_code').val(code);
-                            $('#analog_code').val(analog);
-                            $('#ecell').val(obj.cell);
+                            $("#elocation_id option[value='" + obj.location_id + "']").attr("selected", "selected");
                             $('#eqty').val(obj.qty);
                             $("#unit_id option[value='" + obj.unit_id + "']").attr("selected", "selected");
+                            $('#eprice').val(obj.price);
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -567,21 +574,16 @@
                             alert('Ошибки валидации данных формы!');
                         if (res == 'ERR')
                             alert('При обновлении данных возникла ошибка!');
-                        if (res == 'OK') {
-                            //$(".modal").modal("hide");
-                            location.reload();
-                        }
                         let obj = jQuery.parseJSON(res);
                         if (typeof obj === 'object') {
                             $(".modal").modal("hide");
 
-                            $('#row'+obj.id).children('td').eq(0).text($('#vendor_code').val());
-                            $('#row'+obj.id).children('td').eq(1).text($('#analog_code').val());
-                            $('#row'+obj.id).children('td').eq(3).text($('#ecell').val());
-                            $('#row'+obj.id).children('td').eq(4).text($('#eqty').val());
-                            $('#row'+obj.id).children('td').eq(5).text(obj.price);
-                            $('#row'+obj.id).children('td').eq(6).text($("#eunit_id option:selected").text());
-                            $('#row'+obj.id).children('td').eq(7).text(obj.amount);
+                            $('#row' + obj.id).children('td').eq(0).text($('#vendor_code').val());
+                            $('#row' + obj.id).children('td').eq(2).text($("#elocation_id option:selected").text());
+                            $('#row' + obj.id).children('td').eq(3).text($('#eqty').val());
+                            $('#row' + obj.id).children('td').eq(4).text(obj.price);
+                            $('#row' + obj.id).children('td').eq(5).text($("#eunit_id option:selected").text());
+                            $('#row' + obj.id).children('td').eq(6).text(obj.amount);
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -591,57 +593,6 @@
                 $(".modal").modal("hide");
             }
         });
-
-        /*$('#btn_import').click(function (e) {
-            e.preventDefault();
-            let error = 0;
-            $("#import_doc").find(":input").each(function () {// проверяем каждое поле ввода в форме
-                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
-                    if (!$(this).val()) {// если поле пустое
-                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
-                        error = 1;// определяем индекс ошибки
-                    } else {
-                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
-                    }
-
-                }
-            })
-            if (error) {
-                alert("Необходимо заполнять все доступные поля!");
-                return false;
-            } else {
-                let formData = new FormData();
-                formData.append('file', $('#file').prop("files")[0]);
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('importWhCorrect') }}',
-                    processData: false,
-                    contentType: false,
-                    cache: false,
-                    dataType: 'text',
-                    data: formData,
-                    headers: {
-                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        //alert(res);
-                        if (res == 'NO')
-                            alert('Выполнение операции запрещено!');
-                        if (res == 'ERR')
-                            alert('При обновлении данных возникла ошибка!');
-                        let obj = jQuery.parseJSON(res);
-                        if (typeof obj === 'object') {
-                            $(".modal").modal("hide");
-                            alert('Обработано строк ' + obj.num + ' из ' + obj.rows + '!');
-                            location.reload();
-                        }
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        alert(xhr.status + '\n' + thrownError);
-                    }
-                });
-            }
-        });*/
 
     </script>
 @endsection

@@ -21,6 +21,7 @@ class CreateTblSalesTable extends Migration
             $table->foreign('good_id')->references('id')->on('goods');
             $table->string('comment',255)->nullable();
             $table->float('qty');
+            $table->float('reserved')->default(0);
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
             $table->decimal('price');

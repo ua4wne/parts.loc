@@ -150,5 +150,14 @@ Route::middleware(['auth'])->group(function () {
         //wh_corrects/write
         Route::post('/write', ['uses'=>'WhCorrectController@writeToStock','as'=>'writeWhCorrect']);
     });
+
+    //locations/ группа обработки роутов locations
+    Route::group(['prefix'=>'locations'], function(){
+        Route::get('/',['uses'=>'LocationController@index','as'=>'locations']);
+        //locations/add
+        Route::match(['get','post'],'/add',['uses'=>'LocationController@create','as'=>'locationAdd']);
+        //locations/edit
+        Route::match(['get','post','delete'],'/edit/{id}',['uses'=>'LocationController@edit','as'=>'locationEdit']);
+    });
 });
 

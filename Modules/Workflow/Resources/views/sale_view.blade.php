@@ -48,26 +48,24 @@
                     <h4 class="modal-title">Новая позиция</h4>
                 </div>
                 <div class="modal-body">
+                    <fieldset>
+                        <legend>Поиск номенклатуры:</legend>
+                        <div class="form-group">
+                            {!! Form::label('vendor_code', 'По артикулу:',['class'=>'col-xs-4 control-label']) !!}
+                            <div class="col-xs-8">
+                                {!! Form::text('vendor_code', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить артикул','id'=>'search_vendor'])!!}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {!! Form::label('by_name', 'По наименованию:',['class'=>'col-xs-4 control-label']) !!}
+                            <div class="col-xs-8">
+                                {!! Form::text('by_name', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить наименование','id'=>'by_name'])!!}
+                            </div>
+                        </div>
+                    </fieldset>
+
+
                     {!! Form::open(['url' => '#','id'=>'add_pos','class'=>'form-horizontal','method'=>'POST']) !!}
-
-                    <div class="form-group">
-                        <fieldset>
-                            <legend>Поиск номенклатуры:</legend>
-                            <div class="form-group">
-                                {!! Form::label('vendor_code', 'По артикулу:',['class'=>'col-xs-3 control-label']) !!}
-                                <div class="col-xs-8">
-                                    {!! Form::text('vendor_code', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить артикул','id'=>'search_vendor'])!!}
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                {!! Form::label('by_name', 'По наименованию:',['class'=>'col-xs-3 control-label']) !!}
-                                <div class="col-xs-8">
-                                    {!! Form::text('by_name', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить наименование','id'=>'by_name'])!!}
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
 
                     <div class="form-group">
                         {!! Form::label('good_id', 'Наименование:',['class'=>'col-xs-3 control-label']) !!}
@@ -130,6 +128,106 @@
         </div>
     </div>
     <!-- New Position Modal -->
+    <!-- Edit Position Modal -->
+    <div class="modal fade" id="editPos" tabindex="-1" role="dialog" aria-labelledby="editPos"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </button>
+                    <h4 class="modal-title" id="htitle">Редактирование позиции</h4>
+                </div>
+                <div class="modal-body">
+                    {!! Form::open(['url' => '#','id'=>'edit_pos','class'=>'form-horizontal','method'=>'POST']) !!}
+
+                    <div class="form-group">
+                        {!! Form::label('comment', 'Характеристика:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::select('comment', [], '', ['class' => 'form-control','id'=>'ecomment'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {!! Form::label('qty','Количество:',['class' => 'col-xs-3 control-label'])   !!}
+                        <div class="col-xs-8">
+                            {!! Form::number('qty','1',['class' => 'form-control','placeholder'=>'Введите количество','required'=>'required','min' => 1, 'max' => 1000,'id'=>'eqty'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {!! Form::label('unit_id', 'Ед. измерения:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::select('unit_id', $unsel, old('unit_id'),['class' => 'form-control','required' => 'required','id'=>'eunit_id']); !!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {!! Form::label('price','Цена:',['class' => 'col-xs-3 control-label'])   !!}
+                        <div class="col-xs-8">
+                            {!! Form::text('price','',['class' => 'form-control','placeholder'=>'Укажите цену','required'=>'required','id'=>'eprice'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {!! Form::label('vat','Ставка НДС:',['class' => 'col-xs-3 control-label'])   !!}
+                        <div class="col-xs-8">
+                            {!! Form::text('vat','',['class' => 'form-control','placeholder'=>'Укажите ставку НДС','required'=>'required','id'=>'evat'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-8">
+                            {!! Form::hidden('pos_id','',['class' => 'form-control','id'=>'epos_id','required'=>'required']) !!}
+                        </div>
+                    </div>
+
+                    {!! Form::close() !!}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена
+                    </button>
+                    <button type="button" class="btn btn-primary" id="edit_btn">Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Position Modal -->
+    <!-- Specifications Modal -->
+    <div class="modal fade" id="Spfc" tabindex="-1" role="dialog" aria-labelledby="Spfc"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </button>
+                    <h4 class="modal-title">Характеристики номенклатуры</h4>
+                </div>
+                <div class="modal-body">
+                    {!! Form::open(['url' => '#','id'=>'fspfc','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
+                    {!! Form::hidden('pos_id','',['class' => 'form-control','required'=>'required','id'=>'pos_id'])!!}
+                    <div class="form-group">
+                        <label class="col-xs-3 control-label">
+                            Наименование: <span class="symbol required" aria-required="true"></span>
+                        </label>
+                        <div class="col-xs-8">
+                            {!! Form::select('spec',[], '', ['class' => 'form-control','required'=>'required','id'=>'spec']); !!}
+                        </div>
+                    </div>
+
+                    {!! Form::close() !!}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="btn_spec">Выбрать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Specifications Modal -->
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
             <div class="col-md-12">
@@ -278,7 +376,7 @@
                                             @if($sale->has_vat)
                                                 <input type="checkbox" name="has_vat" id="has_vat" value="1" checked>
                                             @else
-                                                <input type="checkbox" name="has_vat" id="has_vat" value="0">
+                                                <input type="checkbox" name="has_vat" id="has_vat" value="1">
                                             @endif
                                             <label for="has_vat">
                                                 Цена включает НДС
@@ -332,6 +430,16 @@
                                             <i class="fa fa-plus" aria-hidden="true"></i> Добавить
                                         </button>
                                     </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-success btn-sm btn-o" id="set_reserv">
+                                            <i class="fa fa-check" aria-hidden="true"></i> Зарезервировать
+                                        </button>
+                                    </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-warning btn-sm btn-o" id="drop_reserv">
+                                            <i class="fa fa-square-o" aria-hidden="true"></i> Снять резерв
+                                        </button>
+                                    </a>
                                     <div class="btn-group">
                                         <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
                                            href="#" aria-expanded="false">
@@ -341,6 +449,11 @@
                                             <li>
                                                 <a href="#">
                                                     Заказ на сборку
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#">
+                                                    Заявку на приобретение
                                                 </a>
                                             </li>
                                         </ul>
@@ -358,6 +471,7 @@
                                             <th>Номенклатура</th>
                                             <th>Характеристика</th>
                                             <th>Кол-во</th>
+                                            <th>Резерв</th>
                                             <th>Ед.изм</th>
                                             <th>Цена</th>
                                             <th>Сумма</th>
@@ -374,12 +488,13 @@
                                                     <td>{{ $row->good->title }}</td>
                                                     <td>{{ $row->comment }}</td>
                                                     <td>{{ $row->qty }}</td>
+                                                    <td>{{ $row->reserved }}</td>
                                                     <td>{{ $row->unit->title }}</td>
                                                     <td>{{ $row->price }}</td>
                                                     <td>{{ $row->amount }}</td>
                                                     <td>{{ $row->vat }}</td>
                                                     <td>{{ $row->vat_amount }}</td>
-                                                    <td style="width:100px;">
+                                                    <td style="width:140px;">
                                                         <div class="form-group" role="group">
                                                             @if($row->good->has_specification)
                                                                 <button class="btn btn-info btn-sm pos_spec"
@@ -388,6 +503,11 @@
                                                                         aria-hidden="true"></i>
                                                                 </button>
                                                             @endif
+                                                            <button class="btn btn-info btn-sm pos_edit"
+                                                                    type="button" title="Редактировать позицию"><i
+                                                                    class="fa fa-edit fa-lg"
+                                                                    aria-hidden="true"></i>
+                                                            </button>
                                                             <button class="btn btn-danger btn-sm pos_delete"
                                                                     type="button" title="Удалить позицию"><i
                                                                     class="fa fa-trash fa-lg"
@@ -507,7 +627,75 @@
                 }
             });
         });
-        
+
+        $("#set_reserv").click(function () {
+            let x = confirm("Будет выполнено резервирование товаров на складе. Продолжить (Да/Нет)?");
+            if (x) {
+                let saleid = $("#id_doc").val();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('setReserv') }}',
+                    data: {'sale_id': saleid},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD') {
+                            alert('У Вас нет прав для редактирования документа!')
+                        }
+                        if (res == 'NO') {
+                            alert('Не известный запрос!')
+                        }
+                        if (res == 'OK') {
+                            alert('Резервирование товара выполнено!')
+                            window.location.reload();
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+
+        $("#drop_reserv").click(function () {
+            let x = confirm("Будет выполнено снятие резервирования товаров на складе. Продолжить (Да/Нет)?");
+            if (x) {
+                let saleid = $("#id_doc").val();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('dropReserv') }}',
+                    data: {'sale_id': saleid},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD') {
+                            alert('У Вас нет прав для редактирования документа!')
+                        }
+                        if (res == 'NO') {
+                            alert('Не известный запрос!')
+                        }
+                        if (res == 'OK') {
+                            alert('Резервирование товара отменено!')
+                            window.location.reload();
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+
         $('#save_btn').click(function () {
             let error = 0;
             $("#form_ref").find(":input").each(function () {// проверяем каждое поле ввода в форме
@@ -562,7 +750,7 @@
             } else {
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('addOrderPos') }}',
+                    url: '{{ route('addSalePos') }}',
                     data: $('#add_pos').serialize(),
                     success: function (res) {
                         //alert(res);
@@ -576,7 +764,7 @@
                         if (typeof obj === 'object') {
                             $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
                             $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
-                            $("#doc_table").append(obj.content);
+                            $("#t_body").append(obj.content);
                             $('#price').val('');
                             $('#search_vendor').val('');
                             $('#by_name').val('');
@@ -589,103 +777,6 @@
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status);
                         alert(thrownError);
-                    }
-                });
-            }
-        });
-
-        $('#err_btn').click(function (e) {
-            e.preventDefault();
-            let error = 0;
-            let id = $('#err_id').val();
-            $("#err_pos").find(":input").each(function () {// проверяем каждое поле ввода в форме
-                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
-                    if (!$(this).val()) {// если поле пустое
-                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
-                        error = 1;// определяем индекс ошибки
-                    } else {
-                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
-                    }
-
-                }
-            })
-            if (error) {
-                alert("Необходимо заполнять все доступные поля!");
-                return false;
-            } else {
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('editErrPos') }}',
-                    data: $('#err_pos').serialize(),
-                    success: function (res) {
-                        //alert(res);
-                        if (res == 'BAD') {
-                            alert('У Вас нет прав для редактирования документа!');
-                        }
-                        if (res == 'NO') {
-                            alert('Не известный запрос!');
-                        }
-                        if (res == 'DBL') {
-                            alert('Позиция уже присутствует в заявке!');
-                            $(".modal").modal("hide");
-                            hide_row(id);
-                        }
-                        let obj = jQuery.parseJSON(res);
-                        if (typeof obj === 'object') {
-                            $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
-                            $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
-                            $("#doc_table").append(obj.content);
-                            $('#eprice').val('');
-                            $('#search_evendor').val('');
-                            //$('#by_name').val('');
-                            $('#egood_id').empty();
-                            $('#ecomment').empty();
-                            $('#eqty').val('1');
-                            $('#err_id').val('');
-                            $(".modal").modal("hide");
-                            hide_row(id);
-                        }
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        alert(xhr.status);
-                        alert(thrownError);
-                    }
-                });
-            }
-        });
-
-        $('#btn_spec').click(function () {
-            let error = 0;
-            $("#import_spfc").find(":input").each(function () {// проверяем каждое поле ввода в форме
-                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
-                    if (!$(this).val()) {// если поле пустое
-                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
-                        error = 1;// определяем индекс ошибки
-                    } else {
-                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
-                    }
-
-                }
-            })
-            if (error) {
-                alert("Необходимо заполнять все доступные поля!");
-                return false;
-            } else {
-                let id = $('#pos_id').val();
-                let title = $('#spec option:selected').text();
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('setSpecPos') }}',
-                    data: {'id': id, 'title': title},
-                    headers: {
-                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        //alert(res);
-                        if (res == 'OK') {
-                            $('#' + id).children('td').eq(3).text(title);
-                        }
-                        $(".modal").modal("hide");
                     }
                 });
             }
@@ -742,38 +833,41 @@
             });
         });
 
-        $("#comment").focus(function () {
-            $("#comment").empty(); //очищаем от старых значений
-            let id = $("#good_id").val();
-            $.ajax({
-                type: 'POST',
-                url: '{{ route('specByVendor') }}',
-                data: {'id': id},
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (res) {
-                    //alert(res);
-                    $("#comment").prepend($(res));
-                }
-            });
-        });
+        $('#btn_spec').click(function () {
+            let error = 0;
+            $("#fspfc").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
+                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
+                        error = 1;// определяем индекс ошибки
+                    } else {
+                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
+                    }
 
-        $("#ecomment").focus(function () {
-            $("#ecomment").empty(); //очищаем от старых значений
-            let id = $("#egood_id").val();
-            $.ajax({
-                type: 'POST',
-                url: '{{ route('specByVendor') }}',
-                data: {'id': id},
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (res) {
-                    //alert(res);
-                    $("#ecomment").prepend($(res));
                 }
-            });
+            })
+            if (error) {
+                alert("Необходимо заполнять все доступные поля!");
+                return false;
+            } else {
+                let id = $('#pos_id').val();
+                let title = $('#spec option:selected').text();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('setSpecPos') }}',
+                    data: {'id': id, 'title': title, 'tbl_id': 'sale'},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'OK') {
+                            $('#' + id).children('td').eq(2).text(title);
+                        }
+                        $(".modal").modal("hide");
+                    }
+                });
+            }
         });
 
         $(document).on({
@@ -782,13 +876,13 @@
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('getSpecPos') }}',
-                    data: {'id': id},
+                    data: {'id': id, 'tbl_id': 'sale'},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function (res) {
                         //alert(res);
-                        $("#importSpfc").modal("show");
+                        $("#Spfc").modal("show");
                         $('#pos_id').val(id);
                         $('#spec').empty(); //очищаем от предыдущих значений
                         $('#spec').prepend(res);
@@ -800,14 +894,28 @@
         $(document).on({
             click: function () {
                 let row = $(this).parent().parent().parent();
-                $("#errPoc").modal("show");
-                $('#search_evendor').val(row.children('td').eq(0).text().trim());
-                $('#eqty').val(row.children('td').eq(1).text());
-                $('#eprice').val(row.children('td').eq(3).text());
-                $('#evat').val(row.children('td').eq(5).text());
-                $('#err_id').val(row.attr('id'));
-                $('#egood_id').empty();
-                $('#ecomment').empty();
+                $("#editPos").modal("show");
+                $('#htitle').text(row.children('td').eq(1).text().trim());
+                $('#eqty').val(row.children('td').eq(3).text());
+                $('#eprice').val(row.children('td').eq(6).text());
+                $('#evat').val(row.children('td').eq(8).text());
+                $('#epos_id').val(row.attr('id'));
+                let eunit = row.children('td').eq(5).text();
+                $('#eunit_id_id option:contains(eunit)').prop("selected", true);
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('getSpecPos') }}',
+                    data: {'id': row.attr('id'), 'tbl_id': 'sale'},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        $('#ecomment').empty(); //очищаем от предыдущих значений
+                        $('#ecomment').prepend(res);
+                    }
+                });
+
             }
         }, ".pos_edit");
 
@@ -818,7 +926,7 @@
                 if (x) {
                     $.ajax({
                         type: 'POST',
-                        url: '{{ route('delOrderPos') }}',
+                        url: '{{ route('delSalePos') }}',
                         data: {'id': id},
                         headers: {
                             'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
@@ -829,8 +937,8 @@
                                 alert('Выполнение операции запрещено!');
                             if (res == 'NO')
                                 alert('Не известный метод!');
-                            if (res == 'LINK')
-                                alert('Данную позицию удалить нельзя, т.к. она присутствует в связанных документах!');
+                            //if (res == 'LINK')
+                            //alert('Данную позицию удалить нельзя, т.к. она присутствует в связанных документах!');
                             let obj = jQuery.parseJSON(res);
                             if (typeof obj === 'object') {
                                 $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
@@ -845,39 +953,72 @@
             }
         }, ".pos_delete");
 
-        $(document).on({
-            click: function () {
-                let id = $(this).parent().parent().parent().attr("id");
-                let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
-                if (x) {
-                    $.ajax({
-                        type: 'POST',
-                        url: '{{ route('delErrPos') }}',
-                        data: {'id': id},
-                        headers: {
-                            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function (res) {
-                            //alert(res);
-                            if (res == 'OK') {
-                                hide_row(id);
-                            }
-                            if (res == 'BAD')
-                                alert('Выполнение операции запрещено!');
-                            if (res == 'NO')
-                                alert('Не известный метод!');
-                        }
-                    });
-                } else {
-                    return false;
+        $('#edit_btn').click(function (e) {
+            e.preventDefault();
+            let error = 0;
+            let id = $('#epos_id').val();
+            $("#edit_pos").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
+                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
+                        error = 1;// определяем индекс ошибки
+                    } else {
+                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
+                    }
+
                 }
+            })
+            if (error) {
+                alert("Необходимо заполнять все доступные поля!");
+                return false;
+            } else {
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('editSalePos') }}',
+                    data: $('#edit_pos').serialize(),
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD') {
+                            alert('У Вас нет прав для редактирования документа!');
+                        }
+                        if (res == 'NO') {
+                            alert('Не известный запрос!');
+                        }
+                        if (res == 'ERR') {
+                            alert('Возникла ошибка при обновлении данных!');
+                        }
+                        let obj = jQuery.parseJSON(res);
+                        if (typeof obj === 'object') {
+                            $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
+                            $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
+                            if ($('#ecomment').val())
+                                $('#' + id).children('td').eq(2).text($("#ecomment option:selected").text());
+                            $('#' + id).children('td').eq(3).text($('#eqty').val());
+                            $('#' + id).children('td').eq(5).text($("#eunit_id option:selected").text());
+                            $('#' + id).children('td').eq(6).text($('#eprice').val());
+                            let amount = parseFloat($('#eqty').val()) * parseFloat($('#eprice').val());
+                            $('#' + id).children('td').eq(7).text(amount);
+                            $('#' + id).children('td').eq(8).text($('#evat').val());
+                            $('#' + id).children('td').eq(9).text(obj.vat_amount);
+
+                            $('#eprice').val('');
+                            $('#epos_id').val('');
+                            $('#evat').empty();
+                            $('#ecomment').empty();
+                            $('#eqty').val('1');
+                            $('#eprice').val('');
+                            $(".modal").modal("hide");
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
             }
-        }, ".err_delete");
+        });
 
         function hide_row(id) {
-            let err = Number($('.badge-danger').text());
-            err--;
-            $('.badge-danger').text(err.toString());
             $('#' + id).hide();
         }
 

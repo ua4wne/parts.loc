@@ -904,7 +904,7 @@
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('setSpecPos') }}',
-                    data: {'id': id, 'title': title},
+                    data: {'id': id, 'title': title, 'tbl_id':'order'},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -1010,7 +1010,7 @@
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('getSpecPos') }}',
-                    data: {'id': id},
+                    data: {'id': id,'tbl_id':'sale'},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                     },

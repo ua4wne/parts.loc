@@ -45,10 +45,8 @@
                     Степень важности: <span class="symbol required" aria-required="true"></span>
                 </label>
                 <div class="col-xs-8">
-                    <div class="col-xs-8">
-                        {!! Form::number('rank','10',['class' => 'form-control','placeholder'=>'Введите число','min' => 0, 'max' => 250])!!}
-                        {!! $errors->first('rank', '<p class="text-danger">:message</p>') !!}
-                    </div>
+                    {!! Form::number('rank','10',['class' => 'form-control','placeholder'=>'Введите число','min' => 0, 'max' => 250])!!}
+                    {!! $errors->first('rank', '<p class="text-danger">:message</p>') !!}
                 </div>
             </div>
 
@@ -120,21 +118,20 @@
             }
         });
 
-        $('#save_btn').click(function(){
-            let error=0;
-            $("#form_ref").find(":input").each(function() {// проверяем каждое поле ввода в форме
-                if($(this).attr("required")=='required'){ //обязательное для заполнения поле формы?
-                    if(!$(this).val()){// если поле пустое
+        $('#save_btn').click(function () {
+            let error = 0;
+            $("#form_ref").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
                         $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
-                        error=1;// определяем индекс ошибки
-                    }
-                    else{
+                        error = 1;// определяем индекс ошибки
+                    } else {
                         $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
                     }
 
                 }
             })
-            if(error){
+            if (error) {
                 alert("Необходимо заполнять все доступные поля!");
                 return false;
             }

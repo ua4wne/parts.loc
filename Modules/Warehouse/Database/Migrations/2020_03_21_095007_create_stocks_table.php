@@ -19,11 +19,13 @@ class CreateStocksTable extends Migration
             $table->foreign('warehouse_id')->references('id')->on('warehouses');
             $table->integer('good_id')->unsigned();
             $table->foreign('good_id')->references('id')->on('goods');
-            $table->string('cell',10)->nullable();
+            $table->integer('location_id')->unsigned();
+            $table->foreign('location_id')->references('id')->on('locations');
             $table->float('qty');
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
             $table->decimal('cost');
+            $table->string('consignment',100)->nullable();
             $table->timestamps();
         });
     }

@@ -9,11 +9,11 @@ class TblWhCorrect extends Model
     //указываем имя таблицы
     protected $table = 'tbl_wh_corrects';
 
-    protected $fillable = ['wh_correct_id', 'good_id', 'cell', 'qty', 'price','unit_id','amount'];
+    protected $fillable = ['wh_correct_id', 'good_id', 'location_id', 'qty', 'price','unit_id'];
 
-    public function price()
+    public function location()
     {
-        return $this->belongsTo('App\Models\Price','price_id','id');
+        return $this->belongsTo('Modules\Warehouse\Entities\Location','location_id','id');
     }
 
     public function whcorrect()
@@ -29,5 +29,10 @@ class TblWhCorrect extends Model
     public function unit()
     {
         return $this->belongsTo('Modules\Warehouse\Entities\Unit','unit_id','id');
+    }
+
+    public function getAmountAttribute()
+    {
+        return round($this->qty * $this->price,2);
     }
 }

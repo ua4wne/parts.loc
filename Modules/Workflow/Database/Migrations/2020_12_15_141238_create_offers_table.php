@@ -26,7 +26,7 @@ class CreateOffersTable extends Migration
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
             $table->tinyInteger('delivery_time')->nullable();
-            $table->varchar('comment',255)->nullable();
+            $table->string('comment',255)->nullable();
             $table->timestamps();
         });
     }

@@ -166,7 +166,26 @@
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="stock">
-                                    stock
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Склад</th>
+                                                    <th>Номенклатура</th>
+                                                    <th>Ячейка</th>
+                                                    <th>Кол-во</th>
+                                                    <th>Ед. изм</th>
+                                                    <th>Стоимость</th>
+                                                    <th>Партия</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="stock_body">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tab-pane fade  in active" id="sales">
                                     <div class="row">

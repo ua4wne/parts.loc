@@ -8,7 +8,7 @@ class WhCorrect extends Model
 {
     protected $table = 'wh_corrects';
 
-    protected $fillable = ['doc_num','warehouse_id','price_id','reason','user_id'];
+    protected $fillable = ['doc_num','warehouse_id','reason','user_id'];
 
     public function warehouse()
     {
@@ -18,10 +18,5 @@ class WhCorrect extends Model
     public function user()
     {
         return $this->belongsTo('App\User','user_id','id');
-    }
-
-    public function price()
-    {
-        return $this->belongsTo('App\Models\Price','price_id','id');
     }
 }

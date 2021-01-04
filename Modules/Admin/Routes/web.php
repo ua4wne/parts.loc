@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function() {
         Route::match(['get','post'],'/good',['uses'=>'ExchangeController@Good','as'=>'good_exchange']);
         //exchange/spec
         Route::match(['get','post'],'/spec',['uses'=>'ExchangeController@GoodSpec','as'=>'spec_exchange']);
-
+        //exchange/stock
+        Route::match(['get','post'],'/stock',['uses'=>'ExchangeController@Stock','as'=>'stock_exchange']);
     });
 });

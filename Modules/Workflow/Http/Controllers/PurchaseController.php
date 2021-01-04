@@ -305,7 +305,7 @@ class PurchaseController extends Controller
             $goods = Good::where('catalog_num', $input['analog_code'])->get();
             if (!empty($goods)) {
                 foreach ($goods as $good) {
-                    $content .= '<option value="' . $good->id . '">' . $good->title . '</option>' . PHP_EOL;
+                    $content .= '<option value="' . $good->id . '">' . $good->title . ' (' . $good->vendor_code . ')</option>' . PHP_EOL;
                 }
             }
             return $content;

@@ -14,6 +14,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Good;
+use Modules\Warehouse\Entities\Location;
 use Modules\Warehouse\Entities\Stock;
 use Modules\Warehouse\Entities\TblWhCorrect;
 use Modules\Warehouse\Entities\Unit;
@@ -69,12 +70,11 @@ class WhCorrectController extends Controller
             ];
             $validator = Validator::make($input, [
                 'warehouse_id' => 'required|integer',
-                'price_id' => 'required|integer',
                 'reason' => 'required|string|max:150',
                 'user_id' => 'required|integer',
             ], $messages);
             if ($validator->fails()) {
-                return redirect()->route('wh_correctsAdd')->withErrors($validator)->withInput();
+                return redirect()->back()->withErrors($validator)->withInput();
             }
             //dd($input);
             $doc_num = LibController::GenNumberDoc('wh_corrects');
@@ -102,11 +102,6 @@ class WhCorrectController extends Controller
             foreach ($whs as $val) {
                 $whsel[$val->id] = $val->title;
             }
-            $prices = Price::all();
-            $psel = array();
-            foreach ($prices as $val) {
-                $psel[$val->id] = $val->title;
-            }
             $users = User::where(['active' => 1])->get();
             $usel = array();
             foreach ($users as $val) {
@@ -116,7 +111,6 @@ class WhCorrectController extends Controller
                 'title' => 'Корректировка остатков',
                 'head' => 'Новый документ',
                 'whsel' => $whsel,
-                'psel' => $psel,
                 'usel' => $usel,
             ];
             return view('warehouse::whcorrects_add', $data);
@@ -139,12 +133,18 @@ class WhCorrectController extends Controller
             foreach ($units as $val) {
                 $usel[$val->id] = $val->title;
             }
+            $locations = Location::all();
+            $locsel = array();
+            foreach ($locations as $val) {
+                $locsel[$val->id] = $val->title;
+            }
             $data = [
                 'title' => 'Корректировка остатков',
                 'head' => 'Корректировка остатков № ' . $doc->doc_num,
                 'rows' => $rows,
                 'id' => $id,
                 'usel' => $usel,
+                'locsel' => $locsel,
                 'status' => $doc->status,
             ];
             return view('warehouse::whcorrect_view', $data);
@@ -189,12 +189,11 @@ class WhCorrectController extends Controller
             ];
             $validator = Validator::make($input, [
                 'warehouse_id' => 'required|integer',
-                'price_id' => 'required|integer',
                 'reason' => 'required|string|max:150',
                 'user_id' => 'required|integer',
             ], $messages);
             if ($validator->fails()) {
-                return redirect()->route('wh_correctEdit')->withErrors($validator)->withInput();
+                return redirect()->back()->withErrors($validator)->withInput();
             }
             $model->fill($input);
             if ($model->update()) {
@@ -204,17 +203,13 @@ class WhCorrectController extends Controller
                 return redirect()->route('wh_corrects')->with('status', $msg);
             }
         }
-        $old = $model->toArray(); //сохраняем в массиве предыдущие значения полей модели
+
         if (view()->exists('warehouse::whcorrect_edit')) {
+            $old = $model->toArray(); //сохраняем в массиве предыдущие значения полей модели
             $whs = Warehouse::all();
             $whsel = array();
             foreach ($whs as $val) {
                 $whsel[$val->id] = $val->title;
-            }
-            $prices = Price::all();
-            $psel = array();
-            foreach ($prices as $val) {
-                $psel[$val->id] = $val->title;
             }
             $users = User::where(['active' => 1])->get();
             $usel = array();
@@ -223,9 +218,8 @@ class WhCorrectController extends Controller
             }
             $data = [
                 'title' => 'Корректировка остатков',
-                'head' => 'Новый документ',
+                'head' => $old['doc_num'],
                 'whsel' => $whsel,
-                'psel' => $psel,
                 'usel' => $usel,
                 'data' => $old
             ];
@@ -248,39 +242,36 @@ class WhCorrectController extends Controller
             }
             if (isset($input['vendor_code']))
                 $input['good_id'] = Good::where('vendor_code', $input['vendor_code'])->first()->id;
+            else
+                return 'NO VALIDATE';
+
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
-                'max' => 'Значение поля должно быть не более :max символов!',
                 'integer' => 'Значение поля должно быть числом!',
-                'string' => 'Значение поля должно быть строкой!',
                 'numeric' => 'Значение поля должно быть целым или дробным числом!',
             ];
             $validator = Validator::make($input, [
                 'doc_id' => 'required|integer',
                 'good_id' => 'required|integer',
-                'cell' => 'nullable|string|max:10',
+                'location_id' => 'required|integer',
                 'qty' => 'required|integer',
                 'unit_id' => 'required|integer',
+                'price' => 'nullable|numeric',
             ], $messages);
             if ($validator->fails()) {
                 return 'NO VALIDATE';
             }
-            //определяем стоимость по выбранному прайсу
-            $price = null;
-            $amount = null;
-            $price = PriceTable::where(['price_id'=>$doc->price_id,'good_id'=>$input['good_id']])->first()->cost_1;
-            if(!empty($price))
-                $amount = round($input['qty'] * $price,2);
+
             // создаст или обновит запись в модели в зависимости от того
             // есть такая запись или нет
-            TblWhCorrect::updateOrCreate(['wh_correct_id' => $input['doc_id'], 'good_id' => $input['good_id'],'cell' => $input['cell']],
-                ['qty' => $input['qty'], 'price' => $price, 'unit_id' => $input['unit_id'], 'amount' => $amount,'created_at' => date('Y-m-d H:i:s')]);
+            TblWhCorrect::updateOrCreate(['wh_correct_id' => $input['doc_id'], 'good_id' => $input['good_id'],'location_id' => $input['location_id']],
+                ['qty' => $input['qty'], 'price' => $input['price'], 'unit_id' => $input['unit_id'], 'created_at' => date('Y-m-d H:i:s')]);
 
             $msg = 'Артикул ' . $input['vendor_code'] . ' успешно добавлен\обновлен в документе-корректировке ' . $doc->doc_num . '!';
             //вызываем event
             event(new AddEventLogs('info', Auth::id(), $msg));
-            $row = TblWhCorrect::where(['wh_correct_id' => $input['doc_id'], 'good_id' => $input['good_id'],'cell' => $input['cell']])->first();
-            $result = ['id' => $row->id, 'title' => $row->good->title, 'amount'=>$amount, 'analog_code'=>$row->good->analog_code,'price'=>$price];
+            $row = TblWhCorrect::where(['wh_correct_id' => $input['doc_id'], 'good_id' => $input['good_id'],'location_id' => $input['location_id']])->first();
+            $result = ['id' => $row->id, 'title' => $row->good->title, 'amount'=>$row->amount, 'price'=>$row->price];
             return json_encode($result);
         }
     }
@@ -312,39 +303,31 @@ class WhCorrectController extends Controller
                 return 'NO';
             if (isset($pos))
                 $input['good_id'] = $pos->good_id;
+            else
+                return 'NO VALIDATE';
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
-                'max' => 'Значение поля должно быть не более :max символов!',
                 'integer' => 'Значение поля должно быть числом!',
-                'string' => 'Значение поля должно быть строкой!',
+                'numeric' => 'Значение поля должно быть целым или дробным числом!',
             ];
             $validator = Validator::make($input, [
-                'cell' => 'nullable|string|max:10',
+                'location_id' => 'required|integer',
                 'qty' => 'required|integer',
                 'unit_id' => 'required|integer',
+                'price' => 'nullable|numeric',
             ], $messages);
             if ($validator->fails()) {
                 return 'NO VALIDATE';
             }
-            //определяем стоимость по выбранному прайсу
-            $price = null;
-            $amount = null;
-            $price = PriceTable::where(['price_id'=>$doc->price_id,'good_id'=>$input['good_id']])->first()->cost_1;
-            if(!empty($price))
-                $amount = round($input['qty'] * $price,2);
-            $pos->cell = $input['cell'];
-            $pos->qty = $input['qty'];
-            $pos->price = $price;
-            $pos->unit_id = $input['unit_id'];
-            $pos->amount = $amount;
+            $pos->fill($input);
             $pos->update();
             $msg = 'Позиция с артикулом ' . $pos->good->vendor_code . ' была обновлена в документе корректировки остатков № ' . $doc->doc_num;
             //вызываем event
             event(new AddEventLogs('info', Auth::id(), $msg));
-            $row = TblWhCorrect::where(['wh_correct_id' => $pos->wh_correct_id, 'good_id' => $input['good_id'],'cell' => $input['cell']])->first();
-            $result = ['id' => $row->id, 'amount'=>$amount, 'price'=>$price];
+            $row = TblWhCorrect::where(['wh_correct_id' => $pos->wh_correct_id, 'good_id' => $input['good_id'],
+                'location_id' => $input['location_id']])->first();
+            $result = ['id' => $row->id, 'amount'=>$row->amount, 'price'=>$row->price];
             return json_encode($result);
-            //return 'OK';
         }
         return 'ERR';
     }
@@ -412,11 +395,15 @@ class WhCorrectController extends Controller
             $sheet->setCellValue('A' . $k, 'Артикул');
             $sheet->setCellValue('B' . $k, 'Ячейка склада');
             $sheet->setCellValue('C' . $k, 'Кол-во');
-            $sheet->getStyle('A' . $k . ':C' . $k)->applyFromArray($styleArray);
+            $sheet->setCellValue('D' . $k, 'Ед. изм');
+            $sheet->setCellValue('E' . $k, 'Цена');
+            $sheet->getStyle('A' . $k . ':E' . $k)->applyFromArray($styleArray);
 
             $sheet->getColumnDimension('A')->setAutoSize(true);
             $sheet->getColumnDimension('B')->setAutoSize(true);
             $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+            $sheet->getColumnDimension('E')->setAutoSize(true);
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             $filename = "correct";
             header('Content-Disposition: attachment;filename=' . $filename . ' ');
@@ -449,22 +436,34 @@ class WhCorrectController extends Controller
                     $msg = 'Файл шаблона поврежден или имеет неверный формат! Не обнаружен ID документа.';
                     return redirect('wh_corrects')->with('error', $msg);
                 }
-                $unit_id = 1;
                 for($i=2;$i<$rows;$i++){
                     $row = $table[$i];
+                    $cell = Location::where('title',$row[1])->first();
+                    if(empty($cell))
+                        $location_id = 1;
+                    else
+                        $location_id = $cell->id;
+                    switch ($row[3]) {
+                        case "шт":
+                            $unit_id = 1;
+                            break;
+                        case "л":
+                            $unit_id = 3;
+                            break;
+                        case "м":
+                            $unit_id = 5;
+                            break;
+                        case "пог.м":
+                            $unit_id = 6;
+                            break;
+                        default:
+                            $unit_id = 1;
+                    }
                     //определяем номенклатуру по артикулу
                     $good_id = Good::where(['vendor_code'=>$row[0]])->first()->id;
-                    if(!empty($good_id)){
-                        //определяем стоимость по выбранному прайсу
-                        $price = null;
-                        $amount = null;
-                        $price = PriceTable::where(['price_id'=>$doc->price_id,'good_id'=>$good_id])->first()->cost_1;
-                        if(!empty($price))
-                            $amount = round($row[2] * $price,2);
-                    }
-                    if (!empty($id)) {
-                        TblWhCorrect::updateOrCreate(['wh_correct_id' => $id,'good_id'=>$good_id,'cell'=>$row[1]], ['qty' => $row[2], 'price' => $price,
-                            'unit_id' => $unit_id, 'amount' => $amount]);
+                    if (!empty($id) && !empty($good_id)) {
+                        TblWhCorrect::updateOrCreate(['wh_correct_id' => $id,'good_id'=>$good_id,'location_id'=>$location_id],
+                            ['qty' => $row[2], 'price' => $row[4],'unit_id' => $unit_id]);
                         $num++;
                     }
                 }
@@ -491,13 +490,8 @@ class WhCorrectController extends Controller
             $rows = TblWhCorrect::where(['wh_correct_id'=>$id])->get();
             if(!empty($rows)){
                 foreach ($rows as $row){
-                    Stock::updateOrCreate(['warehouse_id' => $warehouse_id, 'good_id' => $row->good_id, 'cell' => $row->cell], ['qty' => $row->qty,
-                        'unit_id' => $row->unit_id, 'cost' => $row->amount, 'created_at' => date('Y-m-d H:i:s')]);
-                    if(!empty($row->cell)){
-                        //ищем пустую ячейку с таким товаром и удаляем ее из базы
-                        $tmp = Stock::where(['warehouse_id' => $warehouse_id, 'good_id' => $row->good_id, 'cell' => null])->first();
-                        if(!empty($tmp)) $tmp->delete();
-                    }
+                    Stock::updateOrCreate(['warehouse_id' => $warehouse_id, 'good_id' => $row->good_id, 'location_id' => $row->location_id],
+                        ['qty' => $row->qty, 'unit_id' => $row->unit_id, 'cost' => $row->amount, 'created_at' => date('Y-m-d H:i:s')]);
                 }
                 $doc->status = 0;
                 $doc->update();

@@ -22,10 +22,10 @@ class CreateTblApplicationsTable extends Migration
             $table->float('qty');
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
+            $table->float('price')->nullable();
             $table->integer('car_id')->unsigned();
             $table->foreign('car_id')->references('id')->on('cars');
             $table->integer('order_id')->nullable();
-            //$table->text('offers')->nullable();
             $table->timestamps();
         });
     }

@@ -89,6 +89,13 @@
                     </div>
 
                     <div class="form-group">
+                        {!! Form::label('unit_id', 'Ед. измерения:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-8">
+                            {!! Form::select('unit_id',$unsel,old('unit_id'),['class' => 'form-control','required'=>'required','id'=>'unit_id'])!!}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         {!! Form::label('car_id', 'Техника:',['class'=>'col-xs-3 control-label']) !!}
                         <div class="col-xs-8">
                             {!! Form::select('car_id',$carsel,old('car_id'),['class' => 'form-control','required'=>'required','id'=>'car_id'])!!}
@@ -96,30 +103,9 @@
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('supplier_num','№ поставщика:',['class' => 'col-xs-3 control-label'])   !!}
-                        <div class="col-xs-8">
-                            {!! Form::text('supplier_num','',['class' => 'form-control','placeholder'=>'Укажите № поставщика','maxlength'=>'20','id'=>'supplier_num'])!!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        {!! Form::label('days','Срок поставки:',['class' => 'col-xs-3 control-label'])   !!}
-                        <div class="col-xs-8">
-                            {!! Form::text('days','',['class' => 'form-control','placeholder'=>'Укажите срок поставки в днях','maxlength'=>'5','id'=>'days'])!!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
                         {!! Form::label('price','Цена:',['class' => 'col-xs-3 control-label'])   !!}
                         <div class="col-xs-8">
-                            {!! Form::text('price','',['class' => 'form-control','placeholder'=>'Укажите цену','required'=>'required', 'id'=>'price'])!!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        {!! Form::label('comment', 'Комментарий:',['class'=>'col-xs-3 control-label']) !!}
-                        <div class="col-xs-8">
-                            {!! Form::textarea('comment','',['class'=>'form-control', 'rows' => 2, 'cols' => 50, 'id'=>'comment']) !!}
+                            {!! Form::text('price','',['class' => 'form-control','placeholder'=>'Укажите цену', 'id'=>'price'])!!}
                         </div>
                     </div>
 
@@ -153,13 +139,13 @@
                     <h4 class="modal-title">Запросить цены у поставщиков</h4>
                 </div>
                 <div class="modal-body">
-                    {!! Form::open(['url' => '#','id'=>'get_offer','class'=>'form-horizontal','method'=>'POST']) !!}
+                    {!! Form::open(['url' => route('getOfferPrice'),'id'=>'get_offer','class'=>'form-horizontal','method'=>'POST']) !!}
 
                     <div class="form-group">
-                        {!! Form::label('firm_id', 'Поставщики:',['class'=>'col-xs-3 control-label']) !!}
+                        {!! Form::label('firm_id[]', 'Поставщики:',['class'=>'col-xs-3 control-label']) !!}
                         <div class="col-xs-8">
-                            {!! Form::select('firm_id', $firmsel, old('firm_id'), ['class' => 'form-control',
-                            'required'=>'required','multiple','size'=>'3'])!!}
+                            {!! Form::select('firm_id[]', $firmsel, old('firm_id'), ['class' => 'form-control',
+                            'required'=>'required','multiple','size'=>'3','id'=>'firms_id'])!!}
                         </div>
                     </div>
 
@@ -180,15 +166,14 @@
                         </div>
                     </div>
 
-                    {!! Form::close() !!}
-
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Отмена
                     </button>
-                    <button type="button" class="btn btn-primary" id="get_offer_btn">Запросить цены
+                    {!! Form::submit('Запросить цены',['class'=>'btn btn-primary','id'=>'get_offer_btn']) !!}
                     </button>
                 </div>
+                {!! Form::close() !!}
             </div>
         </div>
     </div>
@@ -205,13 +190,13 @@
                     <h4 class="modal-title">Загрузить предложенные цены</h4>
                 </div>
                 <div class="modal-body">
-                    {!! Form::open(['url' => '#','id'=>'import_doc','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
+                    {!! Form::open(['url' => '#','id'=>'import_price','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
 
                     <div class="form-group">
                         {!! Form::label('firm_id', 'Поставщик:',['class'=>'col-xs-3 control-label']) !!}
                         <div class="col-xs-8">
                             {!! Form::select('firm_id', $firmsel, old('firm_id'), ['class' => 'form-control',
-                            'required'=>'required'])!!}
+                            'required'=>'required','id'=>'firm_id'])!!}
                         </div>
                     </div>
 
@@ -230,7 +215,9 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Отмена
                     </button>
-                    <button type="button" class="btn btn-primary" id="load_offer_btn">Загрузить цены
+                    <button type="button" class="btn btn-primary" id="load_offer_btn">Обновить цены
+                    </button>
+                    <button type="button" class="btn btn-success" id="set_offer">Применить текущие
                     </button>
                 </div>
             </div>
@@ -344,6 +331,22 @@
                                             <i class="fa fa-download" aria-hidden="true"></i> Загрузить цены
                                         </button>
                                     </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-success btn-sm btn-o" id="close_app">
+                                            <i class="fa fa-check" aria-hidden="true"></i> Закрыть заявку
+                                        </button>
+                                    </a>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-danger btn-sm btn-o" id="del_app">
+                                            <i class="fa fa-trash" aria-hidden="true"></i> Отменить заявку
+                                        </button>
+                                    </a>
+                                @else
+                                    <a href="#">
+                                        <button type="button" class="btn btn-warning btn-sm btn-o" id="open_app">
+                                            <i class="fa fa-reply" aria-hidden="true"></i> Открыть заявку
+                                        </button>
+                                    </a>
                                     <div class="btn-group">
                                         <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
                                            href="#" aria-expanded="false">
@@ -369,6 +372,7 @@
                                             <th>Наименование</th>
                                             <th>Кол-во</th>
                                             <th>Техника</th>
+                                            <th>Цена продажи</th>
                                             <th>Предложения поставщиков</th>
                                             <th>Действия</th>
                                         </tr>
@@ -382,15 +386,18 @@
                                                     <td>{{ $row->good->title }}</td>
                                                     <td>{{ $row->qty }}</td>
                                                     <td>{{ $row->car->title }}</td>
+                                                    <td>{{ $row->price }}</td>
                                                     <td>{!! $row->offers !!}</td>
                                                     <td style="width:70px;">
-                                                        <div class="form-group" role="group">
-                                                            <button class="btn btn-danger btn-sm pos_delete"
-                                                                    type="button" title="Удалить позицию"><i
-                                                                    class="fa fa-trash fa-lg"
-                                                                    aria-hidden="true"></i>
-                                                            </button>
-                                                        </div>
+                                                        @if($row->application->state == 0)
+                                                            <div class="form-group" role="group">
+                                                                <button class="btn btn-danger btn-sm pos_delete"
+                                                                        type="button" title="Удалить позицию"><i
+                                                                        class="fa fa-trash fa-lg"
+                                                                        aria-hidden="true"></i>
+                                                                </button>
+                                                            </div>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -429,16 +436,7 @@
 
 @section('user_script')
     <script src="/js/bootstrap-typeahead.min.js"></script>
-    {{--    <script src="/js/jquery.tabledit.min.js"></script>--}}
     <script>
-        /*$('#doc_table').Tabledit({
-            url: 'example.php',
-            columns: {
-                identifier: [0, 'id'],
-                editable: [[1, 'vendor_code'], [2, 'catalog_num'], [3, 'good_id'],[4, 'spec']]
-            }
-        });*/
-
         $("#car_id").prepend($('<option value="0">Выберите технику</option>'));
         $("#car_id :first").attr("selected", "selected");
         $("#car_id :first").attr("disabled", "disabled");
@@ -446,6 +444,7 @@
         $("#currency_id").prepend($('<option value="0">Выберите валюту</option>'));
         $("#currency_id :first").attr("selected", "selected");
         $("#currency_id :first").attr("disabled", "disabled");
+        $('.offer_pos').css('cursor', 'pointer');
 
         $('#search').typeahead({
             hint: true,
@@ -498,11 +497,11 @@
 
         $('#all').on('change', function () {
             if ($('#all').prop('checked')) {
-                $('#firm_id option').each(function () {
+                $('#firms_id option').each(function () {
                     $(this).prop("selected", true);
                 });
             } else {
-                $('#firm_id option').each(function () {
+                $('#firms_id option').each(function () {
                     $(this).prop("selected", false);
                 });
             }
@@ -524,6 +523,59 @@
             if (error) {
                 alert("Необходимо заполнять все доступные поля!");
                 return false;
+            }
+        });
+
+        $('#load_offer_btn').click(function (e) {
+            e.preventDefault();
+            let error = 0;
+            $("#import_price").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
+                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
+                        error = 1;// определяем индекс ошибки
+                    } else {
+                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
+                    }
+
+                }
+            })
+            if (error) {
+                alert("Необходимо заполнять все доступные поля!");
+                return false;
+            } else {
+                let formData = new FormData();
+                formData.append('file', $('#file').prop("files")[0]);
+                formData.append('firm_id', $('#firm_id').val());
+                formData.append('app_id', $('#id_doc').val());
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('setOfferPrice') }}',
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    dataType: 'text',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'NO')
+                            alert('Выполнение операции запрещено!');
+                        if (res == 'ERR')
+                            alert('При обновлении данных возникла ошибка!');
+                        let obj = jQuery.parseJSON(res);
+                        if (typeof obj === 'object') {
+                            $(".modal").modal("hide");
+                            alert('Обработано строк ' + obj.num + ' из ' + obj.rows + '!');
+                            location.reload();
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status + '\n' + thrownError);
+                    }
+                });
             }
         });
 
@@ -557,6 +609,9 @@
                         if (res == 'NO') {
                             alert('Не известный запрос!')
                         }
+                        if (res == 'NOVALIDATE') {
+                            alert('Не корректные значения формы!')
+                        }
                         let obj = jQuery.parseJSON(res);
                         if (typeof obj === 'object') {
                             $("#doc_table").append(obj.content);
@@ -576,6 +631,27 @@
                         alert(thrownError);
                     }
                 });
+            }
+        });
+
+        $('#get_offer_btn').click(function () {
+            let error = 0;
+            $("#get_offer").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
+                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
+                        error = 1;// определяем индекс ошибки
+                    } else {
+                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
+                    }
+
+                }
+            })
+            if (error) {
+                alert("Не выбран поставщик!");
+                return false;
+            } else {
+                return true;
             }
         });
 
@@ -613,6 +689,93 @@
             }
         });
 
+        $('#del_app').click(function (e) {
+            e.preventDefault();
+            let id = $('#id_doc').val();
+            let x = confirm("Выбранная заявка будет удалена. Продолжить (Да/Нет)?");
+            if (x) {
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('applicationDelete') }}',
+                    data: {'id': id},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD')
+                            alert('Выполнение операции запрещено!');
+                        if (res == 'NO')
+                            alert('Не известный метод!');
+                        if (res == 'LINK')
+                            alert('Данную заявку удалить нельзя, т.к. она присутствует в связанных документах!');
+                        if (res == 'OK')
+                            window.location.replace('/applications');
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+
+        $('#close_app').click(function (e) {
+            e.preventDefault();
+            let id = $('#id_doc').val();
+            let x = confirm("Выбранная заявка будет закрыта. Продолжить (Да/Нет)?");
+            if (x) {
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('applicationClose') }}',
+                    data: {'id': id},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD')
+                            alert('Выполнение операции запрещено!');
+                        if (res == 'NO')
+                            alert('Не известный метод!');
+                        if (res == 'OK') {
+                            alert('Заявка закрыта!');
+                            window.location.reload(true);
+                        }
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+
+        $('#open_app').click(function (e) {
+            e.preventDefault();
+            let id = $('#id_doc').val();
+            let x = confirm("Выбранная заявка будет открыта. Продолжить (Да/Нет)?");
+            if (x) {
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('applicationOpen') }}',
+                    data: {'id': id},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD')
+                            alert('Выполнение операции запрещено!');
+                        if (res == 'NO')
+                            alert('Не известный метод!');
+                        if (res == 'OK') {
+                            alert('Заявка открыта!');
+                            window.location.reload(true);
+                        }
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+
         $(document).on({
             click: function () {
                 let id = $(this).parent().parent().parent().attr("id");
@@ -620,7 +783,7 @@
                 if (x) {
                     $.ajax({
                         type: 'POST',
-                        url: '{{ route('delOrderPos') }}',
+                        url: '{{ route('delApplicationPos') }}',
                         data: {'id': id},
                         headers: {
                             'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
@@ -631,14 +794,10 @@
                                 alert('Выполнение операции запрещено!');
                             if (res == 'NO')
                                 alert('Не известный метод!');
-                            if (res == 'LINK')
-                                alert('Данную позицию удалить нельзя, т.к. она присутствует в связанных документах!');
-                            let obj = jQuery.parseJSON(res);
-                            if (typeof obj === 'object') {
-                                $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
-                                $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
+                            if (res == 'OK')
                                 $('#' + id).hide();
-                            }
+                            if (res == 'NOT')
+                                alert('Нельзя удалить позиции из закрытой заявки!');
                         }
                     });
                 } else {
@@ -647,12 +806,57 @@
             }
         }, ".pos_delete");
 
-        function hide_row(id) {
-            let err = Number($('.badge-danger').text());
-            err--;
-            $('.badge-danger').text(err.toString());
-            $('#' + id).hide();
-        }
+        $(document).on({
+            click: function () {
+                let id = $(this).parent().parent().parent().parent().parent().attr("id");
+                let price = $(this).text();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('setPosPrice') }}',
+                    data: {'id': id, 'price': price},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD')
+                            alert('Выполнение операции запрещено!');
+                        if (res == 'NO')
+                            alert('Не известный метод!');
+                        if (res == 'OK')
+                            $('#' + id).children().eq(5).text(price);
+                    }
+                });
+            }
+        }, ".offer_pos");
+
+        $(document).on({
+            click: function () {
+                let id = $(this).parent().parent().attr("id");
+                let comment = $(this).parent().prev();
+                let result = prompt("Введите комментарий", comment.text());
+                if (result === null) {
+                    return; //break out of the function early
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('setPosComment') }}',
+                    data: {'id': id, 'comment': result},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD')
+                            alert('Выполнение операции запрещено!');
+                        if (res == 'NO')
+                            alert('Не известный метод!');
+                        if (res == 'OK')
+                            comment.text(result);
+                    }
+                });
+            }
+        }, ".btn-xs");
 
     </script>
 @endsection
