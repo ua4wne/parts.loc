@@ -621,10 +621,12 @@ class OrderController extends Controller
                 if (!User::hasRole('admin') || !User::isAuthor($order->user_id)) {//вызываем event
                     return 'BAD';
                 }
-                $msg = 'Удалена заявка поставщику № ' . $order->doc_num;
-                //вызываем event
-                event(new AddEventLogs('info', Auth::id(), $msg));
-                $order->delete();
+                $msg = "В процессе удаления документа произошла ошибка!";
+                if($order->delete()){
+                    $msg = 'Удалена заявка поставщику № ' . $order->doc_num;
+                    //вызываем event
+                    event(new AddEventLogs('info', Auth::id(), $msg));
+                }
                 return redirect()->back()->with('status', $msg);
             }
         }

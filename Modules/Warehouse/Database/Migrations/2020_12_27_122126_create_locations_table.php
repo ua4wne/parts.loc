@@ -26,6 +26,9 @@ class CreateLocationsTable extends Migration
             $table->tinyInteger('priority')->default(0);
             $table->boolean('in_lock')->default(0);
             $table->boolean('out_lock')->default(0);
+            $table->boolean('is_assembly')->default(0);
+            $table->boolean('is_shipment')->default(0);
+            $table->boolean('is_acceptance')->default(0);
             $table->timestamps();
         });
     }

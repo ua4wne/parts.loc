@@ -14,7 +14,7 @@
     <!-- START BREADCRUMB -->
     <ul class="breadcrumb">
         <li><a href="{{ route('main') }}">Рабочий стол</a></li>
-        <li class="active"><a href="{{ route('locations') }}">{{ $title }}</a></li>
+        <li class="active"><a href="{{ route('shipments') }}">{{ $title }}</a></li>
     </ul>
     <!-- END BREADCRUMB -->
     @if (session('error'))
@@ -41,90 +41,39 @@
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
-            <div class="panel-heading">
-                <a href="{{route('locationAdd')}}">
-                    <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-plus"
-                                                                                  aria-hidden="true"></i> Новая
-                        запись
-                    </button>
-                </a>
-            </div>
             <div class="col-md-12">
-                <div class="table-responsive">
+                <div class=" table-responsive">
                     @if($rows)
                         <table id="mytable" class="table table-bordered">
                             <thead>
                             <tr>
-                                <th>Наименование</th>
-                                <th>Штрих-код</th>
-                                <th>Длина</th>
-                                <th>Ширина</th>
-                                <th>Высота</th>
-                                <th>Емкость, EPL</th>
-                                <th>Приоритет</th>
-                                <th>Блок. вход</th>
-                                <th>Блок. выход</th>
-                                <th>Для сборки</th>
-                                <th>Для отгрузки</th>
-                                <th>Для приемки</th>
+                                <th>№ документа</th>
+                                <th>Основание</th>
+                                <th>Склад</th>
+                                <th>Менеджер</th>
+                                <th>Ответственный</th>
+                                <th>Статус</th>
                                 <th>Действия</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($rows as $k => $row)
                                 <tr>
-                                    <td>{{ $row->title }}</td>
-                                    <td>{{ $row->barcode }}</td>
-                                    <td>{{ $row->length }}</td>
-                                    <td>{{ $row->widht }}</td>
-                                    <td>{{ $row->height }}</td>
-                                    <td>{{ $row->capacity }}</td>
-                                    <td>{{ $row->priority }}</td>
-                                    <td>
-                                        @if($row->in_lock)
-                                            <span role="button" class="label label-danger">Да</span>
-                                        @else
-                                            <span role="button" class="label label-success">Нет</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($row->out_lock)
-                                            <span role="button" class="label label-danger">Да</span>
-                                        @else
-                                            <span role="button" class="label label-success">Нет</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($row->is_assembly)
-                                            <span role="button" class="label label-success">Да</span>
-                                        @else
-                                            <span role="button" class="label label-info">Нет</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($row->is_shipment)
-                                            <span role="button" class="label label-success">Да</span>
-                                        @else
-                                            <span role="button" class="label label-info">Нет</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($row->is_acceptance)
-                                            <span role="button" class="label label-success">Да</span>
-                                        @else
-                                            <span role="button" class="label label-info">Нет</span>
-                                        @endif
-                                    </td>
-                                    <td style="width:110px;">
-                                        {!! Form::open(['url'=>route('locationEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
-                                        {{ method_field('DELETE') }}
+                                    <td>{{ $row->doc_num }}</td>
+                                    <td><a href="/sales/view/{{ $row->sale->id }}" target="_blank">Заказ клиента №{{ $row->sale->doc_num }}</a></td>
+                                    <td>{{ $row->warehouse->title }}</td>
+                                    <td>{{ $row->author->name }}</td>
+                                    <td>{{ $row->user->name }}</td>
+                                    <td>{{ $row->status }}</td>
+                                    <td style="width:100px;">
+                                        {!! Form::open(['url'=>route('shipmentDel'), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
                                         <div class="form-group" role="group">
-                                            <a href="{{route('locationEdit',['id'=>$row->id])}}">
+                                            <a href="{{route('shipmentView',['id'=>$row->id])}}">
                                                 <button class="btn btn-success" type="button"
-                                                        title="Редактировать запись"><i class="fa fa-edit fa-lg>"
+                                                        title="Задания на сборку"><i class="fa fa-tasks fa-lg>"
                                                                                         aria-hidden="true"></i></button>
                                             </a>
-                                            {!! Form::button('<i class="fa fa-trash-o fa-lg>" aria-hidden="true"></i>',['class'=>'btn btn-danger','type'=>'submit','title'=>'Удалить запись']) !!}
+                                            {!! Form::button('<i class="fa fa-recycle fa-lg>" aria-hidden="true"></i>',['class'=>'btn btn-danger','type'=>'submit','title'=>'Отменить']) !!}
                                         </div>
                                         {!! Form::close() !!}
                                     </td>

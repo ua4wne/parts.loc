@@ -11,7 +11,8 @@
     <!-- START BREADCRUMB -->
     <ul class="breadcrumb">
         <li><a href="{{ route('main') }}">Рабочий стол</a></li>
-        <li><a href="{{ route('sales') }}">{{ $title }}</a></li>
+        <li><a href="{{ route('sales') }}">Помощник продаж</a></li>
+        <li><a href="{{ route('sale_orders') }}">{{ $title }}</a></li>
         <li class="active">{{ $head }}</li>
     </ul>
     <!-- END BREADCRUMB -->
@@ -324,7 +325,7 @@
                                     </td>
                                     <th>Контактное лицо:</th>
                                     <td>
-                                        {!! Form::text('contact',$sale->contact,['class' => 'form-control','placeholder'=>'Укажите контактное лицо','required'=>'required','maxlength'=>'100'])!!}
+                                        {!! Form::text('contact',$sale->contact,['class' => 'form-control','placeholder'=>'Укажите контактное лицо','maxlength'=>'100'])!!}
                                         {!! $errors->first('contact', '<p class="text-danger">:message</p>') !!}
                                     </td>
                                 </tr>
@@ -385,9 +386,11 @@
                                     </td>
                                 </tr>
                                 <tr>
+                                    <th>Статус</th>
+                                    <td>{{ $sale->status }}</td>
                                     <th>Дополнительные условия:</th>
-                                    <td colspan="3">
-                                        <div class="checkbox clip-check check-primary col-xs-3">
+                                    <td>
+                                        <div class="checkbox clip-check check-primary col-xs-4">
                                             @if($sale->to_door)
                                                 <input type="checkbox" name="to_door" id="to_door" value="1" checked>
                                             @else
@@ -397,7 +400,7 @@
                                                 Доставка до двери
                                             </label>
                                         </div>
-                                        <div class="checkbox clip-check check-primary col-xs-3">
+                                        <div class="checkbox clip-check check-primary col-xs-2">
                                             @if($sale->delivery_in_price)
                                                 <input type="checkbox" name="delivery_in_price" id="delivery_in_price"
                                                        value="1" checked>
@@ -436,10 +439,16 @@
                                         </button>
                                     </a>
                                     <a href="#">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="assembly">
+                                            <i class="fa fa-archive" aria-hidden="true"></i> Наряд на сборку
+                                        </button>
+                                    </a>
+                                    <a href="#">
                                         <button type="button" class="btn btn-warning btn-sm btn-o" id="drop_reserv">
                                             <i class="fa fa-square-o" aria-hidden="true"></i> Снять резерв
                                         </button>
                                     </a>
+
                                     <div class="btn-group">
                                         <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
                                            href="#" aria-expanded="false">
@@ -447,17 +456,17 @@
                                         </a>
                                         <ul role="menu" class="dropdown-menu dropdown-light">
                                             <li>
-                                                <a href="#">
-                                                    Заказ на сборку
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#">
-                                                    Заявку на приобретение
+                                                <a href="#" id="new_appl">
+                                                    Запрос по ценам
                                                 </a>
                                             </li>
                                         </ul>
                                     </div>
+                                    <a href="#">
+                                        <button type="button" class="btn btn-danger btn-sm btn-o" id="del_sale">
+                                            <i class="fa fa-trash" aria-hidden="true"></i> Отменить заявку
+                                        </button>
+                                    </a>
                                 @endif
                                 <h4 class="pull-right" id="state"> Всего позиций: {{ count($rows) }} на сумму с
                                     НДС: {{ $sale->amount + $sale->vat_amount }} руб.</h4>
@@ -495,25 +504,27 @@
                                                     <td>{{ $row->vat }}</td>
                                                     <td>{{ $row->vat_amount }}</td>
                                                     <td style="width:140px;">
-                                                        <div class="form-group" role="group">
-                                                            @if($row->good->has_specification)
-                                                                <button class="btn btn-info btn-sm pos_spec"
-                                                                        type="button" title="Характеристики"><i
-                                                                        class="fa fa-cog fa-lg"
+                                                        @if($sale->state == 0)
+                                                            <div class="form-group" role="group">
+                                                                @if($row->good->has_specification)
+                                                                    <button class="btn btn-info btn-sm pos_spec"
+                                                                            type="button" title="Характеристики"><i
+                                                                            class="fa fa-cog fa-lg"
+                                                                            aria-hidden="true"></i>
+                                                                    </button>
+                                                                @endif
+                                                                <button class="btn btn-info btn-sm pos_edit"
+                                                                        type="button" title="Редактировать позицию"><i
+                                                                        class="fa fa-edit fa-lg"
                                                                         aria-hidden="true"></i>
                                                                 </button>
-                                                            @endif
-                                                            <button class="btn btn-info btn-sm pos_edit"
-                                                                    type="button" title="Редактировать позицию"><i
-                                                                    class="fa fa-edit fa-lg"
-                                                                    aria-hidden="true"></i>
-                                                            </button>
-                                                            <button class="btn btn-danger btn-sm pos_delete"
-                                                                    type="button" title="Удалить позицию"><i
-                                                                    class="fa fa-trash fa-lg"
-                                                                    aria-hidden="true"></i>
-                                                            </button>
-                                                        </div>
+                                                                <button class="btn btn-danger btn-sm pos_delete"
+                                                                        type="button" title="Удалить позицию"><i
+                                                                        class="fa fa-trash fa-lg"
+                                                                        aria-hidden="true"></i>
+                                                                </button>
+                                                            </div>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -532,7 +543,7 @@
                                             <th>Документ</th>
                                             <th>Статус</th>
                                             <th>Дата создания</th>
-                                            <th>Автор</th>
+                                            <th>Ответственный</th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -626,6 +637,40 @@
                     $("#contract").prepend($(res));
                 }
             });
+        });
+
+        $('#assembly').click(function () {
+            let x = confirm("Будут созданы задания на сборку заказа. Продолжить (Да/Нет)?");
+            if (x) {
+                let saleid = $("#id_doc").val();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('shipmentAdd') }}',
+                    data: {'sale_id': saleid},
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'BAD') {
+                            alert('У Вас нет прав для редактирования документа!')
+                        }
+                        if (res == 'NO') {
+                            alert('Не известный запрос!')
+                        }
+                        if (res == 'OK') {
+                            alert('Задания на сборку заказа созданы!')
+                            window.location.reload();
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            } else {
+                return false;
+            }
         });
 
         $("#set_reserv").click(function () {
@@ -868,6 +913,36 @@
                     }
                 });
             }
+        });
+
+        $('#new_appl').click(function (e) {
+            e.preventDefault();
+            let saleid = $("#id_doc").val();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('genNewApp') }}',
+                data: {'sale_id': saleid},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    if (res == 'BAD') {
+                        alert('У Вас нет прав для редактирования документа!')
+                    }
+                    if (res == 'NO') {
+                        alert('Не известный запрос!')
+                    }
+                    if (res == 'OK') {
+                        alert('Запрос по ценам создан!')
+                        window.location.reload();
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
+            });
         });
 
         $(document).on({

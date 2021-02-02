@@ -69,6 +69,9 @@ class LocationController extends Controller
                 'priority' => 'required|integer',
                 'in_lock' => 'required|integer',
                 'out_lock' => 'required|integer',
+                'is_assembly' => 'required|integer',
+                'is_shipment' => 'required|integer',
+                'is_acceptance' => 'required|integer',
 
             ], $messages);
             if ($validator->fails()) {
@@ -149,6 +152,9 @@ class LocationController extends Controller
                 'priority' => 'required|integer',
                 'in_lock' => 'required|integer',
                 'out_lock' => 'required|integer',
+                'is_assembly' => 'required|integer',
+                'is_shipment' => 'required|integer',
+                'is_acceptance' => 'required|integer',
 
             ], $messages);
             if ($validator->fails()) {

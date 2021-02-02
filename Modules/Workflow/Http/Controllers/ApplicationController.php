@@ -21,6 +21,7 @@ use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\SetOffer;
 use Modules\Workflow\Entities\TblApplication;
+use Modules\Workflow\Entities\TblSale;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -37,11 +38,11 @@ class ApplicationController extends Controller
     public function index()
     {
         if (view()->exists('workflow::applications')) {
-            $title = 'Заявки менеджеру';
+            $title = 'Запрос цен';
             $rows = Application::orderBy('rank','desc')->get();
             $data = [
                 'title' => $title,
-                'head' => 'Заявки менеджеру',
+                'head' => 'Запросы по ценам',
                 'rows' => $rows,
             ];
             return view('workflow::applications', $data);
@@ -56,7 +57,7 @@ class ApplicationController extends Controller
     public function create(Request $request)
     {
         if (!Role::granted('orders')) {//вызываем event
-            $msg = 'Попытка создания новой заявки менеджеру!';
+            $msg = 'Попытка создания нового запроса по ценам!';
             event(new AddEventLogs('access', Auth::id(), $msg));
             abort(503, 'У Вас нет прав на создание записи!');
         }
@@ -88,7 +89,7 @@ class ApplicationController extends Controller
             $app->author_id = Auth::id();
             $app->created_at = date('Y-m-d H:i:s');
             if ($app->save()) {
-                $msg = 'Заявка менеджеру № ' . $input['doc_num'] . ' была успешно добавлена!';
+                $msg = 'Запрос по ценам № ' . $input['doc_num'] . ' был успешно добавлен!';
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 return redirect('/applications')->with('status', $msg);
@@ -113,8 +114,8 @@ class ApplicationController extends Controller
             $doc_num = LibController::GenNumberDoc('applications');
 
             $data = [
-                'title' => 'Заявки менеджеру',
-                'head' => 'Новая заявка менеджеру',
+                'title' => 'Запросы цен',
+                'head' => 'Новый запрос по ценам',
                 'usel' => $usel,
                 'psel' => $psel,
                 'statsel' => $statsel,
@@ -189,8 +190,8 @@ class ApplicationController extends Controller
             }
 
             $data = [
-                'title' => 'Заявки менеджеру',
-                'head' => 'Заявка менеджеру № ' . $app->doc_num,
+                'title' => 'Запросы цен',
+                'head' => 'Запрос по ценам № ' . $app->doc_num,
                 'statsel' => $statsel,
                 'usel' => $usel,
                 'unsel' => $unsel,
@@ -217,9 +218,9 @@ class ApplicationController extends Controller
     {
         $app = Application::find($id);
         if (!Role::granted('sales')) {//вызываем event
-            $msg = 'Попытка редактирования заявки менеджеру №' . $app->doc_num . '!';
+            $msg = 'Попытка редактирования запроса по ценам №' . $app->doc_num . '!';
             event(new AddEventLogs('access', Auth::id(), $msg));
-            abort(503, 'У Вас нет прав на редактирование заявок менеджеру!');
+            abort(503, 'У Вас нет прав на редактирование запросов по ценам!');
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
@@ -246,7 +247,7 @@ class ApplicationController extends Controller
             }
             $app->fill($input);
             if ($app->update()) {
-                $msg = 'Данные заявки менеджеру № ' . $app->doc_num . ' были успешно обновлены!';
+                $msg = 'Данные запроса по ценам № ' . $app->doc_num . ' были успешно обновлены!';
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 return redirect()->back()->with('status', $msg);
@@ -282,7 +283,7 @@ class ApplicationController extends Controller
             $model->fill($input);
             $model->created_at = date('Y-m-d H:i:s');
             if ($model->save()) {
-                $msg = 'Добавлена новая позиция ' . $model->good->title . ' к заявке менеджеру №' . $model->application->doc_num;
+                $msg = 'Добавлена новая позиция ' . $model->good->title . ' к запросу по ценам №' . $model->application->doc_num;
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 $content = '<tr id="' . $model->id . '">
@@ -374,7 +375,18 @@ class ApplicationController extends Controller
             }
             $app->state = 1;
             if ($app->update()) {
-                $msg = 'Заявка менеджеру № ' . $app->doc_num . ' была закрыта!';
+                //обновляем цены в связанной заявке клиента со своей наценкой
+                $rows = TblApplication::where('application_id',$id)->get();
+                if(!empty($rows)){
+                    foreach ($rows as $row){
+                        $pos = TblSale::where(['sale_id'=>$app->sale_id,'good_id'=>$row->good_id])->first();
+                        if(!empty($pos)){
+                            $pos->price = $row->price;
+                            $pos->update();
+                        }
+                    }
+                }
+                $msg = 'Запрос по ценам № ' . $app->doc_num . ' был закрыт!';
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 return 'OK';
@@ -393,7 +405,7 @@ class ApplicationController extends Controller
             }
             $app->state = 0;
             if ($app->update()) {
-                $msg = 'Заявка менеджеру № ' . $app->doc_num . ' была открыта!';
+                $msg = 'Запрос по ценам № ' . $app->doc_num . ' был открыт!';
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 return 'OK';

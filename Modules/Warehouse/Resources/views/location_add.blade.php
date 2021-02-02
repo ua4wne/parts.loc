@@ -104,6 +104,27 @@
             </div>
 
             <div class="form-group">
+                {!! Form::label('is_assembly','Место для сборки:',['class' => 'col-xs-3 control-label'])   !!}
+                <div class="col-xs-8">
+                    {!! Form::select('is_assembly',['0'=>'Нет', '1'=>'Да'], old('is_assembly'), ['class' => 'form-control','required'=>'required']); !!}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {!! Form::label('is_shipment','Место для отгрузки:',['class' => 'col-xs-3 control-label'])   !!}
+                <div class="col-xs-8">
+                    {!! Form::select('is_shipment',['0'=>'Нет', '1'=>'Да'], old('is_shipment'), ['class' => 'form-control','required'=>'required']); !!}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {!! Form::label('is_acceptance','Место для приемки:',['class' => 'col-xs-3 control-label'])   !!}
+                <div class="col-xs-8">
+                    {!! Form::select('is_acceptance',['0'=>'Нет', '1'=>'Да'], old('is_acceptance'), ['class' => 'form-control','required'=>'required']); !!}
+                </div>
+            </div>
+
+            <div class="form-group">
                 <div class="col-xs-offset-2 col-xs-8">
                     {!! Form::button('Сохранить', ['class' => 'btn btn-primary','type'=>'submit', 'id'=>'save_btn']) !!}
                 </div>

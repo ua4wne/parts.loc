@@ -77,17 +77,12 @@
                                     <td>{{ $row->author->name }}</td>
                                     <td>{{ $row->user->name }}</td>
                                     <td>{{ $row->statuse->title }}</td>
-                                    <td style="width:100px;">
-                                        {!! Form::open(['url'=>route('applicationEdit',['id'=>$row->id]), 'class'=>'form-inline','method' => 'POST', 'onsubmit' => 'return confirmDelete()']) !!}
-                                        {{ method_field('DELETE') }}<div class="form-group" role="group">
-                                            <a href="{{route('applicationView',['id'=>$row->id])}}">
+                                    <td style="width:70px;">
+                                        <a href="{{route('applicationView',['id'=>$row->id])}}">
                                                 <button class="btn btn-info" type="button"
                                                         title="Просмотр записи"><i class="fa fa-eye fa-lg>"
-                                                                                        aria-hidden="true"></i></button>
+                                                                                   aria-hidden="true"></i></button>
                                             </a>
-                                            {!! Form::button('<i class="fa fa-trash-o fa-lg>" aria-hidden="true"></i>',['class'=>'btn btn-danger','type'=>'submit','title'=>'Удалить запись']) !!}
-                                        </div>
-                                        {!! Form::close() !!}
                                     </td>
                                 </tr>
                             @endforeach

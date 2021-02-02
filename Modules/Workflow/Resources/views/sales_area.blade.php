@@ -40,19 +40,6 @@
     <div class="container-fluid container-fullw bg-white">
         <div class="row">
             <h2 class="text-center">{{ $head }}</h2>
-            <div class="panel-heading">
-                <a href="{{ route('saleAdd') }}" target="_blank">
-                    <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-rub"
-                                                                                  aria-hidden="true"></i> Новая
-                        продажа
-                    </button>
-                </a>
-                <a href="{{ route('sale_orders') }}" target="_blank">
-                    <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-address-book"
-                                                                                  aria-hidden="true"></i> Заказы клиентов
-                    </button>
-                </a>
-            </div>
             <div class="col-md-5 panel panel-white">
                 <div class="row">
                     <fieldset>
@@ -92,7 +79,7 @@
                             <tbody id="t_body">
                             @if($rows)
                                 @foreach($rows as $k => $row)
-                                    <tr id="{{ $row->id }}" class="clicable">
+                                    <tr id="{{ $row->id }}" class="clicable good_pos">
                                         <td>{{ $row->code }}</td>
                                         <td>{{ $row->vendor_code }}</td>
                                         <td>{{ $row->title }}</td>
@@ -289,6 +276,76 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="panel-heading">
+                <a href="{{ route('saleAdd') }}" target="_blank">
+                    <button type="button" class="btn btn-primary btn-sm btn-o"><i class="fa fa-rub"
+                                                                                  aria-hidden="true"></i> Новая
+                        продажа
+                    </button>
+                </a>
+                <a href="#">
+                    <button type="button" class="btn btn-primary btn-sm btn-o" id="list_doc"><i class="fa fa-list"
+                                                                                  aria-hidden="true"></i> Список документов
+                    </button>
+                </a>
+            </div>
+            <div class="col-md-12">
+                <div class=" table-responsive">
+                    @if($sales)
+                        <table class="table table-condensed table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Номер</th>
+                                <th>Дата</th>
+                                <th>Сумма</th>
+                                <th>Клиент</th>
+                                <th>Состояние</th>
+                                <th>Срок выполнения</th>
+                                <th>% оплаты</th>
+                                <th>% долга</th>
+                                <th>Валюта</th>
+                                <th>Менеджер</th>
+                                <th>Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody id="doclist">
+                            @foreach($sales as $row)
+                                <tr id="sale{{ $row->id }}" class="row_clicable sale-pos">
+                                    <td>{{ $row->doc_num }}</td>
+                                    <td>{{ $row->created_at }}</td>
+                                    <td>{{ $row->amount }}</td>
+                                    <td>{{ $row->firm->title }}</td>
+                                    <td>{{ $row->status }}</td>
+                                    @if(!empty($row->date_agreement))
+                                        <td>{{ $row->date_agreement }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    <td>%</td>
+                                    <td>%</td>
+                                    <td>{{ $row->currency->title }}</td>
+                                    <td>{{ $row->user->name }}</td>
+                                    <td style="width:100px;">
+                                        <div class="form-group" role="group">
+                                            <a href="{{route('saleView',['id'=>$row->id])}}">
+                                                <button class="btn btn-info" type="button"
+                                                        title="Просмотр записи"><i class="fa fa-eye fa-lg>"
+                                                                                   aria-hidden="true"></i></button>
+                                            </a>
+                                            <button class="btn btn-danger del_pos" type="button"
+                                                    title="Удалить запись"><i class="fa fa-trash fa-lg>"
+                                                                               aria-hidden="true"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
     <!-- /page content -->
 @endsection
@@ -305,6 +362,7 @@
         })
 
         $('.clicable').css('cursor', 'pointer');
+        $('.row_clicable').css('cursor', 'pointer');
 
         $("#firm_id").prepend($('<option value="0">Выберите организацию</option>'));
         $("#firm_id :first").attr("selected", "selected");
@@ -443,6 +501,69 @@
                 }
             });
         }
+
+        $(document).on({
+            dblclick: function () {
+                good_id = $(this).attr('id');
+                alert('id='+good_id);
+            }
+        }, ".clicable");
+
+        $(document).on({
+            dblclick: function () {
+                sale_id = $(this).attr('id');
+                alert('id='+sale_id);
+            }
+        }, ".row_clicable");
+
+        $('#list_doc').click(function(){
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('saleList') }}',
+                data: {'name': 'list'},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    $("#doclist").html($(res));
+                }
+            });
+        });
+
+        $(document).on({
+            click: function () {
+                sale_id = $(this).parent().parent().parent().attr('id');
+                id = sale_id.replace('sale','')
+                let x = confirm("Выбранная запись будет удалена. Продолжить (Да/Нет)?");
+                if (x) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('delSale') }}',
+                        data: {'id': id},
+                        headers: {
+                            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (res) {
+                            //alert(res);
+                            if (res == 'OK') {
+                                $('#'+sale_id).hide();
+                            }
+                            if (res == 'BAD')
+                                alert('Выполнение операции запрещено!');
+                            if (res == 'NO')
+                                alert('Не известный метод!');
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            }
+        }, ".del_pos");
 
     </script>
 @endsection

@@ -10,8 +10,8 @@ class Sale extends Model
     protected $table = 'sales';
 
     protected $fillable = ['doc_num','firm_id','organisation_id','contract_id','warehouse_id','currency_id','delivery_method_id',
-        'delivery_id','destination','contact','to_door','delivery_in_price','user_id','date_agreement','has_vat','doc_num_firm',
-        'date_firm','comment','agreement_id'];
+        'delivery_id','destination','contact','to_door','delivery_in_price','user_id','date_agreement','has_vat','state',
+        'doc_num_firm','date_firm','comment','agreement_id'];
 
     public function user()
     {
@@ -76,5 +76,22 @@ class Sale extends Model
             $amount += ($row->qty * $row->price) / ($row->vat+100) * $row->vat;
         }
         return round($amount,2);
+    }
+
+    public function getStatusAttribute(){
+        switch ($this->state){
+            case 0:
+                return 'Создан';
+                break;
+            case 1:
+                return 'Комплектуется';
+                break;
+            case 2:
+                return 'Готов к отгрузке';
+                break;
+            case 3:
+                return 'Отгружен';
+                break;
+        }
     }
 }

@@ -119,8 +119,8 @@
                         </a>
                         <ul class="sub-menu">
                             <li><a href="{{ route('sale_orders') }}"><span class="title">Заказ клиента</span></a></li>
-                            <li><a href="{{ route('applications') }}"><span class="title">Заявка менеджеру</span></a></li>
                             <li><a href="{{ route('orders') }}"><span class="title">Заказ поставщику</span></a></li>
+                            <li><a href="{{ route('applications') }}"><span class="title">Запросы по ценам</span></a></li>
                             <li><a href="{{ route('purchases') }}"><span class="title">Приобретение товаров и услуг</span></a></li>
                             <li><a href="{{ route('declarations') }}"><span class="title">Таможенные декларации</span></a></li>
                             <li class="open">
@@ -128,6 +128,7 @@
                                     <span>Складские документы</span> <i class="icon-arrow"></i>
                                 </a>
                                 <ul class="sub-menu" style="display: block;">
+                                    <li><a href="{{ route('shipments') }}"><span class="title">Наряды на сборку</span></a></li>
                                     <li><a href="{{ route('wh_corrects') }}"><span class="title">Корректировка остатков</span></a></li>
                                     <li><a href="{{ route('inventories') }}"><span class="title">Инвентаризации</span></a></li>
                                 </ul>

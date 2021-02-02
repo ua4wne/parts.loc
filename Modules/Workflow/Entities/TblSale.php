@@ -45,4 +45,9 @@ class TblSale extends Model
         return Reservation::where('tbl_sale_id',$this->id)->sum('qty');
     }
 
+    public function getNeedQtyAttribute()
+    {
+        return $this->qty - $this->reserved;
+    }
+
 }

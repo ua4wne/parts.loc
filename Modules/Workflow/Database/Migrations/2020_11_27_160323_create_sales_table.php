@@ -33,7 +33,7 @@ class CreateSalesTable extends Migration
             $table->integer('delivery_id')->unsigned();
             $table->foreign('delivery_id')->references('id')->on('deliveries');
             $table->string('destination',150);
-            $table->string('contact',100);
+            $table->string('contact',100)->nullable();
             $table->boolean('to_door')->nullable()->default(0);
             $table->boolean('delivery_in_price')->nullable()->default(0);
             $table->integer('user_id')->unsigned();

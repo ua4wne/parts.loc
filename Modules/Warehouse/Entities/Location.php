@@ -9,7 +9,7 @@ class Location extends Model
     protected $table = 'locations';
 
     protected $fillable = ['title','barcode','warehouse_id','length','widht','height','capacity','priority','in_lock',
-        'out_lock'];
+        'out_lock','is_assembly','is_shipment','is_acceptance'];
 
     public function warehouse()
     {

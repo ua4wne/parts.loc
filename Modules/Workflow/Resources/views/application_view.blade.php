@@ -347,19 +347,6 @@
                                             <i class="fa fa-reply" aria-hidden="true"></i> Открыть заявку
                                         </button>
                                     </a>
-                                    <div class="btn-group">
-                                        <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
-                                           href="#" aria-expanded="false">
-                                            Создать на основании <span class="caret"></span>
-                                        </a>
-                                        <ul role="menu" class="dropdown-menu dropdown-light">
-                                            <li>
-                                                <a href="#">
-                                                    Заказ поставщику
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
                                 @endif
                             </div>
                             <div class="col-md-12">

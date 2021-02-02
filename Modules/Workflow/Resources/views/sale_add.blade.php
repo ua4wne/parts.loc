@@ -91,7 +91,7 @@
                         </td>
                         <th>Контактное лицо:</th>
                         <td>
-                            {!! Form::text('contact',old('contact'),['class' => 'form-control','placeholder'=>'Укажите контактное лицо','required'=>'required','maxlength'=>'100'])!!}
+                            {!! Form::text('contact',old('contact'),['class' => 'form-control','placeholder'=>'Укажите контактное лицо','maxlength'=>'100'])!!}
                             {!! $errors->first('contact', '<p class="text-danger">:message</p>') !!}
                         </td>
                     </tr>

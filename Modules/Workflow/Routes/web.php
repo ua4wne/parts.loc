@@ -179,6 +179,22 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+    //shipments/ группа обработки роутов shipments
+    Route::group(['prefix'=>'shipments'], function(){
+        Route::get('/',['uses'=>'ShipmentController@index','as'=>'shipments']);
+        //shipments/add
+        Route::post('/add',['uses'=>'ShipmentController@create','as'=>'shipmentAdd']);
+        //shipments/del
+        Route::post('/del',['uses'=>'ShipmentController@delete','as'=>'shipmentDel']);
+        //shipments/view
+        Route::match(['get','post'],'/view/{id}',['uses'=>'ShipmentController@show','as'=>'shipmentView']);
+        //shipments/edit
+        Route::post('/edit',['uses'=>'ShipmentController@edit','as'=>'shipmentEdit']);
+        //shipments/done_task
+        Route::post('/done_task',['uses'=>'ShipmentController@doneTask','as'=>'doneTask']);
+        Route::get('/print/{id}', ['uses'=>'ShipmentController@print','as'=>'shipmentPrint']);
+    });
+
     //sales/ группа обработки роутов sales
     Route::group(['prefix'=>'sales'], function(){
         Route::get('/',['uses'=>'SaleController@index','as'=>'sales']);
@@ -196,6 +212,8 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['get','post'],'/view/{id}',['uses'=>'SaleController@show','as'=>'saleView']);
         //sales/del
         Route::post('/del',['uses'=>'SaleController@delete','as'=>'saleDelete']);
+        //sales/deldoc
+        Route::post('/deldoc',['uses'=>'SaleController@delSale','as'=>'delSale']);
         //sales/addpos
         Route::post('/addpos',['uses'=>'SaleController@addPosition','as'=>'addSalePos']);
         //sales/delpos
@@ -208,6 +226,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/set-reserv',['uses'=>'SaleController@setReserv','as'=>'setReserv']);
         //sales/drop-reserv
         Route::post('/drop-reserv',['uses'=>'SaleController@dropReserv','as'=>'dropReserv']);
+        //sales/newapp
+        Route::post('/newapp',['uses'=>'SaleController@newApplication','as'=>'genNewApp']);
+        //sales/list
+        Route::post('/list',['uses'=>'SaleController@docList','as'=>'saleList']);
     });
 
     //applications/ группа обработки роутов applications

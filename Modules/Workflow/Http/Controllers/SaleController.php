@@ -4,10 +4,12 @@ namespace Modules\Workflow\Http\Controllers;
 
 use App\Events\AddEventLogs;
 use App\Http\Controllers\Lib\LibController;
+use App\Models\Car;
 use App\Models\Currency;
 use App\Models\Delivery;
 use App\Models\DeliveryMethod;
 use App\Models\Organisation;
+use App\Models\Priority;
 use App\Models\Statuse;
 use App\User;
 use Illuminate\Http\Request;
@@ -24,9 +26,12 @@ use Modules\Warehouse\Entities\Stock;
 use Modules\Warehouse\Entities\Unit;
 use Modules\Warehouse\Entities\Warehouse;
 use Modules\Workflow\Entities\Agreement;
+use Modules\Workflow\Entities\Application;
 use Modules\Workflow\Entities\Contract;
 use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Sale;
+use Modules\Workflow\Entities\Shipment;
+use Modules\Workflow\Entities\TblApplication;
 use Modules\Workflow\Entities\TblSale;
 use Validator;
 
@@ -38,12 +43,13 @@ class  SaleController extends Controller
      */
     public function index()
     {
-        if (!User::hasRole('admin') && !User::hasRole('manager') && !User::hasRole('director')) {//вызываем event
+        if (!User::hasRole('manager') && !User::hasRole('director')) {//вызываем event
             abort(503, 'У Вас нет прав на просмотр данных!');
         }
         if (view()->exists('workflow::sales_area')) {
             $title = 'Рабочее место менеджера';
             $rows = Good::offset(0)->limit(10)->get();
+            $sales = Sale::where('state','<',3)->orderBy('created_at','desc')->get();
             $firms = Firm::all();
             $firmsel = array();
             foreach ($firms as $val) {
@@ -54,6 +60,7 @@ class  SaleController extends Controller
                 'head' => 'Помощник продаж',
                 'firmsel' => $firmsel,
                 'rows' => $rows,
+                'sales' => $sales,
             ];
             return view('workflow::sales_area', $data);
         }
@@ -111,7 +118,7 @@ class  SaleController extends Controller
                 'delivery_id' => 'required|integer',
                 'agreement_id' => 'required|integer',
                 'destination' => 'required|string|max:150',
-                'contact' => 'required|string|max:100',
+                'contact' => 'nullable|string|max:100',
                 'to_door' => 'nullable|integer',
                 'delivery_in_price' => 'nullable|integer',
                 'user_id' => 'required|integer',
@@ -350,36 +357,31 @@ class  SaleController extends Controller
             if ($sale->has_vat) $vat = env('VAT');
             $tbody = '';
             //цепочка связанных документов
-            /*$links = TblPurchase::select('purchase_id')->where('order_id',$id)->distinct()->get();
-            if(!empty($links)){
-                foreach ($links as $row){
-                    $tbody .= '<tr><td class="text-bold"><a href="/purchases/view/'.$row->purchase->id.'" target="_blank">
-                    Приобретение товаров и услуг №' . $row->purchase->doc_num . '</a></td>';
-                    if(isset($row->purchase->statuse_id)){
-                        $tbody .= '<td>' . $row->purchase->statuse->title . '</td>';
-                    }
-                    else{
+            $links = Application::where('sale_id', $id)->get();
+            if (!empty($links)) {
+                foreach ($links as $row) {
+                    $tbody .= '<tr><td class="text-bold"><a href="/applications/view/' . $row->id . '" target="_blank">
+                    Запрос по ценам №' . $row->doc_num . '</a></td>';
+                    if (isset($row->statuse_id)) {
+                        $tbody .= '<td>' . $row->statuse->title . '</td>';
+                    } else {
                         $tbody .= '<td></td>';
                     }
                     $tbody .= '<td>'
-                        . $row->purchase->created_at . '</td><td>' . $row->purchase->user->name . '</td></tr>';
+                        . $row->created_at . '</td><td>' . $row->user->name . '</td></tr>';
                 }
-                foreach ($links as $row){
-                    $decl = TblDeclaration::select('declaration_id')->where('purchase_id',$row->purchase->id)->first();
-                    if(!empty($decl)){
-                        $tbody .= '<tr><td class="text-bold"><a href="/declarations/view/'.$decl->declaration->id.'" target="_blank">
-                    Таможенная декларация на импорт №' . $decl->declaration->doc_num . '</a></td>';
-                        if(isset($decl->declaration->statuse_id)){
-                            $tbody .= '<td>' . $decl->declaration->statuse->title . '</td>';
-                        }
-                        else{
-                            $tbody .= '<td></td>';
-                        }
-                        $tbody .= '<td>'
-                            . $decl->declaration->created_at . '</td><td>' . $decl->declaration->user->name . '</td></tr>';
-                    }
-                }*/
-            //}
+            }
+            $links = Shipment::where('sale_id', $id)->get();
+            if (!empty($links)) {
+                foreach ($links as $row) {
+                    $tbody .= '<tr><td class="text-bold"><a href="/shipments/view/' . $row->id . '" target="_blank">
+                    Наряд на сборку №' . $row->doc_num . '</a></td>';
+                    $tbody .= '<td>' . $row->status . '</td>';
+
+                    $tbody .= '<td>'
+                        . $row->created_at . '</td><td>' . $row->user->name . '</td></tr>';
+                }
+            }
             $data = [
                 'title' => 'Заказы клиентов',
                 'head' => 'Заказ клиента № ' . $sale->doc_num,
@@ -408,7 +410,8 @@ class  SaleController extends Controller
      * @param int $id
      * @return Response
      */
-    public function edit($id, Request $request)
+    public
+    function edit($id, Request $request)
     {
         $sale = Sale::find($id);
         if (!Role::granted('orders')) {//вызываем event
@@ -439,7 +442,7 @@ class  SaleController extends Controller
                 'delivery_id' => 'required|integer',
                 'agreement_id' => 'required|integer',
                 'destination' => 'required|string|max:150',
-                'contact' => 'required|string|max:100',
+                'contact' => 'nullable|string|max:100',
                 'to_door' => 'nullable|integer',
                 'delivery_in_price' => 'nullable|integer',
                 'user_id' => 'required|integer',
@@ -462,7 +465,8 @@ class  SaleController extends Controller
         }
     }
 
-    public function getSale(Request $request)
+    public
+    function getSale(Request $request)
     {
         $query = $request->get('query', '');
         //нужно чтобы возвращалось поле name иначе них.. не работает!!!
@@ -471,7 +475,8 @@ class  SaleController extends Controller
         return response()->json($codes);
     }
 
-    public function addPosition(Request $request)
+    public
+    function addPosition(Request $request)
     {
         if (!Role::granted('sales')) {//вызываем event
             return 'BAD';
@@ -520,7 +525,8 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    public function delPosition(Request $request)
+    public
+    function delPosition(Request $request)
     {
         if (!Role::granted('sales')) {//вызываем event
             return 'BAD';
@@ -545,7 +551,8 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    public function editPos(Request $request)
+    public
+    function editPos(Request $request)
     {
         if (!Role::granted('sales')) {//вызываем event
             return 'BAD';
@@ -571,7 +578,8 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    public function setReserv(Request $request)
+    public
+    function setReserv(Request $request)
     {
         if (!Role::granted('sales')) {//вызываем event
             return 'BAD';
@@ -638,7 +646,8 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    public function dropReserv(Request $request)
+    public
+    function dropReserv(Request $request)
     {
         if (!Role::granted('sales')) {//вызываем event
             return 'BAD';
@@ -673,7 +682,7 @@ class  SaleController extends Controller
                                     $row->update();
                                 }
                             } else {
-                                foreach ($stock as $st){
+                                foreach ($stock as $st) {
                                     $st->qty = $pos->qty;
                                     if ($st->update()) {
                                         $row->reserved -= $pos->qty;
@@ -691,7 +700,51 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    private function getFreeQty($wx_id, $good_id)
+    public
+    function newApplication(Request $request)
+    {
+        if (!Role::granted('sales')) {//вызываем event
+            return 'BAD';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
+            if (empty($input['sale_id']))
+                return 'NO';
+            //генерим новый документ
+            $priority = Priority::offset(1)->limit(1)->first();
+            $statuse = Statuse::offset(0)->limit(1)->first();
+            $appl = new Application();
+            $appl->doc_num = LibController::GenNumberDoc('applications');
+            $appl->priority_id = $priority->id;
+            $appl->statuse_id = $statuse->id;
+            $appl->sale_id = $input['sale_id'];
+            $appl->author_id = Auth::id();
+            $appl->user_id = Auth::id();
+            $appl->created_at = date('Y-m-d H:i:s');
+            if ($appl->save()) {
+                //заполняем табличную часть
+                $rows = TblSale::where('sale_id', $input['sale_id'])->get();
+                if (!empty($rows)) {
+                    foreach ($rows as $row) {
+                        if ($row->need_qty) {
+                            $tbl = new TblApplication();
+                            $tbl->application_id = $appl->id;
+                            $tbl->good_id = $row->good_id;
+                            $tbl->qty = $row->need_qty;
+                            $tbl->unit_id = $row->unit_id;
+                            $tbl->car_id = Car::offset(0)->limit(1)->first()->id;
+                            $tbl->save();
+                        }
+                    }
+                }
+                return 'OK';
+            }
+        }
+        return 'NO';
+    }
+
+    private
+    function getFreeQty($wx_id, $good_id)
     {
         //ищем остатки товара на складе
         $qty = 0;
@@ -704,5 +757,82 @@ class  SaleController extends Controller
             }
         }
         return $qty;
+    }
+
+    public function delete(Request $request){
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $id = $input['sale_id'];
+            $sale = Sale::find($id);
+            if (!empty($sale)) {
+                if (!User::hasRole('admin') || !User::isAuthor($sale->user_id)) {//вызываем event
+                    $msg = 'Попытка удаления заявки клиента №' . $sale->doc_num . '!';
+                    event(new AddEventLogs('access', Auth::id(), $msg));
+                    abort(503, 'У Вас нет прав на удаление документа!');
+                }
+                $msg = "В процессе удаления документа произошла ошибка!";
+                if($sale->delete()){
+                    $msg = 'Удалена заявка клиента № ' . $sale->doc_num;
+                    //вызываем event
+                    event(new AddEventLogs('info', Auth::id(), $msg));
+                }
+                return redirect()->back()->with('status', $msg);
+            }
+        }
+    }
+
+    public function delSale(Request $request){
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $id = $input['id'];
+            $sale = Sale::find($id);
+            if (!empty($sale)) {
+                if (!User::hasRole('admin') || !User::isAuthor($sale->user_id)) {//вызываем event
+                    return 'BAD';
+                }
+                if($sale->delete()){
+                    $msg = 'Удалена заявка клиента № ' . $sale->doc_num;
+                    //вызываем event
+                    event(new AddEventLogs('info', Auth::id(), $msg));
+                }
+                return 'OK';
+            }
+        }
+        return 'NO';
+    }
+
+    public function docList(Request $request){
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $sales = Sale::where('state','<',3)->orderBy('created_at','desc')->get();
+            $content = '';
+            if(!empty($sales)){
+                foreach ($sales as $row){
+                    $content .= '<tr id="sale'.$row->id.'" class="row_clicable sale-pos" style="cursor: pointer;">
+                                    <td>'.$row->doc_num.'</td>
+                                    <td>'.$row->created_at.'</td>
+                                    <td>'.$row->amount.'</td>
+                                    <td>'.$row->firm->title.'</td>
+                                    <td>'.$row->status.'</td>
+                                    <td>'.$row->date_agreement.'</td>
+                                    <td>%</td>
+                                    <td>%</td>
+                                    <td>'.$row->currency->title.'</td>
+                                    <td>'.$row->user->name.'</td>
+                                    <td style="width:100px;">
+                                        <div class="form-group" role="group">
+                                            <a href="/sales/view/'.$row->id.'">
+                                                <button class="btn btn-info" type="button" title="Просмотр записи"><i class="fa fa-eye fa-lg>" aria-hidden="true"></i></button>
+                                            </a>
+                                            <button class="btn btn-danger del_pos" type="button"
+                                                    title="Удалить запись"><i class="fa fa-trash fa-lg>"
+                                                                               aria-hidden="true"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>';
+                }
+            }
+            return $content;
+        }
     }
 }

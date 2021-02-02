@@ -75,7 +75,7 @@
                                     <td>{{ $row->created_at }}</td>
                                     <td>{{ $row->amount }}</td>
                                     <td>{{ $row->firm->title }}</td>
-                                    <td>{{ $row->state }}</td>
+                                    <td>{{ $row->status }}</td>
                                     @if(!empty($row->date_agreement))
                                     <td>{{ $row->date_agreement }}</td>
                                     @else
