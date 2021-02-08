@@ -451,14 +451,14 @@ class GoodController extends Controller
         return response()->json($codes);
     }
 
-    /*public function getCatalogNum(Request $request)
+    public function getCatalogNum(Request $request)
     {
         $query = $request->get('query', '');
         //нужно чтобы возвращалось поле name иначе них.. не работает!!!
         //подите прочь, я возмущен и раздосадован...
         $codes = DB::select("select id,catalog_num as name from goods where catalog_num like '%$query%'");
         return response()->json($codes);
-    }*/
+    }
 
     public function transfer(Request $request){
         if (!User::hasRole('content_manager')) {

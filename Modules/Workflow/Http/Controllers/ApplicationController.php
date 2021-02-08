@@ -375,12 +375,13 @@ class ApplicationController extends Controller
             }
             $app->state = 1;
             if ($app->update()) {
-                //обновляем цены в связанной заявке клиента со своей наценкой
+                //обновляем цены и артикулы в связанной заявке клиента со своей наценкой
                 $rows = TblApplication::where('application_id',$id)->get();
                 if(!empty($rows)){
                     foreach ($rows as $row){
-                        $pos = TblSale::where(['sale_id'=>$app->sale_id,'good_id'=>$row->good_id])->first();
+                        $pos = TblSale::find($row->tbl_sale_id);
                         if(!empty($pos)){
+                            $pos->sub_good_id = $row->good_id;
                             $pos->price = $row->price;
                             $pos->update();
                         }
@@ -450,15 +451,16 @@ class ApplicationController extends Controller
             $k = 4;
             $sheet->getStyle('A' . $k . ':Q' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('A' . $k, '№ п/п');
-            $sheet->setCellValue('B' . $k, 'Номер');
-            $sheet->setCellValue('C' . $k, 'Аналог');
-            $sheet->setCellValue('D' . $k, 'Наименование');
-            $sheet->setCellValue('E' . $k, 'Кол-во');
-            $sheet->setCellValue('F' . $k, 'Техника');
-            $sheet->setCellValue('G' . $k, 'Дата запроса');
-            $sheet->setCellValue('H' . $k, 'Дни');
-            $sheet->setCellValue('I' . $k, 'Цена');
-            $sheet->getStyle('A' . $k . ':I' . $k)->applyFromArray($styleArray);
+            $sheet->setCellValue('B' . $k, 'Каталожный №');
+            $sheet->setCellValue('C' . $k, 'Артикул');
+            $sheet->setCellValue('D' . $k, 'Аналог');
+            $sheet->setCellValue('E' . $k, 'Наименование');
+            $sheet->setCellValue('F' . $k, 'Кол-во');
+            $sheet->setCellValue('G' . $k, 'Техника');
+            $sheet->setCellValue('H' . $k, 'Дата запроса');
+            $sheet->setCellValue('I' . $k, 'Дни');
+            $sheet->setCellValue('J' . $k, 'Цена');
+            $sheet->getStyle('A' . $k . ':J' . $k)->applyFromArray($styleArray);
             $k++;
             $num = 1;
             $date = date('Y-m-d');
@@ -471,16 +473,17 @@ class ApplicationController extends Controller
                     }
 
                     $sheet->setCellValue('A' . $k, $num);
-                    $sheet->setCellValue('B' . $k, $row->good->vendor_code);
-                    $sheet->setCellValue('C' . $k, '');
-                    $sheet->setCellValue('D' . $k, $row->good->title);
-                    $sheet->setCellValue('E' . $k, $row->qty);
-                    $sheet->setCellValue('F' . $k, $row->car->title);
-                    $sheet->setCellValue('G' . $k, $date);
-                    $sheet->setCellValue('H' . $k, '');
+                    $sheet->setCellValue('B' . $k, $row->good->catalog_num);
+                    $sheet->setCellValue('C' . $k, $row->good->vendor_code);
+                    $sheet->setCellValue('D' . $k, '');
+                    $sheet->setCellValue('E' . $k, $row->good->title);
+                    $sheet->setCellValue('F' . $k, $row->qty);
+                    $sheet->setCellValue('G' . $k, $row->car->title);
+                    $sheet->setCellValue('H' . $k, $date);
                     $sheet->setCellValue('I' . $k, '');
+                    $sheet->setCellValue('J' . $k, '');
                     $sheet->getStyle('A' . $k . ':A' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle('E' . $k . ':E' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('F' . $k . ':F' . $k)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $k++;
                     $num++;
                 }
@@ -495,6 +498,7 @@ class ApplicationController extends Controller
             $sheet->getColumnDimension('G')->setAutoSize(true);
             $sheet->getColumnDimension('H')->setAutoSize(true);
             $sheet->getColumnDimension('I')->setAutoSize(true);
+            $sheet->getColumnDimension('J')->setAutoSize(true);
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             $filename = "Запрос от ". $date;
             header('Content-Disposition: attachment;filename=' . $filename . ' ');
@@ -529,17 +533,28 @@ class ApplicationController extends Controller
                         $row = $table[$i];
                         if (!empty($row[1])) {
                             $vendor = trim($row[1]);
+                            $new_vendor = trim($row[2]);
                             $dt = $row[7];
                             $amount = $row[8];
-                            $good_id = Good::where(['vendor_code' => $vendor])->first()->id;
+                            $good = Good::where(['vendor_code' => $vendor])->first();
                             //ищем tbl_application_id
-                            $tbl_application_id = TblApplication::where(['application_id'=>$app_id,'good_id'=>$good_id])->first()->id;
-                            if (!empty($tbl_application_id)) {
-                                // создаст или обновит запись в таблице set_offers в зависимости от того
-                                // есть такая запись или нет
-                                SetOffer::updateOrCreate(['tbl_application_id' => $tbl_application_id,'firm_id' => $firm_id],
-                                    ['delivery_time'=>$dt, 'amount' => $amount, 'comment' => '']);
-                                $num++;
+                            if(!empty($good)){
+                                $tbl_application = TblApplication::where(['application_id'=>$app_id,'good_id'=>$good->id])->first();
+                                if (!empty($tbl_application)) {
+                                    if(!empty($new_vendor)) { //если есть замена
+                                        $new_good = Good::where(['vendor_code' => $new_vendor])->first();
+                                        if(!empty($new_good)){
+                                            $tbl_application->good_id = $new_good->id;
+                                            $tbl_application->update();
+                                        }
+                                    }
+
+                                    // создаст или обновит запись в таблице set_offers в зависимости от того
+                                    // есть такая запись или нет
+                                    SetOffer::updateOrCreate(['tbl_application_id' => $tbl_application->id,'firm_id' => $firm_id],
+                                        ['delivery_time'=>$dt, 'amount' => $amount, 'comment' => '']);
+                                    $num++;
+                                }
                             }
                         }
                     }
@@ -562,6 +577,7 @@ class ApplicationController extends Controller
             $tbl_app = TblApplication::find($input['id']);
             if(!empty($tbl_app)){
                 $tbl_app->price = $input['price'];
+                $tbl_app->firm_id = SetOffer::find($input['ofr_id'])->firm_id;
                 if($tbl_app->update())
                     return 'OK';
             }

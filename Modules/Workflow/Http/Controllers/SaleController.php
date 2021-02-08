@@ -30,6 +30,7 @@ use Modules\Workflow\Entities\Application;
 use Modules\Workflow\Entities\Contract;
 use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Sale;
+use Modules\Workflow\Entities\SetOffer;
 use Modules\Workflow\Entities\Shipment;
 use Modules\Workflow\Entities\TblApplication;
 use Modules\Workflow\Entities\TblSale;
@@ -55,12 +56,18 @@ class  SaleController extends Controller
             foreach ($firms as $val) {
                 $firmsel[$val->id] = $val->title;
             }
+            $units = Unit::all();
+            $unsel = array();
+            foreach ($units as $val) {
+                $unsel[$val->id] = $val->title;
+            }
             $data = [
                 'title' => $title,
                 'head' => 'Помощник продаж',
                 'firmsel' => $firmsel,
                 'rows' => $rows,
                 'sales' => $sales,
+                'unsel' => $unsel,
             ];
             return view('workflow::sales_area', $data);
         }
@@ -229,13 +236,15 @@ class  SaleController extends Controller
                 }
                 if (!empty($good)) {
                     $content .= '<tr id="' . $good->id . '" class="text-bold text-green clicable"><td>' . $good->code . '</td><td>' . $good->vendor_code . '</td>
-                                <td>' . $good->title . '</td><td>' . $good->category->category . '</td></tr>';
+                                <td>' . $good->title . '</td><td data-toggle="modal" data-target="#editDoc">
+                                            <i class="fa fa-cart-plus" aria-hidden="true"></i></td></tr>';
                     if (!empty($good->catalog_num)) {
                         $analogs = Good::where('catalog_num', $good->catalog_num)->where('id', '!=', $good->id)->get();
                         if (!empty($analogs)) {
                             foreach ($analogs as $row) {
                                 $content .= '<tr id="' . $row->id . '" class="clicable"><td>' . $row->code . '</td><td>' . $row->vendor_code . '</td>
-                            <td>' . $row->title . '</td><td>' . $row->category->category . '</td></tr>';
+                            <td>' . $row->title . '</td><td data-toggle="modal" data-target="#editDoc">
+                                            <i class="fa fa-cart-plus" aria-hidden="true"></i></td></tr>';
                             }
                         }
                     }
@@ -283,6 +292,24 @@ class  SaleController extends Controller
                                 $content .= '<td>' . $row->unit->title . '</td>';
                                 $content .= '<td>' . $row->cost . '</td>';
                                 $content .= '<td>' . $row->consignment . '</td></tr>';
+                            }
+                        }
+                        break;
+                    case 'offers':
+                        $rows = TblApplication::where('good_id', $id)->orderBy('created_at','desc')->limit(5)->get();
+                        if (!empty($rows)) {
+                            foreach ($rows as $row) {
+                                $offer = SetOffer::where('tbl_application_id',$row->id)->first();
+                                if(!empty($offer)){
+                                    $sale = Sale::find($row->application->sale_id);
+                                    $content .= '<tr><td><a href="/applications/view/'.$row->application_id.'" target="_blank">'
+                                        . $row->application->doc_num . '</a></td>';
+                                    $content .= '<td>' . $offer->firm->name . '</td>';
+                                    $content .= '<td>' . $offer->delivery_time . '</td>';
+                                    $content .= '<td>' . $offer->amount . '</td>';
+                                    $content .= '<td>' . $sale->currency->title . '</td>';
+                                    $content .= '<td>' . $offer->comment . '</td></tr>';
+                                }
                             }
                         }
                         break;
@@ -598,10 +625,10 @@ class  SaleController extends Controller
                         //определяем сумму необходимого резерва
                         $need_qty -= $row->reserved_qty;
                         //смотрим остатки на складе
-                        $free_qty = $this->getFreeQty($whs_id, $row->good_id);
+                        $free_qty = $this->getFreeQty($whs_id, $row->sub_good_id);
                         if ($need_qty && $free_qty) { //нужен резерв и есть остатки на складе
                             //резервируем товар
-                            $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->good_id])->get();
+                            $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->sub_good_id])->get();
                             if (!empty($leftovers)) {
                                 foreach ($leftovers as $stock) {
                                     if (!$stock->location->out_lock) { //ячейка не заблокирована на выход
@@ -667,11 +694,11 @@ class  SaleController extends Controller
                         //снимаем резервы
                         foreach ($reserv as $pos) {
                             //товар в ячейке на складе еще есть?
-                            $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->good_id])->get();
+                            $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->sub_good_id])->get();
                             if (empty($stock)) {
                                 $stock = new Stock();
                                 $stock->warehouse_id = $whs_id;
-                                $stock->good_id = $row->good_id;
+                                $stock->good_id = $row->sub_good_id;
                                 $stock->location_id = $pos->location_id;
                                 $stock->qty = $pos->qty;
                                 $stock->unit_id = $row->unit_id;
@@ -733,6 +760,7 @@ class  SaleController extends Controller
                             $tbl->qty = $row->need_qty;
                             $tbl->unit_id = $row->unit_id;
                             $tbl->car_id = Car::offset(0)->limit(1)->first()->id;
+                            $tbl->tbl_sale_id = $row->id;
                             $tbl->save();
                         }
                     }
@@ -821,7 +849,7 @@ class  SaleController extends Controller
                                     <td>'.$row->user->name.'</td>
                                     <td style="width:100px;">
                                         <div class="form-group" role="group">
-                                            <a href="/sales/view/'.$row->id.'">
+                                            <a href="/sales/view/'.$row->id.'" target="_blank">
                                                 <button class="btn btn-info" type="button" title="Просмотр записи"><i class="fa fa-eye fa-lg>" aria-hidden="true"></i></button>
                                             </a>
                                             <button class="btn btn-danger del_pos" type="button"
@@ -834,5 +862,40 @@ class  SaleController extends Controller
             }
             return $content;
         }
+    }
+
+    public function docTable(Request $request){
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $rows = TblSale::where('sale_id',$input['sale_id'])->get();
+            if(!empty($rows)){
+                $content = '';
+                foreach ($rows as $row){
+                    $content .= '<tr id="' . $row->id . '">
+                    <td>' . $row->good->vendor_code . '</td>
+                    <td>' . $row->good->title . '</td>
+                    <td>' . $row->comment . '</td>
+                    <td>' . $row->qty . '</td>
+                    <td>' . $row->reserved . '</td>
+                    <td>' . $row->unit->title . '</td>
+                    <td>' . $row->price . '</td>
+                    <td>' . $row->amount . '</td>
+                    <td>' . $row->vat . '</td>
+                    <td>' . $row->vat_amount . '</td>
+                    <td style="width:70px;">    <div class="form-group" role="group">';
+                    $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
+                            <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                        </div>
+                    </td>
+                </tr>';
+                }
+                $model = TblSale::where('sale_id',$input['sale_id'])->first();
+                $amount = $model->sale->amount + $model->sale->vat_amount;
+                $num = TblSale::where('sale_id', $model->sale_id)->count('id');
+                $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
+                return json_encode($result);
+            }
+        }
+        return 'NO';
     }
 }

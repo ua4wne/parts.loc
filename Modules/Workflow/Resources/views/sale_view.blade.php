@@ -460,6 +460,11 @@
                                                     Запрос по ценам
                                                 </a>
                                             </li>
+                                            <li>
+                                                <a href="#" id="new_invoice">
+                                                    Счет на оплату
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                     <a href="#">
@@ -477,6 +482,7 @@
                                         <thead>
                                         <tr>
                                             <th>Артикул</th>
+                                            <th>Замена</th>
                                             <th>Номенклатура</th>
                                             <th>Характеристика</th>
                                             <th>Кол-во</th>
@@ -494,6 +500,11 @@
                                             @foreach($rows as $k => $row)
                                                 <tr id="{{ $row->id }}">
                                                     <td>{{ $row->good->vendor_code }}</td>
+                                                    @if($row->good->vendor_code == $row->sub_good->vendor_code)
+                                                        <td>Оригинал</td>
+                                                    @else
+                                                        <td>{{ $row->sub_good->vendor_code }}</td>
+                                                    @endif
                                                     <td>{{ $row->good->title }}</td>
                                                     <td>{{ $row->comment }}</td>
                                                     <td>{{ $row->qty }}</td>
@@ -907,7 +918,7 @@
                     success: function (res) {
                         //alert(res);
                         if (res == 'OK') {
-                            $('#' + id).children('td').eq(2).text(title);
+                            $('#' + id).children('td').eq(3).text(title);
                         }
                         $(".modal").modal("hide");
                     }
@@ -970,12 +981,12 @@
             click: function () {
                 let row = $(this).parent().parent().parent();
                 $("#editPos").modal("show");
-                $('#htitle').text(row.children('td').eq(1).text().trim());
-                $('#eqty').val(row.children('td').eq(3).text());
-                $('#eprice').val(row.children('td').eq(6).text());
-                $('#evat').val(row.children('td').eq(8).text());
+                $('#htitle').text(row.children('td').eq(2).text().trim());
+                $('#eqty').val(row.children('td').eq(4).text());
+                $('#eprice').val(row.children('td').eq(7).text());
+                $('#evat').val(row.children('td').eq(9).text());
                 $('#epos_id').val(row.attr('id'));
-                let eunit = row.children('td').eq(5).text();
+                let eunit = row.children('td').eq(6).text();
                 $('#eunit_id_id option:contains(eunit)').prop("selected", true);
                 $.ajax({
                     type: 'POST',
@@ -1067,14 +1078,14 @@
                             $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
                             $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
                             if ($('#ecomment').val())
-                                $('#' + id).children('td').eq(2).text($("#ecomment option:selected").text());
-                            $('#' + id).children('td').eq(3).text($('#eqty').val());
-                            $('#' + id).children('td').eq(5).text($("#eunit_id option:selected").text());
-                            $('#' + id).children('td').eq(6).text($('#eprice').val());
+                                $('#' + id).children('td').eq(3).text($("#ecomment option:selected").text());
+                            $('#' + id).children('td').eq(4).text($('#eqty').val());
+                            $('#' + id).children('td').eq(6).text($("#eunit_id option:selected").text());
+                            $('#' + id).children('td').eq(7).text($('#eprice').val());
                             let amount = parseFloat($('#eqty').val()) * parseFloat($('#eprice').val());
-                            $('#' + id).children('td').eq(7).text(amount);
-                            $('#' + id).children('td').eq(8).text($('#evat').val());
-                            $('#' + id).children('td').eq(9).text(obj.vat_amount);
+                            $('#' + id).children('td').eq(8).text(amount);
+                            $('#' + id).children('td').eq(9).text($('#evat').val());
+                            $('#' + id).children('td').eq(10).text(obj.vat_amount);
 
                             $('#eprice').val('');
                             $('#epos_id').val('');

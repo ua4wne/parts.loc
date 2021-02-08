@@ -25,7 +25,10 @@ class CreateTblApplicationsTable extends Migration
             $table->float('price')->nullable();
             $table->integer('car_id')->unsigned();
             $table->foreign('car_id')->references('id')->on('cars');
-            $table->integer('order_id')->nullable();
+            $table->bigInteger('tbl_sale_id')->unsigned();
+            $table->foreign('tbl_sale_id')->references('id')->on('tbl_sales');
+            $table->integer('order_id')->unsigned()->nullable();
+            $table->integer('firm_id')->unsigned()->nullable();
             $table->timestamps();
         });
     }

@@ -101,6 +101,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/edit-err-pos',['uses'=>'OrderController@editErrPos','as'=>'editErrPos']);
         //orders/new_purchase
         Route::get('/new_purchase/{id}',['uses'=>'OrderController@newPurchase','as'=>'newPurchase']);
+        //orders/new_order
+        Route::post('/new_order',['uses'=>'OrderController@newOrder','as'=>'newOrder']);
     });
 
     //purchases/ группа обработки роутов purchases
@@ -230,6 +232,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/newapp',['uses'=>'SaleController@newApplication','as'=>'genNewApp']);
         //sales/list
         Route::post('/list',['uses'=>'SaleController@docList','as'=>'saleList']);
+        //sales/table
+        Route::post('/table',['uses'=>'SaleController@docTable','as'=>'saleTable']);
     });
 
     //applications/ группа обработки роутов applications

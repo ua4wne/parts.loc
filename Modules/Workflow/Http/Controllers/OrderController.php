@@ -24,6 +24,7 @@ use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Order;
 use Modules\Workflow\Entities\OrderError;
 use Modules\Workflow\Entities\Purchase;
+use Modules\Workflow\Entities\TblApplication;
 use Modules\Workflow\Entities\TblDeclaration;
 use Modules\Workflow\Entities\TblOrder;
 use Modules\Workflow\Entities\TblPurchase;
@@ -742,5 +743,21 @@ class OrderController extends Controller
             }
         }
         return redirect()->back()->with('error', 'В процессе создания документа приобретения товаров и услуг произошла ошибка. Документ не был создан!');
+    }
+
+    public function newOrder(Request $request){
+        if (!Role::granted('orders')) {
+            return 'NO';
+        }
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $app_id = $input['id'];
+            $rows = TblApplication::where('application_id',$app_id)->distinct()->get(['firm_id']);
+            if(!empty($rows)){
+                foreach ($rows as $row){
+                    dd($row->firm_id);
+                }
+            }
+        }
     }
 }

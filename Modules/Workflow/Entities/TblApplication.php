@@ -9,7 +9,7 @@ class TblApplication extends Model
     //указываем имя таблицы
     protected $table = 'tbl_applications';
 
-    protected $fillable = ['application_id', 'good_id', 'qty', 'car_id', 'unit_id', 'order_id', 'price'];
+    protected $fillable = ['application_id','good_id','tbl_sale_id','qty','car_id','unit_id','order_id','firm_id','price'];
 
     public function application()
     {
@@ -26,9 +26,14 @@ class TblApplication extends Model
         return $this->belongsTo('App\Models\Car', 'car_id', 'id');
     }
 
-    public function order()
+    public function getOrderAttribute()
     {
         return $this->Order::find($this->order_id);
+    }
+
+    public function getFirmAttribute()
+    {
+        return $this->Firm::find($this->firm_id);
     }
 
     public function getOffersAttribute()

@@ -312,13 +312,13 @@
                         </div>
                         <div class="tab-pane fade" id="goods">
                             <div class="panel-heading">
-                                @if($application->state == 0)
-                                    <a href="#">
+                            @if($application->state == 0)
+                                <!--                                    <a href="#">
                                         <button type="button" class="btn btn-primary btn-sm btn-o" id="new_pos"
                                                 data-toggle="modal" data-target="#editDoc">
                                             <i class="fa fa-plus" aria-hidden="true"></i> Добавить
                                         </button>
-                                    </a>
+                                    </a>-->
                                     <a href="#">
                                         <button type="button" class="btn btn-primary btn-sm btn-o" id="get_offer"
                                                 data-toggle="modal" data-target="#getOffer">
@@ -347,6 +347,19 @@
                                             <i class="fa fa-reply" aria-hidden="true"></i> Открыть заявку
                                         </button>
                                     </a>
+                                    <div class="btn-group">
+                                        <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
+                                           href="#" aria-expanded="false">
+                                            Создать на основании <span class="caret"></span>
+                                        </a>
+                                        <ul role="menu" class="dropdown-menu dropdown-light">
+                                            <li>
+                                                <a href="#" id="new_order">
+                                                    Заказ поставщику
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 @endif
                             </div>
                             <div class="col-md-12">
@@ -355,7 +368,7 @@
                                         <thead>
                                         <tr>
                                             <th>Каталожный №</th>
-                                            <th>Номера аналогов</th>
+                                            <th>Артикул</th>
                                             <th>Наименование</th>
                                             <th>Кол-во</th>
                                             <th>Техника</th>
@@ -369,7 +382,7 @@
                                             @foreach($rows as $k => $row)
                                                 <tr id="{{ $row->id }}">
                                                     <td>{{ $row->good->catalog_num }}</td>
-                                                    <td>{{ $row->good->analog_code }}</td>
+                                                    <td>{{ $row->good->vendor_code }}</td>
                                                     <td>{{ $row->good->title }}</td>
                                                     <td>{{ $row->qty }}</td>
                                                     <td>{{ $row->car->title }}</td>
@@ -566,7 +579,7 @@
             }
         });
 
-        $('#new_btn').click(function (e) {
+        /*$('#new_btn').click(function (e) {
             e.preventDefault();
             let error = 0;
             $("#add_pos").find(":input").each(function () {// проверяем каждое поле ввода в форме
@@ -619,7 +632,7 @@
                     }
                 });
             }
-        });
+        });*/
 
         $('#get_offer_btn').click(function () {
             let error = 0;
@@ -674,6 +687,28 @@
                     }
                 });
             }
+        });
+
+        $('#new_order').click(function(e){
+            e.preventDefault();
+            let id = $('#id_doc').val();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('newOrder') }}',
+                data: {'id': id},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    if (res == 'BAD')
+                        alert('Выполнение операции запрещено!');
+                    if (res == 'NO')
+                        alert('Не известный метод!');
+                    if (res == 'OK')
+                        alert('Заявка поставщику создана!');
+                }
+            });
         });
 
         $('#del_app').click(function (e) {
@@ -797,10 +832,11 @@
             click: function () {
                 let id = $(this).parent().parent().parent().parent().parent().attr("id");
                 let price = $(this).text();
+                let ofr_id = $(this).parent().attr("id").substr(3);
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('setPosPrice') }}',
-                    data: {'id': id, 'price': price},
+                    data: {'id':id, 'price':price, 'ofr_id':ofr_id},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                     },

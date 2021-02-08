@@ -9,7 +9,7 @@ class TblOrder extends Model
     //указываем имя таблицы
     protected $table = 'tbl_orders';
 
-    protected $fillable = ['order_id','good_id','comment','qty','unit_id','price','vat'];
+    protected $fillable = ['order_id','good_id','sub_good_id','comment','qty','unit_id','price','vat'];
 
     public function order()
     {

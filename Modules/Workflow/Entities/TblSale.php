@@ -10,7 +10,7 @@ class TblSale extends Model
 {
     protected $table = 'tbl_sales';
 
-    protected $fillable = ['sale_id', 'good_id', 'comment', 'qty', 'unit_id', 'price', 'vat', 'reserved'];
+    protected $fillable = ['sale_id','good_id','sub_good_id','comment','qty','unit_id','price','vat','reserved'];
 
     public function sale()
     {
@@ -20,6 +20,11 @@ class TblSale extends Model
     public function good()
     {
         return $this->belongsTo('Modules\Warehouse\Entities\Good', 'good_id', 'id');
+    }
+
+    public function sub_good()
+    {
+        return $this->belongsTo('Modules\Warehouse\Entities\Good','sub_good_id','id');
     }
 
     public function unit()
