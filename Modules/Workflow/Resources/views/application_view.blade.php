@@ -38,7 +38,7 @@
         </div>
     @endif
     <!-- page content -->
-    <!-- New Position Modal -->
+    <!-- New Order Modal -->
     <div class="modal fade" id="editDoc" tabindex="-1" role="dialog" aria-labelledby="editDoc"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -47,71 +47,87 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
                     </button>
-                    <h4 class="modal-title">Новая позиция</h4>
+                    <h4 class="modal-title">Заказ поставщику</h4>
                 </div>
                 <div class="modal-body">
-                    {!! Form::open(['url' => '#','id'=>'add_pos','class'=>'form-horizontal','method'=>'POST']) !!}
+                    {!! Form::open(['url' => '#','id'=>'add_order','class'=>'form-horizontal','method'=>'POST']) !!}
+                    {!! Form::hidden('application_id',$application->id,['class' => 'form-control','id'=>'id_doc','required'=>'required']) !!}
 
                     <div class="form-group">
-                        <div class="col-xs-12">
-                            <fieldset>
-                                <legend>Поиск номенклатуры:</legend>
-                                <div class="form-group">
-                                    {!! Form::label('vendor_code', 'По артикулу:',['class'=>'col-xs-4 control-label']) !!}
-                                    <div class="col-xs-7">
-                                        {!! Form::text('vendor_code', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить артикул','id'=>'by_vendor'])!!}
-                                    </div>
-                                </div>
+                        <div class="col-xs-3 control-label">
+                            Организация: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::select('organisation_id',$orgsel, old('organisation_id'), ['class' => 'form-control','required'=>'required','id'=>'org_id']); !!}
+                        </div>
 
-                                <div class="form-group">
-                                    {!! Form::label('by_catalog', 'По каталожному №:',['class'=>'col-xs-4 control-label']) !!}
-                                    <div class="col-xs-7">
-                                        {!! Form::text('by_catalog', '', ['class' => 'form-control','placeholder'=>'Начинайте вводить каталожный №','id'=>'by_catalog'])!!}
-                                    </div>
-                                </div>
-                            </fieldset>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-3 control-label">
+                            Склад: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::select('warehouse_id',$wxsel, old('warehouse_id'), ['class' => 'form-control','required'=>'required']); !!}
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-3 control-label">
+                            Поставщик: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::text('firm_id',old('firm_id'),['class' => 'form-control','placeholder'=>'Начинайте вводить наименование поставщика','required'=>'required','id'=>'search_firm'])!!}
                         </div>
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('good_id', 'Наименование:',['class'=>'col-xs-3 control-label']) !!}
-                        <div class="col-xs-8">
-                            {!! Form::select('good_id', [], '', ['class' => 'form-control','id'=>'good_id','required'=>'required'])!!}
+                        <div class="col-xs-3 control-label">
+                            Договор: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::select('contract_id',[], old('contract_id'), ['class' => 'form-control','required'=>'required','id'=>'contract']); !!}
                         </div>
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('qty','Количество:',['class' => 'col-xs-3 control-label'])   !!}
-                        <div class="col-xs-8">
-                            {!! Form::number('qty','1',['class' => 'form-control','placeholder'=>'Введите количество','required'=>'required','min' => 1, 'max' => 1000,'id'=>'qty'])!!}
-                            {!! $errors->first('qty', '<p class="text-danger">:message</p>') !!}
+                        <div class="col-xs-3 control-label">
+                            Статус: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::select('statuse_id',$statsel, old('statuse_id'), ['class' => 'form-control','required'=>'required']); !!}
                         </div>
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('unit_id', 'Ед. измерения:',['class'=>'col-xs-3 control-label']) !!}
-                        <div class="col-xs-8">
-                            {!! Form::select('unit_id',$unsel,old('unit_id'),['class' => 'form-control','required'=>'required','id'=>'unit_id'])!!}
+                        <div class="col-xs-3 control-label">
+                            Хоз. операция: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::select('hoperation_id',$hopsel, old('hoperation_id'), ['class' => 'form-control','required'=>'required','id'=>'hoperation']); !!}
                         </div>
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('car_id', 'Техника:',['class'=>'col-xs-3 control-label']) !!}
-                        <div class="col-xs-8">
-                            {!! Form::select('car_id',$carsel,old('car_id'),['class' => 'form-control','required'=>'required','id'=>'car_id'])!!}
+                        <div class="col-xs-3 control-label">
+                            Валюта: <span class="symbol required" aria-required="true"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            {!! Form::select('currency_id',$cursel, old('currency_id'), ['class' => 'form-control','required'=>'required','id'=>'curr_id']); !!}
+                            <div class="checkbox clip-check check-primary">
+                                <input type="checkbox" name="has_vat" id="has_vat" checked value="1">
+                                <label for="has_vat">
+                                    Цена включает НДС
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        {!! Form::label('price','Цена:',['class' => 'col-xs-3 control-label'])   !!}
-                        <div class="col-xs-8">
-                            {!! Form::text('price','',['class' => 'form-control','placeholder'=>'Укажите цену', 'id'=>'price'])!!}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-xs-8">
-                            {!! Form::hidden('application_id',$application->id,['class' => 'form-control','id'=>'id_doc','required'=>'required']) !!}
+                        {!! Form::label('comment', 'Комментарий:',['class'=>'col-xs-3 control-label']) !!}
+                        <div class="col-xs-9">
+                            {!! Form::textarea('comment',old('comment'),['class'=>'form-control', 'rows' => 2, 'cols' => 50]) !!}
                         </div>
                     </div>
 
@@ -126,7 +142,7 @@
             </div>
         </div>
     </div>
-    <!-- New Position Modal -->
+    <!-- New Order Modal -->
     <!-- Offer Modal -->
     <div class="modal fade" id="getOffer" tabindex="-1" role="dialog" aria-labelledby="getOffer"
          aria-hidden="true">
@@ -354,7 +370,7 @@
                                         </a>
                                         <ul role="menu" class="dropdown-menu dropdown-light">
                                             <li>
-                                                <a href="#" id="new_order">
+                                                <a href="#" data-toggle="modal" data-target="#editDoc">
                                                     Заказ поставщику
                                                 </a>
                                             </li>
@@ -437,14 +453,44 @@
 @section('user_script')
     <script src="/js/bootstrap-typeahead.min.js"></script>
     <script>
-        $("#car_id").prepend($('<option value="0">Выберите технику</option>'));
-        $("#car_id :first").attr("selected", "selected");
-        $("#car_id :first").attr("disabled", "disabled");
+        $("#org_id").prepend($('<option value="0">Выберите организацию</option>'));
+        $("#org_id :first").attr("selected", "selected");
+        $("#org_id :first").attr("disabled", "disabled");
 
-        $("#currency_id").prepend($('<option value="0">Выберите валюту</option>'));
-        $("#currency_id :first").attr("selected", "selected");
-        $("#currency_id :first").attr("disabled", "disabled");
+        $("#curr_id").prepend($('<option value="0">Выберите валюту</option>'));
+        $("#curr_id :first").attr("selected", "selected");
+        $("#curr_id :first").attr("disabled", "disabled");
+        $("#hoperation :contains('Закупка у поставщика')").attr("selected", "selected");
         $('.offer_pos').css('cursor', 'pointer');
+
+        $('#search_firm').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 3,
+            ajax: {
+                url: "{{ route('getFirm') }}",
+                triggerLength: 1
+            }
+        });
+
+        $( "#search_firm" ).blur(function() {
+            $("#contract").empty(); //очищаем от старых значений
+            var firm = $("#search_firm").val();
+            var org_id = $("#org_id option:selected").val();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('findContract') }}',
+                data: {'firm': firm,'org_id':org_id},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    $("#contract").prepend($(res));
+                }
+            });
+        });
+
 
         $('#search').typeahead({
             hint: true,
@@ -456,54 +502,18 @@
             }
         });
 
-        $('#by_vendor').typeahead({
-            hint: true,
-            highlight: true,
-            minLength: 3,
-            ajax: {
-                url: "{{ route('getCode') }}",
-                triggerLength: 1
+        $('#curr_id').change(function(){
+            let rub = $('#curr_id option:selected').text();
+            if(rub.indexOf('рубль')){
+                $("#hoperation option:contains('Импорт')").prop("selected", true);
+                $('#has_vat').prop('checked', false);
+                $('#has_vat').val('0');
             }
-        });
-
-        $('#search_evendor').typeahead({
-            hint: true,
-            highlight: true,
-            minLength: 3,
-            ajax: {
-                url: "{{ route('getCode') }}",
-                triggerLength: 1
-            }
-        });
-
-        $('#by_catalog').typeahead({
-            hint: true,
-            highlight: true,
-            minLength: 3,
-            ajax: {
-                url: "{{ route('getAnalog') }}",
-                triggerLength: 1
-            }
-        });
-
-        $('#by_vendor').focus(function () {
-            $('#by_catalog').val('');
-        });
-
-
-        $('#by_catalog').focus(function () {
-            $('#by_vendor').val('');
-        });
-
-        $('#all').on('change', function () {
-            if ($('#all').prop('checked')) {
-                $('#firms_id option').each(function () {
-                    $(this).prop("selected", true);
-                });
-            } else {
-                $('#firms_id option').each(function () {
-                    $(this).prop("selected", false);
-                });
+            if(rub.indexOf('рубль')>0){
+                $('#has_vat').prop('checked', true);
+                $('#has_vat').val('1');
+                $('#hoperation option').prop('selected', false);
+                $('#hoperation option:contains("Закупка у поставщика")').prop("selected", true);
             }
         });
 
@@ -579,10 +589,10 @@
             }
         });
 
-        /*$('#new_btn').click(function (e) {
+        $('#new_btn').click(function (e) {
             e.preventDefault();
             let error = 0;
-            $("#add_pos").find(":input").each(function () {// проверяем каждое поле ввода в форме
+            $("#add_order").find(":input").each(function () {// проверяем каждое поле ввода в форме
                 if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
                     if (!$(this).val()) {// если поле пустое
                         $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
@@ -599,31 +609,22 @@
             } else {
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('addApplicationPos') }}',
-                    data: $('#add_pos').serialize(),
+                    url: '{{ route('newOrder') }}',
+                    data: $('#add_order').serialize(),
                     success: function (res) {
                         //alert(res);
+                        $(".modal").modal("hide");
                         if (res == 'BAD') {
-                            alert('У Вас нет прав для редактирования документа!')
+                            alert('У Вас нет прав для создания документа!');
                         }
                         if (res == 'NO') {
-                            alert('Не известный запрос!')
+                            alert('Не известный запрос!');
                         }
-                        if (res == 'NOVALIDATE') {
-                            alert('Не корректные значения формы!')
+                        if (res == 'DBL') {
+                            alert('Заявка поставщику уже была создана ранее!');
                         }
-                        let obj = jQuery.parseJSON(res);
-                        if (typeof obj === 'object') {
-                            $("#doc_table").append(obj.content);
-                            $('#price').val('');
-                            $('#by_vendor').val('');
-                            $('#by_catalog').val('');
-                            $('#good_id').empty();
-                            $('#days').val('');
-                            $('#supplier_num').val('');
-                            $('#comment').val('');
-                            $('#qty').val('1');
-                            $(".modal").modal("hide");
+                        if (res == 'OK') {
+                            alert('Заявка поставщику создана!');
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -632,7 +633,7 @@
                     }
                 });
             }
-        });*/
+        });
 
         $('#get_offer_btn').click(function () {
             let error = 0;
@@ -653,62 +654,6 @@
             } else {
                 return true;
             }
-        });
-
-        $("#good_id").focus(function () {
-            $("#good_id").empty(); //очищаем от старых значений
-            let vendor_code = $("#by_vendor").val();
-            let by_catalog = $("#by_catalog").val();
-            if (vendor_code.length > 3) {
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('searchByVendor') }}',
-                    data: {'vendor_code': vendor_code},
-                    headers: {
-                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        //alert(res);
-                        $("#good_id").prepend($(res));
-                    }
-                });
-            }
-            if (by_catalog.length > 3) {
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('searchByAnalog') }}',
-                    data: {'analog_code': by_catalog},
-                    headers: {
-                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (res) {
-                        //alert(res);
-                        $("#good_id").prepend($(res));
-                    }
-                });
-            }
-        });
-
-        $('#new_order').click(function(e){
-            e.preventDefault();
-            let id = $('#id_doc').val();
-            $.ajax({
-                type: 'POST',
-                url: '{{ route('newOrder') }}',
-                data: {'id': id},
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (res) {
-                    //alert(res);
-                    if (res == 'BAD')
-                        alert('Выполнение операции запрещено!');
-                    if (res == 'NO')
-                        alert('Не известный метод!');
-                    if (res == 'OK')
-                        alert('Заявка поставщику создана!');
-                }
-            });
         });
 
         $('#del_app').click(function (e) {

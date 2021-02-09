@@ -124,6 +124,7 @@ class  SaleController extends Controller
                 'delivery_method_id' => 'required|integer',
                 'delivery_id' => 'required|integer',
                 'agreement_id' => 'required|integer',
+                'state' => 'required|integer',
                 'destination' => 'required|string|max:150',
                 'contact' => 'nullable|string|max:100',
                 'to_door' => 'nullable|integer',
@@ -374,6 +375,11 @@ class  SaleController extends Controller
             foreach ($methods as $val) {
                 $dmethods[$val->id] = $val->title;
             }
+            $firms = Firm::all();
+            $firmsel = array();
+            foreach ($firms as $val) {
+                $firmsel[$val->id] = $val->name;
+            }
             $deliveries = Delivery::all();
             $delivs = array();
             foreach ($deliveries as $val) {
@@ -423,6 +429,7 @@ class  SaleController extends Controller
                 'vat' => $vat,
                 'rows' => $rows,
                 'agrsel' => $agrsel,
+                'firmsel' => $firmsel,
                 'dmethods' => $dmethods,
                 'delivs' => $delivs,
                 'tbody' => $tbody,
@@ -468,6 +475,7 @@ class  SaleController extends Controller
                 'delivery_method_id' => 'required|integer',
                 'delivery_id' => 'required|integer',
                 'agreement_id' => 'required|integer',
+                'state' => 'required|integer',
                 'destination' => 'required|string|max:150',
                 'contact' => 'nullable|string|max:100',
                 'to_door' => 'nullable|integer',
@@ -484,6 +492,12 @@ class  SaleController extends Controller
             }
             $sale->fill($input);
             if ($sale->update()) {
+                //если есть связанный наряд на сборку - обновляем его статус
+                $shipment = Shipment::where('sale_id',$sale->id)->first();
+                if(!empty($shipment) && ($sale->state > 1)){
+                    $shipment->stage = $sale->state - 1;
+                    $shipment->update();
+                }
                 $msg = 'Данные заказа клиента № ' . $sale->doc_num . ' были успешно обновлены!';
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));

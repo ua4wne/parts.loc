@@ -12,6 +12,7 @@ use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Category;
 use Modules\Warehouse\Entities\Good;
 use Modules\Warehouse\Entities\Group;
+use Modules\Workflow\Entities\Agreement;
 use Modules\Workflow\Entities\PricingRule;
 use Validator;
 
@@ -78,7 +79,7 @@ class PricingRuleController extends Controller
                 'currency_id' => 'required|integer',
                 'user_id' => 'required|integer',
                 'category_id' => 'nullable|integer',
-                'good_id' => 'nullable|integer',
+                'agreement_id' => 'required|integer',
             ],$messages);
             if($validator->fails()){
                 return redirect()->back()->withErrors($validator)->withInput();
@@ -86,12 +87,7 @@ class PricingRuleController extends Controller
             if(!empty($input['category_id'])){
                 // есть такая запись или нет
                 PricingRule::updateOrCreate(['category_id' => $input['category_id'],'price_type'=> $input['price_type'],'currency_id'=>$input['currency_id']],
-                    ['title' => $input['title'],'ratio' => $input['ratio'],'user_id' => $input['user_id'],'good_id'=>$input['good_id']]);
-            }
-            else if(!empty($input['good_id'])){
-                // есть такая запись или нет
-                PricingRule::updateOrCreate(['good_id' => $input['good_id'],'price_type'=>$input['price_type'],'currency_id'=>$input['currency_id']],
-                    ['title' => $input['title'],'ratio' => $input['ratio'],'user_id' => $input['user_id'],'category_id'=>$input['category_id']]);
+                    ['title' => $input['title'],'ratio' => $input['ratio'],'user_id' => $input['user_id'],'agreement_id'=>$input['agreement_id']]);
             }
             else{
                 //dd($input);
@@ -116,11 +112,17 @@ class PricingRuleController extends Controller
             foreach ($cats as $val) {
                 $catsel[$val->id] = $val->category;
             }
+            $agrs = Agreement::whereNull('finish')->get();
+            $agrsel = array();
+            foreach ($agrs as $val) {
+                $agrsel[$val->id] = $val->title.' ('.$val->organisation->title.')';
+            }
             $data = [
                 'title' => 'Правила ценообразования',
                 'head' => 'Новое правило',
                 'cursel' => $cursel,
                 'catsel' => $catsel,
+                'agrsel' => $agrsel,
             ];
             return view('workflow::price_rule_add', $data);
         }
@@ -168,6 +170,7 @@ class PricingRuleController extends Controller
                 'ratio' => 'required|numeric',
                 'price_type' => 'required|in:retail,wholesale,small',
                 'currency_id' => 'required|integer',
+                'agreement_id' => 'required|integer',
             ],$messages);
             if($validator->fails()){
                 return redirect()->back()->withErrors($validator)->withInput();
@@ -194,11 +197,17 @@ class PricingRuleController extends Controller
             foreach ($cats as $val) {
                 $catsel[$val->id] = $val->category;
             }
+            $agrs = Agreement::whereNull('finish')->get();
+            $agrsel = array();
+            foreach ($agrs as $val) {
+                $agrsel[$val->id] = $val->title.' ('.$val->organisation->title.')';
+            }
             $data = [
                 'title' => 'Правила ценообразования',
                 'head' => 'Редактирование правила '.$old['title'],
                 'cursel' => $cursel,
                 'catsel' => $catsel,
+                'agrsel' => $agrsel,
                 'data' => $old,
             ];
             return view('workflow::price_rule_edit',$data);

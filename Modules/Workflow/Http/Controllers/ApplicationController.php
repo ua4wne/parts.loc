@@ -6,6 +6,8 @@ use App\Events\AddEventLogs;
 use App\Http\Controllers\Lib\LibController;
 use App\Models\Car;
 use App\Models\Currency;
+use App\Models\Hoperation;
+use App\Models\Organisation;
 use App\Models\Priority;
 use App\Models\Statuse;
 use App\User;
@@ -16,8 +18,10 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Good;
 use Modules\Warehouse\Entities\Unit;
+use Modules\Warehouse\Entities\Warehouse;
 use Modules\Workflow\Entities\Application;
 use Modules\Workflow\Entities\Firm;
+use Modules\Workflow\Entities\Order;
 use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\SetOffer;
 use Modules\Workflow\Entities\TblApplication;
@@ -169,6 +173,21 @@ class ApplicationController extends Controller
             foreach ($firms as $val) {
                 $firmsel[$val->id] = $val->title;
             }
+            $hops = Hoperation::all();
+            $hopsel = array();
+            foreach ($hops as $val) {
+                $hopsel[$val->id] = $val->title;
+            }
+            $orgs = Organisation::select('id', 'title')->where(['status' => 1])->get();
+            $orgsel = array();
+            foreach ($orgs as $val) {
+                $orgsel[$val->id] = $val->title;
+            }
+            $wxs = Warehouse::all();
+            $wxsel = array();
+            foreach ($wxs as $val) {
+                $wxsel[$val->id] = $val->title;
+            }
             $app = Application::find($id);
             $rows = TblApplication::where('application_id', $id)->get();
             $vat = env('VAT');
@@ -179,14 +198,22 @@ class ApplicationController extends Controller
             if(!empty($link)){
                 $tbody .= '<tr><td class="text-bold"><a href="/sales/view/'.$link->id.'" target="_blank">
                     Заказ клиента №' . $link->doc_num . '</a></td>';
-                if(isset($link->statuse_id)){
-                    $tbody .= '<td>' . $link->statuse->title . '</td>';
-                }
-                else{
-                    $tbody .= '<td></td>';
-                }
+                $tbody .= '<td>' . $link->status . '</td>';
                 $tbody .= '<td>'
                     . $link->created_at . '</td><td>' . $link->user->name . '</td></tr>';
+            }
+            $t_appl = TblApplication::select('order_id')->where('application_id',$id)->whereNotNull('order_id')->distinct()->get();
+            if(!empty($t_appl)){
+                foreach ($t_appl as $row){
+                    $order = Order::find($row->order_id);
+                    if(!empty($order)){
+                        $tbody .= '<tr><td class="text-bold"><a href="/orders/view/'.$order->id.'" target="_blank">
+                    Заказ поставщику №' . $order->doc_num . '</a></td>';
+                        $tbody .= '<td>' . $order->statuse->title . '</td>';
+                        $tbody .= '<td>'
+                            . $order->created_at . '</td><td>' . $order->user->name . '</td></tr>';
+                    }
+                }
             }
 
             $data = [
@@ -199,6 +226,9 @@ class ApplicationController extends Controller
                 'firmsel' => $firmsel,
                 'carsel' => $carsel,
                 'cursel' => $cursel,
+                'hopsel' => $hopsel,
+                'orgsel' => $orgsel,
+                'wxsel' => $wxsel,
                 'vat' => $vat,
                 'application' => $app,
                 'rows' => $rows,

@@ -87,10 +87,19 @@ class Sale extends Model
                 return 'Комплектуется';
                 break;
             case 2:
-                return 'Готов к отгрузке';
+                return 'Собран';
                 break;
             case 3:
+                return 'Собран частично';
+                break;
+            case 4:
+                return 'Оформление документов';
+                break;
+            case 5:
                 return 'Отгружен';
+                break;
+            case 6:
+                return 'Отгружен частично';
                 break;
         }
     }

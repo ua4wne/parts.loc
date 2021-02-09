@@ -19,6 +19,7 @@ use Modules\Warehouse\Entities\Good;
 use Modules\Warehouse\Entities\Specification;
 use Modules\Warehouse\Entities\Unit;
 use Modules\Warehouse\Entities\Warehouse;
+use Modules\Workflow\Entities\Application;
 use Modules\Workflow\Entities\Contract;
 use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Order;
@@ -247,6 +248,16 @@ class OrderController extends Controller
                             . $decl->declaration->created_at . '</td><td>' . $decl->declaration->user->name . '</td></tr>';
                     }
                 }
+            }
+            $t_appl = TblApplication::select('application_id')->where('order_id',$id)->first();
+            if(!empty($t_appl)){
+                $app = Application::find($t_appl->application_id);
+                $tbody .= '<tr><td class="text-bold"><a href="/applications/view/'.$app->id.'" target="_blank">
+                    Запрос по ценам №' . $app->doc_num . '</a></td>';
+                $tbody .= '<td>' . $app->statuse->title . '</td>';
+
+                $tbody .= '<td>'
+                    . $app->created_at . '</td><td>' . $app->user->name . '</td></tr>';
             }
             $data = [
                 'title' => 'Заказы поставщику',
@@ -747,17 +758,57 @@ class OrderController extends Controller
 
     public function newOrder(Request $request){
         if (!Role::granted('orders')) {
-            return 'NO';
+            return 'BAD';
         }
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $app_id = $input['id'];
-            $rows = TblApplication::where('application_id',$app_id)->distinct()->get(['firm_id']);
-            if(!empty($rows)){
-                foreach ($rows as $row){
-                    dd($row->firm_id);
+            $firm_id = Firm::where('name',$input['firm_id'])->first()->id;
+            $app_id = $input['application_id'];
+            $has_vat = 0;
+            if(!empty($input['has_vat']))
+                $has_vat = 1;
+            //создаем новый ордер если он ранее не создавался
+            $dbl = TblApplication::where(['application_id'=>$app_id,'firm_id'=>$firm_id])->whereNotNull('order_id')->count('id');
+            if($dbl)
+                return 'DBL';
+            $order = new Order();
+            $order->doc_num = LibController::GenNumberDoc('orders');
+            $order->firm_id = $firm_id;
+            $order->statuse_id = $input['statuse_id'];
+            $order->currency_id = $input['currency_id'];
+            $order->hoperation_id = $input['hoperation_id'];
+            $order->organisation_id = $input['organisation_id'];
+            $order->contract_id = $input['contract_id'];
+            $order->warehouse_id = $input['warehouse_id'];
+            $order->user_id = Auth::id();
+            $order->has_vat = $has_vat;
+            $order->created_at = date('Y-m-d H:i:s');
+            if($order->save()){
+                //заполняем табличную часть
+                $rows = TblApplication::where(['application_id'=>$app_id,'firm_id'=>$firm_id])->get();
+                if(!empty($rows)){
+                    foreach ($rows as $row){
+                        $tbl = new TblOrder();
+                        $tbl->order_id = $order->id;
+                        $tbl->good_id = $row->good_id;
+                        $tbl->sub_good_id = $row->good_id;
+                        $tbl->qty = $row->qty;
+                        $tbl->unit_id = $row->unit_id;
+                        $tbl->price = $row->price;
+                        $tbl->vat = $row->tbl_sale->vat;
+                        $tbl->created_at = date('Y-m-d H:i:s');
+                        if($tbl->save()){
+                            $row->order_id = $order->id;
+                            $row->update();
+                        }
+                    }
                 }
+                $msg = 'Заказ поставщику № ' . $order->doc_num . ' был успешно добавлен!';
+                //вызываем event
+                event(new AddEventLogs('info', Auth::id(), $msg));
+                return 'OK';
             }
         }
+        return 'NO';
     }
 }

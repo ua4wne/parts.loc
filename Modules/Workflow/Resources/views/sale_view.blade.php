@@ -1,5 +1,7 @@
 @extends('layouts.main')
-
+@section('user_css')
+    <link href="/css/select2.min.css" rel="stylesheet">
+@endsection
 @section('dashboard')
 
 @endsection
@@ -290,8 +292,7 @@
                                         Клиент: <span class="symbol required" aria-required="true"></span>
                                     </th>
                                     <td>
-                                        {!! Form::text('firm_id',$sale->firm_id,['class' => 'form-control','placeholder'=>'Начинайте вводить наименование поставщика','required'=>'required','id'=>'search_firm'])!!}
-                                        {!! $errors->first('firm_id', '<p class="text-danger">:message</p>') !!}
+                                        {!! Form::select('firm_id',$firmsel, $sale->firm_id, ['class' => 'form-control select2','required'=>'required','id'=>'firm_id']); !!}
                                     </td>
                                     <th>
                                         Договор: <span class="symbol required" aria-required="true"></span>
@@ -387,7 +388,10 @@
                                 </tr>
                                 <tr>
                                     <th>Статус</th>
-                                    <td>{{ $sale->status }}</td>
+                                    <td>
+                                        {!! Form::select('state',['0'=>'Создан','1'=>'Комплектуется','2'=>'Собран','3'=>'Собран частично','4'=>'Оформление документов',
+                                            '5'=>'Отгружен','6'=>'Отгружен частично'], $sale->state, ['class' => 'form-control','required'=>'required','id'=>'state']); !!}
+                                    </td>
                                     <th>Дополнительные условия:</th>
                                     <td>
                                         <div class="checkbox clip-check check-primary col-xs-4">
@@ -574,6 +578,7 @@
 
 @section('user_script')
     <script src="/js/bootstrap-typeahead.min.js"></script>
+    <script src="/js/select2.min.js"></script>
     {{--    <script src="/js/jquery.tabledit.min.js"></script>--}}
     <script>
         /*$('#doc_table').Tabledit({
@@ -583,6 +588,11 @@
                 editable: [[1, 'vendor_code'], [2, 'catalog_num'], [3, 'good_id'],[4, 'spec']]
             }
         });*/
+        $('.select2').css('width', '100%').select2({
+            placeholder: "Выбор контрагента",
+            allowClear: true
+        })
+
         $('#search_firm').typeahead({
             hint: true,
             highlight: true,
@@ -632,9 +642,9 @@
             $('#search_vendor').val('');
         });
 
-        $("#search_firm").blur(function () {
+        $("#firm_id").change(function () {
             $("#contract").empty(); //очищаем от старых значений
-            var firm = $("#search_firm").val();
+            var firm = $("#firm_id option:selected").text();
             var org_id = $("#org_id option:selected").val();
             $.ajax({
                 type: 'POST',

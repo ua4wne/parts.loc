@@ -57,7 +57,7 @@
                                 <th>Тип цены</th>
                                 <th>Валюта</th>
                                 <th>Категория товара</th>
-                                <th>Номенклатура</th>
+                                <th>Соглашение</th>
                                 <th>Автор</th>
                                 <th>Дата правки</th>
                                 <th>Действия</th>
@@ -71,7 +71,7 @@
                                     <td>{{ $row->price_name }}</td>
                                     <td>{{ $row->currency->title }}</td>
                                     <td>{{ $row->category }}</td>
-                                    <td>{{ $row->good }}</td>
+                                    <td>{{ $row->agreement->title }}</td>
                                     <td>{{ $row->user->name }}</td>
                                     <td>{{ $row->updated_at }}</td>
                                     <td style="width:110px;">

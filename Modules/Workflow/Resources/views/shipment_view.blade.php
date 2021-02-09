@@ -74,7 +74,8 @@
                                 <tr>
                                     <th>Статус</th>
                                     <td>
-                                        {!! Form::select('stage',['0'=>'Комплектуется','1'=>'Собран','2'=>'Готов к отгрузке','3'=>'Отгружен'], $doc->stage, ['class' => 'form-control','required'=>'required','id'=>'stage']); !!}
+                                        {!! Form::select('stage',['0'=>'Комплектуется','1'=>'Собран','2'=>'Собран частично','3'=>'Оформление документов',
+                                            '4'=>'Отгружен','5'=>'Отгружен частично'],$doc->stage, ['class' => 'form-control','required'=>'required','id'=>'stage']); !!}
                                     </td>
                                     <th>Приоритет</th>
                                     <td>
@@ -179,6 +180,7 @@
 @endsection
 
 @section('user_script')
+
     <script>
 
         $('#save_btn').click(function () {

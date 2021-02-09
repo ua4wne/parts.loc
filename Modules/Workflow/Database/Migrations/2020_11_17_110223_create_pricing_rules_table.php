@@ -18,12 +18,13 @@ class CreatePricingRulesTable extends Migration
             $table->string('title',100);
             $table->decimal('ratio');
             $table->string('price_type',10);
+            $table->integer('agreement_id')->unsigned();
+            $table->foreign('agreement_id')->references('id')->on('agreements');
             $table->integer('currency_id')->unsigned();
             $table->foreign('currency_id')->references('id')->on('currency');
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');
             $table->integer('category_id')->nullable();
-            $table->integer('good_id')->nullable();
             $table->timestamps();
         });
     }

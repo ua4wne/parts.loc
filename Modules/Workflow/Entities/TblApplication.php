@@ -21,6 +21,11 @@ class TblApplication extends Model
         return $this->belongsTo('Modules\Warehouse\Entities\Good', 'good_id', 'id');
     }
 
+    public function tbl_sale()
+    {
+        return $this->belongsTo('Modules\Workflow\Entities\TblSale', 'tbl_sale_id', 'id');
+    }
+
     public function car()
     {
         return $this->belongsTo('App\Models\Car', 'car_id', 'id');

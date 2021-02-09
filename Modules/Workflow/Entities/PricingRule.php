@@ -11,7 +11,12 @@ class PricingRule extends Model
     //указываем имя таблицы
     protected $table = 'pricing_rules';
 
-    protected $fillable = ['title','ratio','currency_id','category_id','good_id','user_id','price_type'];
+    protected $fillable = ['title','ratio','agreement_id','currency_id','category_id','user_id','price_type'];
+
+    public function agreement()
+    {
+        return $this->belongsTo('Modules\Workflow\Entities\Agreement','agreement_id','id');
+    }
 
     public function currency()
     {
@@ -46,15 +51,5 @@ class PricingRule extends Model
         if(!empty($this->category_id))
             $category = Category::find($this->category_id)->category;
         return $category;
-    }
-
-    public function getGoodAttribute()
-    {
-        $good = '';
-        if(!empty($this->good_id)){
-            $row = Good::find($this->good_id);
-            $good = $row->title . ' ( артикул '. $row->vendor_code . ')';
-        }
-        return $good;
     }
 }

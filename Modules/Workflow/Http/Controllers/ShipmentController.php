@@ -173,7 +173,7 @@ class ShipmentController extends Controller
                 if ($shipment->update()) {
                     $sale = Sale::find($shipment->sale_id);
                     if (!empty($sale)) {
-                        $sale->state = $input['stage'];
+                        $sale->state = $input['stage'] + 1;
                         $sale->update();
                     }
                     $rows = Relocation::where('sale_id', $shipment->sale_id)->get();

@@ -63,21 +63,22 @@
             </div>
 
             <div class="form-group">
+                <label class="col-xs-3 control-label">
+                    Соглашение об условии продаж: <span class="symbol required" aria-required="true"></span>
+                </label>
+                <div class="col-xs-8">
+                    {!! Form::select('agreement_id',$agrsel, $data['agreement_id'], ['class' => 'form-control','required'=>'required','id'=>'agr_id']); !!}
+                    {!! $errors->first('agreement_id', '<p class="text-danger">:message</p>') !!}
+                </div>
+            </div>
+
+            <div class="form-group">
                 {!! Form::label('category_id','Категория товаров:',['class' => 'col-xs-3 control-label'])   !!}
                 <div class="col-xs-8">
                     {!! Form::select('category_id',$catsel, $data['category_id'], ['class' => 'form-control','disabled'=>'disabled']); !!}
                     {!! $errors->first('category_id', '<p class="text-danger">:message</p>') !!}
                 </div>
             </div>
-
-            <div class="form-group">
-                {!! Form::label('good_id','Номенклатура:',['class' => 'col-xs-3 control-label'])   !!}
-                <div class="col-xs-8">
-                    {!! Form::text('good_id',$data['good_id'],['class' => 'form-control','disabled'=>'disabled'])!!}
-                    {!! $errors->first('good_id', '<p class="text-danger">:message</p>') !!}
-                </div>
-            </div>
-
 
             <div class="form-group">
                 <div class="col-xs-offset-2 col-xs-10">
