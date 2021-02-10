@@ -22,6 +22,7 @@ use Modules\Warehouse\Entities\Warehouse;
 use Modules\Workflow\Entities\Application;
 use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\Order;
+use Modules\Workflow\Entities\PricingRule;
 use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\SetOffer;
 use Modules\Workflow\Entities\TblApplication;
@@ -407,12 +408,17 @@ class ApplicationController extends Controller
             if ($app->update()) {
                 //обновляем цены и артикулы в связанной заявке клиента со своей наценкой
                 $rows = TblApplication::where('application_id',$id)->get();
+                $koeff = 1; //коэффициент наценки
                 if(!empty($rows)){
                     foreach ($rows as $row){
                         $pos = TblSale::find($row->tbl_sale_id);
                         if(!empty($pos)){
+                            //ищем ценовое правило
+                            $rule = PricingRule::where(['agreement_id'=>$pos->sale->agreement_id,'price_type'=>$pos->sale->price_type])->first();
+                            if(!empty($rule))
+                                $koeff = $rule->ratio;
                             $pos->sub_good_id = $row->good_id;
-                            $pos->price = $row->price;
+                            $pos->ratio = $koeff;
                             $pos->update();
                         }
                     }

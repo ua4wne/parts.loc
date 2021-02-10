@@ -123,9 +123,11 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Комментарий:</th>
+                        <th>Тип цены: <span class="symbol required" aria-required="true"></span></th>
                         <td>
-                            {!! Form::textarea('comment',null,['class'=>'form-control', 'rows' => 2, 'cols' => 50]) !!}
+                            {!! Form::select('price_type',['retail'=>'Розница','wholesale'=>'Оптовая','small'=>'Мелкооптовая'],
+                                old('price_type'), ['class' => 'form-control','required'=>'required','id'=>'price_type']); !!}
+                            {!! $errors->first('price_type', '<p class="text-danger">:message</p>') !!}
                         </td>
                         <th>
                             Валюта: <span class="symbol required" aria-required="true"></span>
@@ -157,6 +159,10 @@
                             </div>
                         </td>
                     </tr>
+                    <th>Комментарий:</th>
+                    <td colspan="3">
+                        {!! Form::textarea('comment',null,['class'=>'form-control', 'rows' => 2, 'cols' => 50]) !!}
+                    </td>
                 </table>
                 <div class="form-group">
                     <div class="col-xs-8">

@@ -4,10 +4,12 @@ namespace Modules\Workflow\Http\Controllers;
 
 use App\Events\AddEventLogs;
 use App\Http\Controllers\Lib\LibController;
+use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Entities\Role;
 use Modules\Warehouse\Entities\Location;
 use Modules\Warehouse\Entities\Reservation;
@@ -15,6 +17,7 @@ use Modules\Warehouse\Entities\Warehouse;
 use Modules\Workflow\Entities\Relocation;
 use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\Shipment;
+use Modules\Workflow\Entities\ShipmentUpload;
 use Modules\Workflow\Entities\TblSale;
 use Validator;
 use PDF;
@@ -126,6 +129,26 @@ class ShipmentController extends Controller
                     . $link->created_at . '</td><td>' . $link->user->name . '</td></tr>';
 
             }
+            $content = '';
+            $files = ShipmentUpload::where('shipment_id', $id)->get();
+            if (!empty($files)) {
+                foreach ($files as $file) {
+                    $content .= '<div class="col-sm-3">
+                                    <div class="panel panel-white no-radius text-center">
+                                        <div class="panel-body">
+                                             <div class="img-thumbnail">
+                                                <a href="'.Storage::url($file->path).'" data-fancybox="group">
+                                                    <img class="img-responsive" src="'.Storage::url($file->path).'" alt="">
+                                                </a>
+                                             </div>
+                                             <p class="links cl-effect-1">
+                                                <a href="#">Удалить</a>
+                                             </p>
+                                        </div>
+                                    </div>
+                                </div>';
+                }
+            }
             $data = [
                 'title' => 'Наряд на сборку',
                 'head' => 'Наряд на сборку №' . $doc->doc_num,
@@ -135,6 +158,7 @@ class ShipmentController extends Controller
                 'dstsel' => $dstsel,
                 'work_task' => $work_task,
                 'done_task' => $done_task,
+                'content' => $content,
             ];
 
             return view('workflow::shipment_view', $data);
@@ -217,8 +241,8 @@ class ShipmentController extends Controller
                                 </td>';
                     $work = Relocation::where(['sale_id' => $pos->sale_id, 'stage' => 0])->count('id');
                     $done = Relocation::where(['sale_id' => $pos->sale_id, 'stage' => 1])->count('id');
-                    if($work == 0){
-                        $doc = Shipment::where('sale_id',$pos->sale_id)->first();
+                    if ($work == 0) {
+                        $doc = Shipment::where('sale_id', $pos->sale_id)->first();
                         $doc->stage = 1;
                         $doc->update();
                     }
@@ -230,11 +254,42 @@ class ShipmentController extends Controller
         return 'NO';
     }
 
-    public function print($id){
+    public function print($id)
+    {
         $doc = Shipment::find($id);
         $rows = Relocation::where('sale_id', $doc->sale_id)->get();
         $head = 'Наряд на сборку №' . $doc->doc_num;
-        $pdf = PDF::loadView('workflow::shipment_print', compact('head','doc','rows')); //->setPaper('a4', 'landscape');
+        $pdf = PDF::loadView('workflow::shipment_print', compact('head', 'doc', 'rows')); //->setPaper('a4', 'landscape');
         return $pdf->download('task.pdf');
+    }
+
+    public function upload(Request $request)
+    {
+        if (!Role::granted('download') && !Role::granted('wh_work')) {
+            abort(503, 'У Вас нет прав на загрузку файлов!');
+        }
+        if ($request->hasFile('file')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $shipment = Shipment::find($input['id']);
+            $allow_ext = ['pdf', 'png', 'jpg', 'jpeg']; //разрешенные расширения для загрузки
+            foreach ($request->file() as $file) {
+                foreach ($file as $f) {
+                    //$name = time().'_'.$f->getClientOriginalName();
+                    //$f->move(storage_path('upload'), $name);
+                    $ext = $f->getClientOriginalExtension();
+                    if (in_array($ext, $allow_ext)) {
+                        $path = Storage::putFile('/public', new File($f));
+                        $model = new ShipmentUpload();
+                        $model->shipment_id = $shipment->id;
+                        $model->path = $path;
+                        $model->user_id = Auth::id();
+                        $model->created_at = date('Y-m-d H:i:s');
+                        $model->save();
+                    }
+                }
+            }
+            $msg = "Файлы успешно загружены!";
+            return redirect()->back()->with('status', $msg);
+        }
     }
 }

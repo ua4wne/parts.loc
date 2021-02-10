@@ -29,6 +29,7 @@ use Modules\Workflow\Entities\Agreement;
 use Modules\Workflow\Entities\Application;
 use Modules\Workflow\Entities\Contract;
 use Modules\Workflow\Entities\Firm;
+use Modules\Workflow\Entities\PricingRule;
 use Modules\Workflow\Entities\Sale;
 use Modules\Workflow\Entities\SetOffer;
 use Modules\Workflow\Entities\Shipment;
@@ -132,6 +133,7 @@ class  SaleController extends Controller
                 'user_id' => 'required|integer',
                 'date_agreement' => 'nullable|date',
                 'has_vat' => 'nullable|integer',
+                'price_type' => 'required|in:retail,wholesale,small',
                 'doc_num_firm' => 'nullable|string|max:15',
                 'date_firm' => 'nullable|date',
                 'comment' => 'nullable|string|max:254',
@@ -483,6 +485,7 @@ class  SaleController extends Controller
                 'user_id' => 'required|integer',
                 'date_agreement' => 'nullable|date',
                 'has_vat' => 'nullable|integer',
+                'price_type' => 'required|in:retail,wholesale,small',
                 'doc_num_firm' => 'nullable|string|max:15',
                 'date_firm' => 'nullable|date',
                 'comment' => 'nullable|string|max:254',
@@ -622,17 +625,18 @@ class  SaleController extends Controller
     public
     function setReserv(Request $request)
     {
-        if (!Role::granted('sales')) {//вызываем event
-            return 'BAD';
-        }
         if ($request->isMethod('post')) {
             $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
             if (empty($input['sale_id']))
                 return 'NO';
-            $rows = TblSale::where('sale_id', $input['sale_id'])->get();
+            $sale = Sale::find($input['sale_id']);
+            if (!User::hasRole('admin') || !User::isAuthor($sale->user_id)) {//вызываем event
+                return 'BAD';
+            }
+            $rows = TblSale::where('sale_id', $sale->id)->get();
             if (!empty($rows)) {
                 //определяем склад
-                $whs_id = Sale::find($input['sale_id'])->warehouse_id;
+                $whs_id = $sale->warehouse_id;
                 foreach ($rows as $row) {
                     $need_qty = $row->qty;
                     if ($row->qty > $row->reserved) { //нужно резервировать товар?
@@ -681,7 +685,7 @@ class  SaleController extends Controller
 
                     }
                 }
-                return 'OK';
+                return $this->getTable($sale->id);
             }
         }
         return 'NO';
@@ -690,17 +694,18 @@ class  SaleController extends Controller
     public
     function dropReserv(Request $request)
     {
-        if (!Role::granted('sales')) {//вызываем event
-            return 'BAD';
-        }
         if ($request->isMethod('post')) {
             $input = $request->except('_token', 'vendor_code'); //параметр _token нам не нужен
             if (empty($input['sale_id']))
                 return 'NO';
-            $rows = TblSale::where('sale_id', $input['sale_id'])->get();
+            $sale = Sale::find($input['sale_id']);
+            if (!User::hasRole('admin') || !User::isAuthor($sale->user_id)) {//вызываем event
+                return 'BAD';
+            }
+            $rows = TblSale::where('sale_id', $sale->id)->get();
             if (!empty($rows)) {
                 //определяем склад
-                $whs_id = Sale::find($input['sale_id'])->warehouse_id;
+                $whs_id = $sale->warehouse_id;
                 foreach ($rows as $row) {
                     //ищем резервирование позиции
                     $reserv = Reservation::where('tbl_sale_id', $row->id)->get();
@@ -736,7 +741,7 @@ class  SaleController extends Controller
                     }
                 }
             }
-            return 'OK';
+            return $this->getTable($sale->id);
         }
         return 'NO';
     }
@@ -881,35 +886,66 @@ class  SaleController extends Controller
     public function docTable(Request $request){
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $rows = TblSale::where('sale_id',$input['sale_id'])->get();
+            return $this->getTable($input['sale_id']);
+        }
+        return 'NO';
+    }
+
+    public function priceUpdate(Request $request){
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $sale = Sale::find($input['sale_id']);
+            if (!User::hasRole('admin') || !User::isAuthor($sale->user_id)) {//вызываем event
+                return 'BAD';
+            }
+            //ищем ценовое правило
+            $rule = PricingRule::where(['agreement_id'=>$sale->agreement_id,'price_type'=>$sale->price_type])->first();
+            $rows = TblSale::where('sale_id',$sale->id)->get();
             if(!empty($rows)){
-                $content = '';
                 foreach ($rows as $row){
-                    $content .= '<tr id="' . $row->id . '">
-                    <td>' . $row->good->vendor_code . '</td>
-                    <td>' . $row->good->title . '</td>
+                    if(!empty($rule)){
+                        $row->ratio = $rule->ratio;
+                        $row->update();
+                    }
+                }
+                return $this->getTable($sale->id);
+            }
+        }
+        return 'NO';
+    }
+
+    private function getTable($id){
+        $rows = TblSale::where('sale_id',$id)->get();
+        if(!empty($rows)){
+            $content = '';
+            foreach ($rows as $row){
+                $content .= '<tr id="' . $row->id . '">
+                    <td>' . $row->good->vendor_code . '</td>';
+                if($row->good->vendor_code == $row->sub_good->vendor_code)
+                    $content .= '<td>Оригинал</td>';
+                else
+                    $content .= '<td>' . $row->sub_good->vendor_code . '</td>';
+                $content .= '<td>' . $row->good->title . '</td>
                     <td>' . $row->comment . '</td>
                     <td>' . $row->qty . '</td>
                     <td>' . $row->reserved . '</td>
                     <td>' . $row->unit->title . '</td>
-                    <td>' . $row->price . '</td>
+                    <td>' . $row->price * $row->ratio . '</td>
                     <td>' . $row->amount . '</td>
                     <td>' . $row->vat . '</td>
                     <td>' . $row->vat_amount . '</td>
                     <td style="width:70px;">    <div class="form-group" role="group">';
-                    $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
+                $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
                             <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
                         </div>
                     </td>
                 </tr>';
-                }
-                $model = TblSale::where('sale_id',$input['sale_id'])->first();
-                $amount = $model->sale->amount + $model->sale->vat_amount;
-                $num = TblSale::where('sale_id', $model->sale_id)->count('id');
-                $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
-                return json_encode($result);
             }
+            $model = TblSale::where('sale_id',$id)->first();
+            $amount = $model->sale->amount + $model->sale->vat_amount;
+            $num = TblSale::where('sale_id', $model->sale_id)->count('id');
+            $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
+            return json_encode($result);
         }
-        return 'NO';
     }
 }

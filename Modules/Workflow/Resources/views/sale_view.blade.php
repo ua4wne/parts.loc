@@ -366,9 +366,11 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th>Комментарий:</th>
+                                    <th>Тип цены: <span class="symbol required" aria-required="true"></span></th>
                                     <td>
-                                        {!! Form::textarea('comment',$sale->comment,['class'=>'form-control', 'rows' => 2, 'cols' => 50]) !!}
+                                        {!! Form::select('price_type',['retail'=>'Розница','wholesale'=>'Оптовая','small'=>'Мелкооптовая'],
+                                            $sale->price_type, ['class' => 'form-control','required'=>'required','id'=>'price_type']); !!}
+                                        <em class="text-center text-danger">После смены типа цены не забудьте пересчитать цены в разделе Товары!!!</em>
                                     </td>
                                     <th>
                                         Валюта: <span class="symbol required" aria-required="true"></span>
@@ -416,6 +418,12 @@
                                                 Доставка включена в стоимость
                                             </label>
                                         </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Комментарий:</th>
+                                    <td colspan="3">
+                                        {!! Form::textarea('comment',$sale->comment,['class'=>'form-control', 'rows' => 2, 'cols' => 50]) !!}
                                     </td>
                                 </tr>
                             </table>
@@ -472,12 +480,17 @@
                                         </ul>
                                     </div>
                                     <a href="#">
+                                        <button type="button" class="btn btn-success btn-sm btn-o" id="update_price">
+                                            <i class="fa fa-rouble" aria-hidden="true"></i> Пересчитать цены
+                                        </button>
+                                    </a>
+                                    <a href="#">
                                         <button type="button" class="btn btn-danger btn-sm btn-o" id="del_sale">
                                             <i class="fa fa-trash" aria-hidden="true"></i> Отменить заявку
                                         </button>
                                     </a>
                                 @endif
-                                <h4 class="pull-right" id="state"> Всего позиций: {{ count($rows) }} на сумму с
+                                <h4 class="pull-right" id="hstate"> Всего позиций: {{ count($rows) }} на сумму с
                                     НДС: {{ $sale->amount + $sale->vat_amount }} руб.</h4>
                             </div>
                             <div class="col-md-12">
@@ -514,7 +527,7 @@
                                                     <td>{{ $row->qty }}</td>
                                                     <td>{{ $row->reserved }}</td>
                                                     <td>{{ $row->unit->title }}</td>
-                                                    <td>{{ $row->price }}</td>
+                                                    <td>{{ round($row->price * $row->ratio,2) }}</td>
                                                     <td>{{ $row->amount }}</td>
                                                     <td>{{ $row->vat }}</td>
                                                     <td>{{ $row->vat_amount }}</td>
@@ -700,23 +713,39 @@
                 let saleid = $("#id_doc").val();
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('setReserv') }}',
+                    url: '{{ route('dropReserv') }}',
                     data: {'sale_id': saleid},
                     headers: {
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function (res) {
-                        //alert(res);
-                        if (res == 'BAD') {
-                            alert('У Вас нет прав для редактирования документа!')
-                        }
-                        if (res == 'NO') {
-                            alert('Не известный запрос!')
-                        }
-                        if (res == 'OK') {
-                            alert('Резервирование товара выполнено!')
-                            window.location.reload();
-                        }
+                        $.ajax({
+                            type: 'POST',
+                            url: '{{ route('setReserv') }}',
+                            data: {'sale_id': saleid},
+                            headers: {
+                                'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function (res) {
+                                //alert(res);
+                                let obj = jQuery.parseJSON(res);
+                                if (res == 'BAD') {
+                                    alert('У Вас нет прав для редактирования документа!')
+                                }
+                                if (res == 'NO') {
+                                    alert('Не известный запрос!')
+                                }
+                                if (typeof obj === 'object') {
+                                    $('#hstate').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
+                                    $("#t_body").html(obj.content);
+                                    alert('Резервирование товара выполнено!');
+                                }
+                            },
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status);
@@ -741,15 +770,17 @@
                     },
                     success: function (res) {
                         //alert(res);
+                        let obj = jQuery.parseJSON(res);
                         if (res == 'BAD') {
                             alert('У Вас нет прав для редактирования документа!')
                         }
                         if (res == 'NO') {
                             alert('Не известный запрос!')
                         }
-                        if (res == 'OK') {
-                            alert('Резервирование товара отменено!')
-                            window.location.reload();
+                        if (typeof obj === 'object') {
+                            $('#hstate').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
+                            $("#t_body").html(obj.content);
+                            alert('Резервирование товара отменено!');
                         }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -760,6 +791,37 @@
             } else {
                 return false;
             }
+        });
+
+        $('#update_price').click(function () {
+            let saleid = $("#id_doc").val();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('salePriceUpdate') }}',
+                data: {'sale_id': saleid},
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    //alert(res);
+                    let obj = jQuery.parseJSON(res);
+                    if (res == 'BAD') {
+                        alert('У Вас нет прав для редактирования документа!')
+                    }
+                    if (res == 'NO') {
+                        alert('Не известный запрос!')
+                    }
+                    if (typeof obj === 'object') {
+                        $('#hstate').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
+                        $("#t_body").html(obj.content);
+                        alert('Пересчет цен выполнен!');
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
+            });
         });
 
         $('#save_btn').click(function () {

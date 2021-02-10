@@ -1,5 +1,7 @@
 @extends('layouts.main')
-
+@section('user_css')
+    <link href="/css/jquery.fancybox.min.css" rel="stylesheet">
+@endsection
 @section('dashboard')
 
 @endsection
@@ -53,6 +55,11 @@
                                 Цепочка документов
                             </a>
                         </li>
+                        <li>
+                            <a href="#upfiles" data-toggle="tab">
+                                Файлы
+                            </a>
+                        </li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane fade in active" id="common">
@@ -93,18 +100,19 @@
                                         </div>
                                     </td>
                                 </tr>
-                            {!! Form::close() !!}
+                                {!! Form::close() !!}
                             </table>
                             <div class="panel-heading">
                                 @if($work_task)
-                                <a href="{{ route('shipmentPrint',['id'=>$doc->id]) }}">
-                                    <button type="button" class="btn btn-primary btn-sm btn-o" id="print">
-                                        <i class="fa fa-print" aria-hidden="true"></i> Печать заданий
-                                    </button>
-                                </a>
+                                    <a href="{{ route('shipmentPrint',['id'=>$doc->id]) }}">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="print">
+                                            <i class="fa fa-print" aria-hidden="true"></i> Печать заданий
+                                        </button>
+                                    </a>
                                 @endif
                                 @if($rows)
-                                    <h4 class="pull-right" id="state"> Выполнено заданий: {{ $done_task }} из {{ $work_task }}</h4>
+                                    <h4 class="pull-right" id="state"> Выполнено заданий: {{ $done_task }}
+                                        из {{ $work_task }}</h4>
                                 @else
                                     <h4 class="pull-right" id="state"> Выполнено заданий: 0 из 0</h4>
                                 @endif
@@ -132,11 +140,11 @@
                                                 <td>{{ $row->unit->title }}</td>
                                                 <td style="width:70px;">
                                                     @if($row->stage)
-                                                    <button class="btn btn-success btn-sm"
-                                                            type="button" title="Перемещено"><i
-                                                            class="fa fa-cart-arrow-down fa-lg"
-                                                            aria-hidden="true"></i>
-                                                    </button>
+                                                        <button class="btn btn-success btn-sm"
+                                                                type="button" title="Перемещено"><i
+                                                                class="fa fa-cart-arrow-down fa-lg"
+                                                                aria-hidden="true"></i>
+                                                        </button>
                                                     @else
                                                         <button class="btn btn-warning btn-sm pos_edit"
                                                                 type="button" title="Переместить"><i
@@ -171,6 +179,38 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="tab-pane fade" id="upfiles">
+                            <a href="#" onclick="$('.form').show(); $('.fa-plus-square-o').hide(); $('.fa-minus-square-o').show(); return false;"><i
+                                    class="fa fa-plus-square-o fa-lg" aria-hidden="true"></i></a>
+                            <a href="#" onclick="$('.form').hide(); $('.fa-minus-square-o').hide(); $('.fa-plus-square-o').show(); return false;"><i
+                                    class="fa fa-minus-square-o fa-lg" aria-hidden="true"></i></a>
+                            <div class="form">
+                                {!! Form::open(['url' => route('shipmentUpload'),'class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
+                                {!! Form::hidden('id',$doc->id,['class' => 'form-control','required'=>'required']) !!}
+                                <fieldset>
+                                    <legend>Загрузка файлов</legend>
+                                    <div class="form-group">
+                                        <div class="col-xs-6">
+                                            <p class="list-group-item list-group-item-warning">
+                                                К загрузке разрешены только файлы изображений и PDF
+                                            </p>
+                                            {!! Form::file('file[]', ['class' => 'form-control','data-buttonText'=>'Выберите файлы',
+                                            'data-buttonName'=>"btn-primary",'data-placeholder'=>"Файлы не выбраны",'required'=>'required',
+                                            'id'=>'file','multiple'=>'multiple']) !!}
+                                            <br>
+                                            <input type="submit" class="btn btn-primary pull-right" value="Загрузить">
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                {!! Form::close() !!}
+                            </div>
+
+                            <div class="panel panel-body">
+                                <div class="row" id="result">
+                                    {!! $content !!}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -180,8 +220,15 @@
 @endsection
 
 @section('user_script')
-
+    <script src="/js/jquery.fancybox.min.js"></script>
     <script>
+        $('.form').hide();
+        $('.fa-minus-square-o').hide();
+
+        $().fancybox({
+            selector : '[data-fancybox="images"]',
+            loop     : true
+        });
 
         $('#save_btn').click(function () {
             let error = 0;
@@ -222,7 +269,7 @@
                         if (typeof obj === 'object') {
                             $('#state').text('Выполнено заданий: ' + obj.done + ' из ' + obj.work);
                             $('#' + id).html(obj.content);
-                            if(obj.work == 0) {
+                            if (obj.work == 0) {
                                 $('#stage option[value=1]').prop('selected', true);
                                 $('#print').hide();
                             }

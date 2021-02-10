@@ -10,7 +10,7 @@ class TblSale extends Model
 {
     protected $table = 'tbl_sales';
 
-    protected $fillable = ['sale_id','good_id','sub_good_id','comment','qty','unit_id','price','vat','reserved'];
+    protected $fillable = ['sale_id','good_id','sub_good_id','comment','qty','unit_id','price','ratio','vat','reserved'];
 
     public function sale()
     {
@@ -34,13 +34,13 @@ class TblSale extends Model
 
     public function getAmountAttribute()
     {
-        return $this->qty * $this->price;
+        return $this->qty * $this->price * $this->ratio;
     }
 
     public function getVatAmountAttribute()
     {
         if ($this->vat)
-            return round(($this->qty * $this->price) / ($this->vat + 100) * $this->vat, 2);
+            return round(($this->qty * $this->price * $this->ratio) / ($this->vat + 100) * $this->vat, 2);
         else
             return 0;
     }

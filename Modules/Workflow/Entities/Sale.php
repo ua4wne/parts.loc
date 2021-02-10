@@ -11,7 +11,7 @@ class Sale extends Model
 
     protected $fillable = ['doc_num','firm_id','organisation_id','contract_id','warehouse_id','currency_id','delivery_method_id',
         'delivery_id','destination','contact','to_door','delivery_in_price','user_id','date_agreement','has_vat','state',
-        'doc_num_firm','date_firm','comment','agreement_id'];
+        'doc_num_firm','date_firm','comment','agreement_id','price_type'];
 
     public function user()
     {

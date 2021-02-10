@@ -27,6 +27,7 @@ class CreateTblSalesTable extends Migration
             $table->integer('unit_id')->unsigned();
             $table->foreign('unit_id')->references('id')->on('units');
             $table->decimal('price');
+            $table->decimal('ratio')->default(1);
             $table->tinyInteger('vat')->unsigned();
             $table->timestamps();
         });

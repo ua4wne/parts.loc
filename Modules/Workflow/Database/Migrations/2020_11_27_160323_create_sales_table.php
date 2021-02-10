@@ -41,6 +41,7 @@ class CreateSalesTable extends Migration
             $table->date('date_agreement')->nullable();
             $table->boolean('has_vat')->nullable()->default(0);
             $table->boolean('state')->default(0);
+            $table->string('price_type',10);
             $table->string('doc_num_firm',15)->nullable();
             $table->date('date_firm')->nullable();
             $table->string('comment',255)->nullable();
