@@ -370,7 +370,8 @@
                                     <td>
                                         {!! Form::select('price_type',['retail'=>'Розница','wholesale'=>'Оптовая','small'=>'Мелкооптовая'],
                                             $sale->price_type, ['class' => 'form-control','required'=>'required','id'=>'price_type']); !!}
-                                        <em class="text-center text-danger">После смены типа цены не забудьте пересчитать цены в разделе Товары!!!</em>
+                                        <em class="text-center text-danger">После смены типа цены не забудьте
+                                            пересчитать цены в разделе Товары!!!</em>
                                     </td>
                                     <th>
                                         Валюта: <span class="symbol required" aria-required="true"></span>
@@ -460,36 +461,40 @@
                                             <i class="fa fa-square-o" aria-hidden="true"></i> Снять резерв
                                         </button>
                                     </a>
-
-                                    <div class="btn-group">
-                                        <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
-                                           href="#" aria-expanded="false">
-                                            Создать на основании <span class="caret"></span>
-                                        </a>
-                                        <ul role="menu" class="dropdown-menu dropdown-light">
+                                @endif
+                                <div class="btn-group">
+                                    <a class="btn btn-primary btn-o btn-sm dropdown-toggle" data-toggle="dropdown"
+                                       href="#" aria-expanded="false">
+                                        Создать на основании <span class="caret"></span>
+                                    </a>
+                                    <ul role="menu" class="dropdown-menu dropdown-light">
+                                        @if($sale->state == 0)
                                             <li>
                                                 <a href="#" id="new_appl">
                                                     Запрос по ценам
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="#" id="new_invoice">
-                                                    Счет на оплату
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <a href="#">
-                                        <button type="button" class="btn btn-success btn-sm btn-o" id="update_price">
-                                            <i class="fa fa-rouble" aria-hidden="true"></i> Пересчитать цены
-                                        </button>
-                                    </a>
+                                        @endif
+                                        <li>
+                                            <a href="{{ route('saleInvoice',['id'=>$sale->id]) }}">
+                                                Счет на оплату
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <a href="#">
+                                    <button type="button" class="btn btn-success btn-sm btn-o" id="update_price">
+                                        <i class="fa fa-rouble" aria-hidden="true"></i> Пересчитать цены
+                                    </button>
+                                </a>
+                                @if($sale->state == 0)
                                     <a href="#">
                                         <button type="button" class="btn btn-danger btn-sm btn-o" id="del_sale">
                                             <i class="fa fa-trash" aria-hidden="true"></i> Отменить заявку
                                         </button>
                                     </a>
                                 @endif
+
                                 <h4 class="pull-right" id="hstate"> Всего позиций: {{ count($rows) }} на сумму с
                                     НДС: {{ $sale->amount + $sale->vat_amount }} руб.</h4>
                             </div>

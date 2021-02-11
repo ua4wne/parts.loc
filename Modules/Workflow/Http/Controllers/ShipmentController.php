@@ -4,6 +4,7 @@ namespace Modules\Workflow\Http\Controllers;
 
 use App\Events\AddEventLogs;
 use App\Http\Controllers\Lib\LibController;
+use App\User;
 use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -133,7 +134,7 @@ class ShipmentController extends Controller
             $files = ShipmentUpload::where('shipment_id', $id)->get();
             if (!empty($files)) {
                 foreach ($files as $file) {
-                    $content .= '<div class="col-sm-3">
+                    $content .= '<div class="col-sm-3" id="'.$file->id.'">
                                     <div class="panel panel-white no-radius text-center">
                                         <div class="panel-body">
                                              <div class="img-thumbnail">
@@ -141,8 +142,8 @@ class ShipmentController extends Controller
                                                     <img class="img-responsive" src="'.Storage::url($file->path).'" alt="">
                                                 </a>
                                              </div>
-                                             <p class="links cl-effect-1">
-                                                <a href="#">Удалить</a>
+                                             <p>
+                                                <a class="btn btn-wide btn-red del_pos" href="#"><i class="fa fa-trash-o"></i> Удалить</a>
                                              </p>
                                         </div>
                                     </div>
@@ -271,7 +272,9 @@ class ShipmentController extends Controller
         if ($request->hasFile('file')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $shipment = Shipment::find($input['id']);
-            $allow_ext = ['pdf', 'png', 'jpg', 'jpeg']; //разрешенные расширения для загрузки
+            $allow_ext = ['pdf', 'png', 'jpg', 'jpeg','xlsx','xls','docx','doc']; //разрешенные расширения для загрузки
+            $err = '';
+            $msg = '';
             foreach ($request->file() as $file) {
                 foreach ($file as $f) {
                     //$name = time().'_'.$f->getClientOriginalName();
@@ -285,11 +288,36 @@ class ShipmentController extends Controller
                         $model->user_id = Auth::id();
                         $model->created_at = date('Y-m-d H:i:s');
                         $model->save();
+                        $msg .= 'Файл '.$f->getClientOriginalName().' успешно загружен!'.PHP_EOL;
+                    }
+                    else{
+                        $err .= 'Файл '.$f->getClientOriginalName().' запрещен к загрузке!'.PHP_EOL;
                     }
                 }
             }
-            $msg = "Файлы успешно загружены!";
-            return redirect()->back()->with('status', $msg);
+            return redirect()->back()->with('status', $msg)->with('error',$err);
         }
+    }
+
+    public function delFile(Request $request){
+        if ($request->isMethod('post')) {
+            $input = $request->except('_token'); //параметр _token нам не нужен
+            $file = ShipmentUpload::find($input['id']);
+            if (!User::hasRole('admin') || !User::isAuthor($file->user_id)) {//вызываем event
+                return 'BAD';
+            }
+            $path =  Storage::url($file->path);
+            $pos = strrpos($path, "/");
+            if($pos){
+                $pos ++;
+                $path = substr($path,$pos);
+            }
+            $f = Storage::disk('public');
+            if($f->delete($path)){
+                $file->delete();
+                return 'OK';
+            }
+        }
+        return 'NO';
     }
 }

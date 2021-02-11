@@ -8,7 +8,12 @@ class Reservation extends Model
 {
     protected $table = 'reservations';
 
-    protected $fillable = ['location_id','tbl_sale_id','qty'];
+    protected $fillable = ['warehouse_id','location_id','tbl_sale_id','qty'];
+
+    public function warehouse()
+    {
+        return $this->belongsTo('Modules\Warehouse\Entities\Warehouse','warehouse_id','id');
+    }
 
     public function location()
     {
@@ -25,7 +30,7 @@ class Reservation extends Model
         return $this->belongsTo('Modules\Warehouse\Entities\Unit','unit_id','id');
     }
 
-    public function getFreeQtyAttribute()
+    /*public function getFreeQtyAttribute()
     {
         if(!empty($this->good_id)){
             $good = Good::find($this->good_id);
@@ -37,5 +42,5 @@ class Reservation extends Model
             }
         }
         return 0;
-    }
+    }*/
 }

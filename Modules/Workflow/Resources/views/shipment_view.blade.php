@@ -180,9 +180,11 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="upfiles">
-                            <a href="#" onclick="$('.form').show(); $('.fa-plus-square-o').hide(); $('.fa-minus-square-o').show(); return false;"><i
+                            <a href="#"
+                               onclick="$('.form').show(); $('.fa-plus-square-o').hide(); $('.fa-minus-square-o').show(); return false;"><i
                                     class="fa fa-plus-square-o fa-lg" aria-hidden="true"></i></a>
-                            <a href="#" onclick="$('.form').hide(); $('.fa-minus-square-o').hide(); $('.fa-plus-square-o').show(); return false;"><i
+                            <a href="#"
+                               onclick="$('.form').hide(); $('.fa-minus-square-o').hide(); $('.fa-plus-square-o').show(); return false;"><i
                                     class="fa fa-minus-square-o fa-lg" aria-hidden="true"></i></a>
                             <div class="form">
                                 {!! Form::open(['url' => route('shipmentUpload'),'class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
@@ -192,7 +194,7 @@
                                     <div class="form-group">
                                         <div class="col-xs-6">
                                             <p class="list-group-item list-group-item-warning">
-                                                К загрузке разрешены только файлы изображений и PDF
+                                                К загрузке разрешены только файлы изображений, PDF, Word и Excel
                                             </p>
                                             {!! Form::file('file[]', ['class' => 'form-control','data-buttonText'=>'Выберите файлы',
                                             'data-buttonName'=>"btn-primary",'data-placeholder'=>"Файлы не выбраны",'required'=>'required',
@@ -226,9 +228,12 @@
         $('.fa-minus-square-o').hide();
 
         $().fancybox({
-            selector : '[data-fancybox="images"]',
-            loop     : true
+            selector: '[data-fancybox="images"]',
+            loop: true
         });
+
+        $(".img-responsive").css("height", "300px");
+
 
         $('#save_btn').click(function () {
             let error = 0;
@@ -279,6 +284,35 @@
 
             }
         }, ".pos_edit");
+
+        $(document).on({
+            click: function (e) {
+                e.preventDefault();
+                let id = $(this).parent().parent().parent().parent().attr('id');
+                let x = confirm("Выбранный файл будет удален. Продолжить (Да/Нет)?");
+                if (x) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('shipmentDelFile') }}',
+                        data: {'id': id},
+                        headers: {
+                            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (res) {
+                            //alert(res);
+                            if (res == 'BAD')
+                                alert('Выполнение операции запрещено!');
+                            if (res == 'NO')
+                                alert('Не известный метод!');
+                            if (res == 'OK')
+                                $('#' + id).hide();
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            }
+        }, ".del_pos");
 
     </script>
 @endsection

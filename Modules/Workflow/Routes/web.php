@@ -198,6 +198,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{id}', ['uses'=>'ShipmentController@print','as'=>'shipmentPrint']);
         //shipments/upload
         Route::post('/upload',['uses'=>'ShipmentController@upload','as'=>'shipmentUpload']);
+        //shipments/del-file
+        Route::post('/del-file',['uses'=>'ShipmentController@delFile','as'=>'shipmentDelFile']);
     });
 
     //sales/ группа обработки роутов sales
@@ -239,6 +241,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/table',['uses'=>'SaleController@docTable','as'=>'saleTable']);
         //sales/update-price
         Route::post('/update-price',['uses'=>'SaleController@priceUpdate','as'=>'salePriceUpdate']);
+        //sales/invoice
+        Route::get('/invoice/{id}',['uses'=>'SaleController@getInvoice','as'=>'saleInvoice']);
     });
 
     //applications/ группа обработки роутов applications

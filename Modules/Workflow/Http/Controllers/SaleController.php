@@ -12,6 +12,7 @@ use App\Models\Organisation;
 use App\Models\Priority;
 use App\Models\Statuse;
 use App\User;
+use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -27,6 +28,7 @@ use Modules\Warehouse\Entities\Unit;
 use Modules\Warehouse\Entities\Warehouse;
 use Modules\Workflow\Entities\Agreement;
 use Modules\Workflow\Entities\Application;
+use Modules\Workflow\Entities\Contact;
 use Modules\Workflow\Entities\Contract;
 use Modules\Workflow\Entities\Firm;
 use Modules\Workflow\Entities\PricingRule;
@@ -51,7 +53,7 @@ class  SaleController extends Controller
         if (view()->exists('workflow::sales_area')) {
             $title = 'Рабочее место менеджера';
             $rows = Good::offset(0)->limit(10)->get();
-            $sales = Sale::where('state','<',3)->orderBy('created_at','desc')->get();
+            $sales = Sale::where('state', '<', 3)->orderBy('created_at', 'desc')->get();
             $firms = Firm::all();
             $firmsel = array();
             foreach ($firms as $val) {
@@ -285,27 +287,33 @@ class  SaleController extends Controller
                         }
                         break;
                     case 'stock':
-                        $rows = Stock::where('good_id', $id)->get();
-                        if (!empty($rows)) {
-                            foreach ($rows as $row) {
-                                $content .= '<tr><td>' . $row->warehouse->title . '</td>';
-                                $content .= '<td>' . $row->good->title . '</td>';
-                                $content .= '<td>' . $row->location->title . '</td>';
-                                $content .= '<td>' . $row->qty . '</td>';
-                                $content .= '<td>' . $row->unit->title . '</td>';
-                                $content .= '<td>' . $row->cost . '</td>';
-                                $content .= '<td>' . $row->consignment . '</td></tr>';
+                        $whs = Warehouse::all();
+                        if(!empty($whs)){
+                            foreach ($whs as $wh){
+                                $rows = DB::select("SELECT warehouse_id, good_id, unit_id, SUM(qty) AS sum_qty,
+                                                    SUM(cost) AS sum_cost FROM stocks WHERE good_id = $id AND warehouse_id = $wh->id
+                                                    GROUP BY warehouse_id,unit_id");
+                                if (!empty($rows)) {
+                                    foreach ($rows as $row) {
+                                        $content .= '<tr><td>' . Warehouse::find($wh->id)->title . '</td>';
+                                        $content .= '<td>' . Good::find($row->good_id)->title . '</td>';
+                                        $content .= '<td>' . $row->sum_qty . '</td>';
+                                        $content .= '<td>free</td>';
+                                        $content .= '<td>' . Unit::find($row->unit_id)->title . '</td>';
+                                        $content .= '<td>' . $row->sum_cost . '</td>';
+                                    }
+                                }
                             }
                         }
                         break;
                     case 'offers':
-                        $rows = TblApplication::where('good_id', $id)->orderBy('created_at','desc')->limit(5)->get();
+                        $rows = TblApplication::where('good_id', $id)->orderBy('created_at', 'desc')->limit(5)->get();
                         if (!empty($rows)) {
                             foreach ($rows as $row) {
-                                $offer = SetOffer::where('tbl_application_id',$row->id)->first();
-                                if(!empty($offer)){
+                                $offer = SetOffer::where('tbl_application_id', $row->id)->first();
+                                if (!empty($offer)) {
                                     $sale = Sale::find($row->application->sale_id);
-                                    $content .= '<tr><td><a href="/applications/view/'.$row->application_id.'" target="_blank">'
+                                    $content .= '<tr><td><a href="/applications/view/' . $row->application_id . '" target="_blank">'
                                         . $row->application->doc_num . '</a></td>';
                                     $content .= '<td>' . $offer->firm->name . '</td>';
                                     $content .= '<td>' . $offer->delivery_time . '</td>';
@@ -496,8 +504,8 @@ class  SaleController extends Controller
             $sale->fill($input);
             if ($sale->update()) {
                 //если есть связанный наряд на сборку - обновляем его статус
-                $shipment = Shipment::where('sale_id',$sale->id)->first();
-                if(!empty($shipment) && ($sale->state > 1)){
+                $shipment = Shipment::where('sale_id', $sale->id)->first();
+                if (!empty($shipment) && ($sale->state > 1)) {
                     $shipment->stage = $sale->state - 1;
                     $shipment->update();
                 }
@@ -531,6 +539,7 @@ class  SaleController extends Controller
                 $input['comment'] = Specification::find($input['comment'])->title;
             $model = new TblSale();
             $model->fill($input);
+            $model->sub_good_id = $model->good_id;
             $model->created_at = date('Y-m-d H:i:s');
             $model->reserved = 0;
             if ($model->save()) {
@@ -539,6 +548,7 @@ class  SaleController extends Controller
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 $content = '<tr id="' . $model->id . '">
                     <td>' . $model->good->vendor_code . '</td>
+                    <td>' . $model->sub_good->vendor_code . '</td>
                     <td>' . $model->good->title . '</td>
                     <td>' . $model->comment . '</td>
                     <td>' . $model->qty . '</td>
@@ -643,16 +653,23 @@ class  SaleController extends Controller
                         //определяем сумму необходимого резерва
                         $need_qty -= $row->reserved_qty;
                         //смотрим остатки на складе
-                        $free_qty = $this->getFreeQty($whs_id, $row->sub_good_id);
+                        if($row->good_id == $row->sub_good_id)
+                            $free_qty = $this->getFreeQty($whs_id, $row->good_id);
+                        else
+                            $free_qty = $this->getFreeQty($whs_id, $row->sub_good_id);
                         if ($need_qty && $free_qty) { //нужен резерв и есть остатки на складе
                             //резервируем товар
-                            $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->sub_good_id])->get();
+                            if($row->good_id == $row->sub_good_id)
+                                $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->good_id])->get();
+                            else
+                                $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->sub_good_id])->get();
                             if (!empty($leftovers)) {
                                 foreach ($leftovers as $stock) {
                                     if (!$stock->location->out_lock) { //ячейка не заблокирована на выход
                                         $reserv = new Reservation();
                                         $location = Location::find($stock->location_id);
                                         if ($stock->qty >= $need_qty) {
+                                            $reserv->warehouse_id = $whs_id;
                                             $reserv->location_id = $location->id;
                                             $reserv->tbl_sale_id = $row->id;
                                             $reserv->qty = $stock->qty - $need_qty;
@@ -666,6 +683,7 @@ class  SaleController extends Controller
                                             break;
                                         }
                                         if ($stock->qty < $need_qty) {
+                                            $reserv->warehouse_id = $whs_id;
                                             $reserv->location_id = $location->id;
                                             $reserv->tbl_sale_id = $row->id;
                                             $reserv->qty = $stock->qty;
@@ -713,10 +731,13 @@ class  SaleController extends Controller
                         //снимаем резервы
                         foreach ($reserv as $pos) {
                             //товар в ячейке на складе еще есть?
-                            $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->sub_good_id])->get();
+                            if($row->good_id == $row->sub_good_id)
+                                $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->good_id])->get();
+                            else
+                                $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->sub_good_id])->get();
                             if (empty($stock)) {
                                 $stock = new Stock();
-                                $stock->warehouse_id = $whs_id;
+                                $stock->warehouse_id = $pos->warehouse_id;
                                 $stock->good_id = $row->sub_good_id;
                                 $stock->location_id = $pos->location_id;
                                 $stock->qty = $pos->qty;
@@ -806,7 +827,8 @@ class  SaleController extends Controller
         return $qty;
     }
 
-    public function delete(Request $request){
+    public function delete(Request $request)
+    {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $id = $input['sale_id'];
@@ -818,7 +840,7 @@ class  SaleController extends Controller
                     abort(503, 'У Вас нет прав на удаление документа!');
                 }
                 $msg = "В процессе удаления документа произошла ошибка!";
-                if($sale->delete()){
+                if ($sale->delete()) {
                     $msg = 'Удалена заявка клиента № ' . $sale->doc_num;
                     //вызываем event
                     event(new AddEventLogs('info', Auth::id(), $msg));
@@ -828,7 +850,8 @@ class  SaleController extends Controller
         }
     }
 
-    public function delSale(Request $request){
+    public function delSale(Request $request)
+    {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $id = $input['id'];
@@ -837,7 +860,7 @@ class  SaleController extends Controller
                 if (!User::hasRole('admin') || !User::isAuthor($sale->user_id)) {//вызываем event
                     return 'BAD';
                 }
-                if($sale->delete()){
+                if ($sale->delete()) {
                     $msg = 'Удалена заявка клиента № ' . $sale->doc_num;
                     //вызываем event
                     event(new AddEventLogs('info', Auth::id(), $msg));
@@ -848,27 +871,28 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    public function docList(Request $request){
+    public function docList(Request $request)
+    {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
-            $sales = Sale::where('state','<',3)->orderBy('created_at','desc')->get();
+            $sales = Sale::where('state', '<', 3)->orderBy('created_at', 'desc')->get();
             $content = '';
-            if(!empty($sales)){
-                foreach ($sales as $row){
-                    $content .= '<tr id="sale'.$row->id.'" class="row_clicable sale-pos" style="cursor: pointer;">
-                                    <td>'.$row->doc_num.'</td>
-                                    <td>'.$row->created_at.'</td>
-                                    <td>'.$row->amount.'</td>
-                                    <td>'.$row->firm->title.'</td>
-                                    <td>'.$row->status.'</td>
-                                    <td>'.$row->date_agreement.'</td>
+            if (!empty($sales)) {
+                foreach ($sales as $row) {
+                    $content .= '<tr id="sale' . $row->id . '" class="row_clicable sale-pos" style="cursor: pointer;">
+                                    <td>' . $row->doc_num . '</td>
+                                    <td>' . $row->created_at . '</td>
+                                    <td>' . $row->amount . '</td>
+                                    <td>' . $row->firm->title . '</td>
+                                    <td>' . $row->status . '</td>
+                                    <td>' . $row->date_agreement . '</td>
                                     <td>%</td>
                                     <td>%</td>
-                                    <td>'.$row->currency->title.'</td>
-                                    <td>'.$row->user->name.'</td>
+                                    <td>' . $row->currency->title . '</td>
+                                    <td>' . $row->user->name . '</td>
                                     <td style="width:100px;">
                                         <div class="form-group" role="group">
-                                            <a href="/sales/view/'.$row->id.'" target="_blank">
+                                            <a href="/sales/view/' . $row->id . '" target="_blank">
                                                 <button class="btn btn-info" type="button" title="Просмотр записи"><i class="fa fa-eye fa-lg>" aria-hidden="true"></i></button>
                                             </a>
                                             <button class="btn btn-danger del_pos" type="button"
@@ -883,7 +907,8 @@ class  SaleController extends Controller
         }
     }
 
-    public function docTable(Request $request){
+    public function docTable(Request $request)
+    {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             return $this->getTable($input['sale_id']);
@@ -891,7 +916,8 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    public function priceUpdate(Request $request){
+    public function priceUpdate(Request $request)
+    {
         if ($request->isMethod('post')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $sale = Sale::find($input['sale_id']);
@@ -899,11 +925,11 @@ class  SaleController extends Controller
                 return 'BAD';
             }
             //ищем ценовое правило
-            $rule = PricingRule::where(['agreement_id'=>$sale->agreement_id,'price_type'=>$sale->price_type])->first();
-            $rows = TblSale::where('sale_id',$sale->id)->get();
-            if(!empty($rows)){
-                foreach ($rows as $row){
-                    if(!empty($rule)){
+            $rule = PricingRule::where(['agreement_id' => $sale->agreement_id, 'price_type' => $sale->price_type])->first();
+            $rows = TblSale::where('sale_id', $sale->id)->get();
+            if (!empty($rows)) {
+                foreach ($rows as $row) {
+                    if (!empty($rule)) {
                         $row->ratio = $rule->ratio;
                         $row->update();
                     }
@@ -914,14 +940,15 @@ class  SaleController extends Controller
         return 'NO';
     }
 
-    private function getTable($id){
-        $rows = TblSale::where('sale_id',$id)->get();
-        if(!empty($rows)){
+    private function getTable($id)
+    {
+        $rows = TblSale::where('sale_id', $id)->get();
+        if (!empty($rows)) {
             $content = '';
-            foreach ($rows as $row){
+            foreach ($rows as $row) {
                 $content .= '<tr id="' . $row->id . '">
                     <td>' . $row->good->vendor_code . '</td>';
-                if($row->good->vendor_code == $row->sub_good->vendor_code)
+                if ($row->good->vendor_code == $row->sub_good->vendor_code)
                     $content .= '<td>Оригинал</td>';
                 else
                     $content .= '<td>' . $row->sub_good->vendor_code . '</td>';
@@ -941,11 +968,313 @@ class  SaleController extends Controller
                     </td>
                 </tr>';
             }
-            $model = TblSale::where('sale_id',$id)->first();
+            $model = TblSale::where('sale_id', $id)->first();
             $amount = $model->sale->amount + $model->sale->vat_amount;
             $num = TblSale::where('sale_id', $model->sale_id)->count('id');
             $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
             return json_encode($result);
         }
+    }
+
+    public function getInvoice($id)
+    {
+        $html = '<html>
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+            <style type="text/css">
+                * {
+                    font-family: DejaVu Sans, sans-serif;
+                    font-size: 14px;
+                    line-height: 14px;
+                }
+                table {
+                    margin: 0 0 15px 0;
+                    width: 100%;
+                    border-collapse: collapse;
+                    border-spacing: 0;
+                }
+                table td {
+                    padding: 5px;
+                }
+                table th {
+                    padding: 5px;
+                    font-weight: bold;
+                }
+
+                .header {
+                    margin: 0 0 0 0;
+                    padding: 0 0 15px 0;
+                    font-size: 12px;
+                    line-height: 12px;
+                    text-align: center;
+                }
+
+                /* Реквизиты банка */
+                .details td {
+                    padding: 3px 2px;
+                    border: 1px solid #000000;
+                    font-size: 12px;
+                    line-height: 12px;
+                    vertical-align: top;
+                }
+
+                h1 {
+                    margin: 0 0 10px 0;
+                    padding: 10px 0 10px 0;
+                    border-bottom: 2px solid #000;
+                    font-weight: bold;
+                    font-size: 20px;
+                }
+
+                /* Поставщик/Покупатель */
+                .contract th {
+                    padding: 3px 0;
+                    vertical-align: top;
+                    text-align: left;
+                    font-size: 13px;
+                    line-height: 15px;
+                }
+                .contract td {
+                    padding: 3px 0;
+                }
+
+                /* Наименование товара, работ, услуг */
+                .list thead, .list tbody  {
+                    border: 2px solid #000;
+                }
+                .list thead th {
+                    padding: 4px 0;
+                    border: 1px solid #000;
+                    vertical-align: middle;
+                    text-align: center;
+                }
+                .list tbody td {
+                    padding: 0 2px;
+                    border: 1px solid #000;
+                    vertical-align: middle;
+                    font-size: 11px;
+                    line-height: 13px;
+                }
+                .list tfoot th {
+                    padding: 3px 2px;
+                    border: none;
+                    text-align: right;
+                }
+
+                /* Сумма */
+                .total {
+                    margin: 0 0 20px 0;
+                    padding: 0 0 10px 0;
+                    border-bottom: 2px solid #000;
+                }
+                .total p {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                /* Руководитель, бухгалтер */
+                .sign {
+                    position: relative;
+                }
+                .sign table {
+                    width: 60%;
+                }
+                .sign th {
+                    padding: 40px 0 0 0;
+                    text-align: left;
+                }
+                .sign td {
+                    padding: 40px 0 0 0;
+                    border-bottom: 1px solid #000;
+                    text-align: right;
+                    font-size: 12px;
+                }
+
+                .sign-1 {
+                    position: absolute;
+                    left: 149px;
+                    top: -44px;
+                }
+                .sign-2 {
+                    position: absolute;
+                    left: 149px;
+                    top: 0;
+                }
+                .printing {
+                    position: absolute;
+                    left: 271px;
+                    top: -15px;
+                }
+            </style>
+        </head>
+        <body>
+            <p class="header">
+                Внимание! Оплата данного счета означает согласие с условиями поставки товара.
+                Уведомление об оплате обязательно, в противном случае не гарантируется наличие
+                товара на складе. Товар отпускается по факту прихода денег на р/с Поставщика.
+            </p>';
+        $sale = Sale::find($id);
+        $org = Organisation::find($sale->organisation_id);
+        $firm = Firm::find($sale->firm_id);
+        $contact = Contact::where('firm_id', $firm->id)->first();
+        $html .= '<table class="details">
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="border-bottom: none;">Банк организации</td>
+                            <td>БИК</td>
+                            <td style="border-bottom: none;">000000000</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-top: none; font-size: 10px;">Банк получателя</td>
+                            <td>Р/счет №</td>
+                            <td style="border-top: none;">00000000000000000000</td>
+                        </tr>
+                        <tr>
+                            <td width="25%">ИНН ' . $org->inn . '</td>
+                            <td width="30%">КПП ' . $org->kpp . '</td>
+                            <td width="10%" rowspan="3">К/счет №</td>
+                            <td width="35%" rowspan="3">00000000000000000000</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-bottom: none;">' . $org->print_name . '</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-top: none; font-size: 10px;">Получатель</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h1>Счет на оплату ' . $sale->doc_num . ' от ' . date('d-m-Y') . '</h1>
+	            <table class="contract">
+		<tbody>
+			<tr>
+				<td width="15%">Поставщик:</td>
+				<th width="85%">
+					' . $org->legal_address . '
+				</th>
+			</tr>
+			<tr>
+				<td>Покупатель:</td>
+				<th>
+					' . $contact->legal_address . '
+				</th>
+			</tr>
+		</tbody>
+	</table>
+	            <table class="list">
+		<thead>
+			<tr>
+				<th width="5%">№</th>
+				<th width="54%">Наименование товара, работ, услуг</th>
+				<th width="8%">Коли-<br>чество</th>
+				<th width="5%">Ед.<br>изм.</th>
+				<th width="14%">Цена</th>
+				<th width="14%">Сумма</th>
+			</tr>
+		</thead>
+		<tbody>';
+
+        $total = $nds = 0;
+        $prods = TblSale::where('sale_id', $sale->id)->get();
+        if (!empty($prods)) {
+            foreach ($prods as $i => $row) {
+                $total += $row->amount;
+                $nds += $row->vat_amount;
+
+                $html .= '
+			<tr>
+				<td align="center">' . (++$i) . '</td>
+				<td align="left">' . $row->good->title . '</td>
+				<td align="right">' . $row->qty . '</td>
+				<td align="left">' . $row->unit->title . '</td>
+				<td align="right">' . $this->format_price($row->price * $row->ratio) . '</td>
+				<td align="right">' . $this->format_price($row->amount) . '</td>
+			</tr>';
+            }
+        }
+        $html .= '</tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="5">Итого:</th>
+                    <th>' . $this->format_price($total) . '</th>
+                </tr>
+                <tr>
+                    <th colspan="5">В том числе НДС:</th>
+                    <th>' . ((empty($nds)) ? '-' : $this->format_price($nds)) . '</th>
+                </tr>
+                <tr>
+                    <th colspan="5">Всего к оплате:</th>
+                    <th>' . $this->format_price($total) . '</th>
+                </tr>
+
+            </tfoot>
+        </table>
+        <div class="total">
+            <p>Всего наименований ' . count($prods) . ', на сумму ' . $this->format_price($total) . ' руб.</p>
+            <p><strong>' . $this->str_price($total) . '</strong></p>
+        </div>
+	    <div class="sign">
+		<img class="sign-1" src="sign-1.png">
+		<img class="sign-2" src="sign-2.png">
+		<img class="printing" src="printing.png">
+
+		<table>
+			<tbody>
+				<tr>
+					<th width="30%">Руководитель</th>
+					<td width="70%">Иванов А.А.</td>
+				</tr>
+				<tr>
+					<th>Бухгалтер</th>
+					<td>Сидоров Б.Б.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+        </body>
+        </html>';
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $dompdf->stream('invoice'); //todo сделать сохранение\обновление файла на диск
+    }
+
+    // Форматирование цен.
+    private function format_price($value)
+    {
+        return number_format($value, 2, ',', ' ');
+    }
+
+    // Сумма прописью.
+    private function str_price($value)
+    {
+        $value = explode('.', number_format($value, 2, '.', ''));
+
+        //$f = new \NumberFormatter('ru', \NumberFormatter::SPELLOUT);
+        $str = number_format($value[0]);//$f->format($value[0]);
+
+        // Первую букву в верхний регистр.
+        $str = mb_strtoupper(mb_substr($str, 0, 1)) . mb_substr($str, 1, mb_strlen($str));
+
+        // Склонение слова "рубль".
+        $num = $value[0] % 100;
+        if ($num > 19) {
+            $num = $num % 10;
+        }
+        switch ($num) {
+            case 1:
+                $rub = 'рубль';
+                break;
+            case 2:
+            case 3:
+            case 4:
+                $rub = 'рубля';
+                break;
+            default:
+                $rub = 'рублей';
+        }
+
+        return $str . ' ' . $rub . ' ' . $value[1] . ' копеек.';
     }
 }
