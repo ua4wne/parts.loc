@@ -15,8 +15,6 @@ class CreateReservationsTable extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('warehouse_id')->unsigned();
-            $table->foreign('warehouse_id')->references('id')->on('warehouses');
             $table->integer('location_id')->unsigned();
             $table->foreign('location_id')->references('id')->on('locations');
             $table->integer('tbl_sale_id')->unsigned();

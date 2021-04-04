@@ -15,6 +15,7 @@ class CreateTblSalesTable extends Migration
     {
         Schema::create('tbl_sales', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('pos_num')->unsigned();
             $table->integer('sale_id')->unsigned();
             $table->foreign('sale_id')->references('id')->on('sales');
             $table->integer('good_id')->unsigned();

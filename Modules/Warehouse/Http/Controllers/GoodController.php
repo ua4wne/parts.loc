@@ -240,7 +240,7 @@ class GoodController extends Controller
                                                                                             aria-hidden="true"></i>
                                                     </button>
                                                     <button class="btn btn-info btn-sm row_transfer" type="button"
-                                                            title="Передать на сайт"><i class="fa fa-refresh fa-lg"
+                                                            title="Передать на сайт" disabled="disabled"><i class="fa fa-refresh fa-lg"
                                                                                       aria-hidden="true"></i></button>
                                                     <button class="btn btn-danger btn-sm row_delete" type="button"
                                                             title="Удалить запись"><i class="fa fa-trash fa-lg"

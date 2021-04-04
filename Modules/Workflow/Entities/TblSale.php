@@ -10,7 +10,7 @@ class TblSale extends Model
 {
     protected $table = 'tbl_sales';
 
-    protected $fillable = ['sale_id','good_id','sub_good_id','comment','qty','unit_id','price','ratio','vat','reserved'];
+    protected $fillable = ['pos_num','sale_id','good_id','sub_good_id','comment','qty','unit_id','price','ratio','vat','reserved'];
 
     public function sale()
     {

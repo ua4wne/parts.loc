@@ -194,7 +194,7 @@
                                     <div class="form-group">
                                         <div class="col-xs-6">
                                             <p class="list-group-item list-group-item-warning">
-                                                К загрузке разрешены только файлы изображений, PDF, Word и Excel
+                                                К загрузке разрешены только файлы изображений!
                                             </p>
                                             {!! Form::file('file[]', ['class' => 'form-control','data-buttonText'=>'Выберите файлы',
                                             'data-buttonName'=>"btn-primary",'data-placeholder'=>"Файлы не выбраны",'required'=>'required',

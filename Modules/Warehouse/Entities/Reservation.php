@@ -8,12 +8,7 @@ class Reservation extends Model
 {
     protected $table = 'reservations';
 
-    protected $fillable = ['warehouse_id','location_id','tbl_sale_id','qty'];
-
-    public function warehouse()
-    {
-        return $this->belongsTo('Modules\Warehouse\Entities\Warehouse','warehouse_id','id');
-    }
+    protected $fillable = ['location_id','tbl_sale_id','qty'];
 
     public function location()
     {

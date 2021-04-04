@@ -272,7 +272,7 @@ class ShipmentController extends Controller
         if ($request->hasFile('file')) {
             $input = $request->except('_token'); //параметр _token нам не нужен
             $shipment = Shipment::find($input['id']);
-            $allow_ext = ['pdf', 'png', 'jpg', 'jpeg','xlsx','xls','docx','doc']; //разрешенные расширения для загрузки
+            $allow_ext = ['png', 'jpg', 'jpeg']; //разрешенные расширения для загрузки
             $err = '';
             $msg = '';
             foreach ($request->file() as $file) {

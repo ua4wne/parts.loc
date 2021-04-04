@@ -506,8 +506,9 @@
         $('.master').change(function () {
             let name = $(this).val();
             let filter = $('#filter').val();
-            //$('#t_body').empty();
-            if (name.length > 10) {
+            //alert('name='+name+' filter='+filter);
+            $('#t_body').empty();
+            if (name.length > 5) {
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('findGoodAnalogs') }}',

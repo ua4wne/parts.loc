@@ -243,6 +243,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/update-price',['uses'=>'SaleController@priceUpdate','as'=>'salePriceUpdate']);
         //sales/invoice
         Route::get('/invoice/{id}',['uses'=>'SaleController@getInvoice','as'=>'saleInvoice']);
+        //sales/import
+        Route::post('/import', ['uses'=>'SaleController@download','as'=>'importSalePos']);
     });
 
     //applications/ группа обработки роутов applications

@@ -37,6 +37,7 @@ use Modules\Workflow\Entities\SetOffer;
 use Modules\Workflow\Entities\Shipment;
 use Modules\Workflow\Entities\TblApplication;
 use Modules\Workflow\Entities\TblSale;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Validator;
 
 class  SaleController extends Controller
@@ -110,6 +111,7 @@ class  SaleController extends Controller
             if (empty($input['has_vat'])) $input['has_vat'] = 0;
             if (empty($input['to_door'])) $input['to_door'] = 0;
             if (empty($input['delivery_in_price'])) $input['delivery_in_price'] = 0;
+            $input['state'] = 0;
             $messages = [
                 'required' => 'Поле обязательно к заполнению!',
                 'unique' => 'Значение поля должно быть уникальным!',
@@ -288,8 +290,8 @@ class  SaleController extends Controller
                         break;
                     case 'stock':
                         $whs = Warehouse::all();
-                        if(!empty($whs)){
-                            foreach ($whs as $wh){
+                        if (!empty($whs)) {
+                            foreach ($whs as $wh) {
                                 $rows = DB::select("SELECT warehouse_id, good_id, unit_id, SUM(qty) AS sum_qty,
                                                     SUM(cost) AS sum_cost FROM stocks WHERE good_id = $id AND warehouse_id = $wh->id
                                                     GROUP BY warehouse_id,unit_id");
@@ -298,7 +300,15 @@ class  SaleController extends Controller
                                         $content .= '<tr><td>' . Warehouse::find($wh->id)->title . '</td>';
                                         $content .= '<td>' . Good::find($row->good_id)->title . '</td>';
                                         $content .= '<td>' . $row->sum_qty . '</td>';
-                                        $content .= '<td>free</td>';
+                                        $resvrs = Reservation::all();
+                                        $reserved = 0;
+                                        if (!empty($resvrs)) {
+                                            foreach ($resvrs as $res) {
+                                                if ($res->tbl_sale->good_id == $id && $res->tbl_sale->sale->warehouse_id == $wh->id)
+                                                    $reserved += $res->qty;
+                                            }
+                                        }
+                                        $content .= '<td>' . $reserved . '</td>';
                                         $content .= '<td>' . Unit::find($row->unit_id)->title . '</td>';
                                         $content .= '<td>' . $row->sum_cost . '</td>';
                                     }
@@ -395,7 +405,7 @@ class  SaleController extends Controller
             foreach ($deliveries as $val) {
                 $delivs[$val->id] = $val->title;
             }
-            $rows = TblSale::where('sale_id', $id)->get();
+            $rows = TblSale::where('sale_id', $id)->orderBy('pos_num','asc')->get();
             $vat = 0;
             if ($sale->has_vat) $vat = env('VAT');
             $tbody = '';
@@ -541,12 +551,20 @@ class  SaleController extends Controller
             $model->fill($input);
             $model->sub_good_id = $model->good_id;
             $model->created_at = date('Y-m-d H:i:s');
+            //$model->pos_num = $model->last_num;
             $model->reserved = 0;
+            //определяем позицию элемента
+            $last = TblSale::where('sale_id', $model->sale_id)->orderBy('pos_num', 'desc')->first();
+            if (empty($last))
+                $model->pos_num = 1;
+            else
+                $model->pos_num = $last->pos_num + 1;
             if ($model->save()) {
                 $msg = 'Добавлена новая позиция ' . $model->good->title . ' к заказу клиента №' . $model->sale->doc_num;
                 //вызываем event
                 event(new AddEventLogs('info', Auth::id(), $msg));
                 $content = '<tr id="' . $model->id . '">
+                    <td>' . $model->pos_num . '</td>
                     <td>' . $model->good->vendor_code . '</td>
                     <td>' . $model->sub_good->vendor_code . '</td>
                     <td>' . $model->good->title . '</td>
@@ -565,6 +583,11 @@ class  SaleController extends Controller
                                                                         class="fa fa-cog fa-lg" aria-hidden="true"></i>
                                                                 </button>';
                 }
+                $content .= '<button class="btn btn-info btn-sm pos_edit"
+                                                                        type="button" title="Редактировать позицию"><i
+                                                                        class="fa fa-edit fa-lg"
+                                                                        aria-hidden="true"></i>
+                                                                </button>';
                 $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
                             <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
                         </div>
@@ -653,13 +676,13 @@ class  SaleController extends Controller
                         //определяем сумму необходимого резерва
                         $need_qty -= $row->reserved_qty;
                         //смотрим остатки на складе
-                        if($row->good_id == $row->sub_good_id)
+                        if ($row->good_id == $row->sub_good_id)
                             $free_qty = $this->getFreeQty($whs_id, $row->good_id);
                         else
                             $free_qty = $this->getFreeQty($whs_id, $row->sub_good_id);
                         if ($need_qty && $free_qty) { //нужен резерв и есть остатки на складе
                             //резервируем товар
-                            if($row->good_id == $row->sub_good_id)
+                            if ($row->good_id == $row->sub_good_id)
                                 $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->good_id])->get();
                             else
                                 $leftovers = Stock::where(['warehouse_id' => $whs_id, 'good_id' => $row->sub_good_id])->get();
@@ -669,7 +692,6 @@ class  SaleController extends Controller
                                         $reserv = new Reservation();
                                         $location = Location::find($stock->location_id);
                                         if ($stock->qty >= $need_qty) {
-                                            $reserv->warehouse_id = $whs_id;
                                             $reserv->location_id = $location->id;
                                             $reserv->tbl_sale_id = $row->id;
                                             $reserv->qty = $stock->qty - $need_qty;
@@ -683,7 +705,6 @@ class  SaleController extends Controller
                                             break;
                                         }
                                         if ($stock->qty < $need_qty) {
-                                            $reserv->warehouse_id = $whs_id;
                                             $reserv->location_id = $location->id;
                                             $reserv->tbl_sale_id = $row->id;
                                             $reserv->qty = $stock->qty;
@@ -731,13 +752,12 @@ class  SaleController extends Controller
                         //снимаем резервы
                         foreach ($reserv as $pos) {
                             //товар в ячейке на складе еще есть?
-                            if($row->good_id == $row->sub_good_id)
+                            if ($row->good_id == $row->sub_good_id)
                                 $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->good_id])->get();
                             else
                                 $stock = Stock::where(['warehouse_id' => $whs_id, 'location_id' => $pos->location_id, 'good_id' => $row->sub_good_id])->get();
                             if (empty($stock)) {
                                 $stock = new Stock();
-                                $stock->warehouse_id = $pos->warehouse_id;
                                 $stock->good_id = $row->sub_good_id;
                                 $stock->location_id = $pos->location_id;
                                 $stock->qty = $pos->qty;
@@ -947,6 +967,7 @@ class  SaleController extends Controller
             $content = '';
             foreach ($rows as $row) {
                 $content .= '<tr id="' . $row->id . '">
+                    <td>' . $row->pos_num . '</td>
                     <td>' . $row->good->vendor_code . '</td>';
                 if ($row->good->vendor_code == $row->sub_good->vendor_code)
                     $content .= '<td>Оригинал</td>';
@@ -961,7 +982,18 @@ class  SaleController extends Controller
                     <td>' . $row->amount . '</td>
                     <td>' . $row->vat . '</td>
                     <td>' . $row->vat_amount . '</td>
-                    <td style="width:70px;">    <div class="form-group" role="group">';
+                    <td style="width:140px;">    <div class="form-group" role="group">';
+                if ($row->good->has_specification) {
+                    $content .= '<button class="btn btn-info btn-sm pos_spec"
+                                                                        type="button" title="Характеристики"><i
+                                                                        class="fa fa-cog fa-lg" aria-hidden="true"></i>
+                                                                </button>';
+                }
+                $content .= '<button class="btn btn-info btn-sm pos_edit"
+                                                                        type="button" title="Редактировать позицию"><i
+                                                                        class="fa fa-edit fa-lg"
+                                                                        aria-hidden="true"></i>
+                                                                </button>';
                 $content .= '<button class="btn btn-danger btn-sm pos_delete" type="button" title="Удалить позицию">
                             <i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
                         </div>
@@ -974,6 +1006,65 @@ class  SaleController extends Controller
             $result = ['content' => $content, 'num' => $num, 'amount' => $amount];
             return json_encode($result);
         }
+    }
+
+    public function download(Request $request)
+    {
+        if (!Role::granted('import') && !Role::granted('sales')) {
+            return 'NO';
+        }
+        if ($request->hasFile('file')) {
+            $path = $request->file('file')->getRealPath();
+            $excel = IOFactory::load($path);
+            // Цикл по листам Excel-файла
+            foreach ($excel->getWorksheetIterator() as $worksheet) {
+                // выгружаем данные из объекта в массив
+                $tables[] = $worksheet->toArray();
+            }
+            $num = 1;
+            $rows = 0;
+            $err = 0;
+            $multi = 0;
+            // Цикл по листам Excel-файла
+            foreach ($tables as $table) {
+                $rows = count($table);
+                $doc_num = $table[0][2];
+                if (empty($doc_num)) return 'ERR'; //определяем заполнение номера документа в определенном поле в файле
+                $sale = Sale::where('doc_num', $doc_num)->first(); //определяем существование документа
+                if (empty($sale)) return 'NO';
+                if ($sale->id) {
+                    for ($i = 2; $i < $rows; $i++) {
+                        $row = $table[$i];
+                        if (!empty($row[0])) {
+                            $good = Good::where('vendor_code', $row[0])->first();
+                            //$qty = $row[1];
+                            $vat = 0;
+                            if ($sale->has_vat) $vat = env('VAT');
+                            if(!empty($good)){
+                                $price = $this->get_price($good->id);
+                                $date = date('Y-m-d H:i:s');
+                                TblSale::updateOrCreate(['sale_id' => $sale->id,'good_id'=>$good->id],
+                                ['pos_num'=>$num,'sub_good_id'=>$good->id,'qty'=>$row[1],'unit_id'=>$good->unit_id,'price'=>$price,
+                                'vat'=>$vat,'created_at'=>$date]);
+                                $num++;
+                            }
+                            else {
+                                // есть такая запись или нет
+                                /*OrderError::updateOrCreate(['order_id' => $order->id,'vendor_code'=>$row[0]],
+                                    ['qty' => $qty,'unit' => 'Штука','price' => $price,'vat'=>$vat]);*/
+                                $err++;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            $num-=1;
+            $rows-=2;
+            $result = ['rows' => $rows, 'num' => $num, 'err' => $err];
+            return json_encode($result);
+        }
+        return 'ERR';
     }
 
     public function getInvoice($id)
@@ -1238,6 +1329,19 @@ class  SaleController extends Controller
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
         $dompdf->stream('invoice'); //todo сделать сохранение\обновление файла на диск
+    }
+
+    //выбор цены для номенклатуры
+    private function get_price($id){
+        //сначала смотрим последнюю цену со склада
+        $good = Stock::where('good_id',$id)->orderBy('created_at','desc')->first();
+        if(empty($good)){ //ищем цену в последнем документе-заявке клиента
+            $good = TblSale::where('good_id',$id)->orderBy('created_at','desc')->first();
+            if(empty($good)){
+                return 0;
+            }
+        }
+        return $good->cost;
     }
 
     // Форматирование цен.

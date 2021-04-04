@@ -131,6 +131,41 @@
         </div>
     </div>
     <!-- New Position Modal -->
+    <!-- Import Positions Modal -->
+    <div class="modal fade" id="importDoc" tabindex="-1" role="dialog" aria-labelledby="importDoc"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times-circle fa-lg" aria-hidden="true"></i>
+                    </button>
+                    <h4 class="modal-title">Загрузка данных из Excel</h4>
+                </div>
+                <div class="modal-body">
+                    {!! Form::open(['url' => '#','id'=>'import_doc','class'=>'form-horizontal','method'=>'POST','files'=>'true']) !!}
+
+                    <div class="form-group">
+                        <label class="col-xs-3 control-label">
+                            Файл Excel: <span class="symbol required" aria-required="true"></span>
+                        </label>
+                        <div class="col-xs-8">
+                            {!! Form::file('file', ['class' => 'form-control','data-buttonText'=>'Выберите файл Excel','data-buttonName'=>"btn-primary",'data-placeholder'=>"Файл не выбран",'required'=>'required','id'=>'file']) !!}
+                        </div>
+                    </div>
+
+                    {!! Form::close() !!}
+                </div>
+                <div class="modal-footer">
+                    <span class="pull-left" id="file-loader"><img src="/images/file-loader.gif"></span>
+                    <!--  идентификатор загрузки (анимация) - ожидания выполнения-->
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="btn_import">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Import Positions Modal -->
     <!-- Edit Position Modal -->
     <div class="modal fade" id="editPos" tabindex="-1" role="dialog" aria-labelledby="editPos"
          aria-hidden="true">
@@ -447,6 +482,12 @@
                                         </button>
                                     </a>
                                     <a href="#">
+                                        <button type="button" class="btn btn-primary btn-sm btn-o" id="new_import"
+                                                data-toggle="modal" data-target="#importDoc">
+                                            <i class="fa fa-file-excel-o" aria-hidden="true"></i> Загрузить из файла
+                                        </button>
+                                    </a>
+                                    <a href="#">
                                         <button type="button" class="btn btn-success btn-sm btn-o" id="set_reserv">
                                             <i class="fa fa-check" aria-hidden="true"></i> Зарезервировать
                                         </button>
@@ -503,6 +544,7 @@
                                     <table id="doc_table" class="table table-bordered">
                                         <thead>
                                         <tr>
+                                            <th>№ п\п</th>
                                             <th>Артикул</th>
                                             <th>Замена</th>
                                             <th>Номенклатура</th>
@@ -521,6 +563,7 @@
                                             <tbody id="t_body">
                                             @foreach($rows as $k => $row)
                                                 <tr id="{{ $row->id }}">
+                                                    <td>{{ $row->pos_num }}</td>
                                                     <td>{{ $row->good->vendor_code }}</td>
                                                     @if($row->good->vendor_code == $row->sub_good->vendor_code)
                                                         <td>Оригинал</td>
@@ -606,6 +649,8 @@
                 editable: [[1, 'vendor_code'], [2, 'catalog_num'], [3, 'good_id'],[4, 'spec']]
             }
         });*/
+        $('#file-loader').hide();
+
         $('.select2').css('width', '100%').select2({
             placeholder: "Выбор контрагента",
             allowClear: true
@@ -658,6 +703,62 @@
 
         $('#by_name').focus(function () {
             $('#search_vendor').val('');
+        });
+
+        $('#btn_import').click(function (e) {
+            e.preventDefault();
+            let error = 0;
+            $("#import_doc").find(":input").each(function () {// проверяем каждое поле ввода в форме
+                if ($(this).attr("required") == 'required') { //обязательное для заполнения поле формы?
+                    if (!$(this).val()) {// если поле пустое
+                        $(this).css('border', '1px solid red');// устанавливаем рамку красного цвета
+                        error = 1;// определяем индекс ошибки
+                    } else {
+                        $(this).css('border', '1px solid green');// устанавливаем рамку зеленого цвета
+                    }
+
+                }
+            })
+            if (error) {
+                alert("Необходимо заполнять все доступные поля!");
+                return false;
+            } else {
+                let formData = new FormData();
+                formData.append('file', $('#file').prop("files")[0]);
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('importSalePos') }}',
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    dataType: 'text',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    beforeSend: function(){
+                        $('#file-loader').show();
+                    },
+                    success: function (res) {
+                        //alert(res);
+                        if (res == 'NO')
+                            alert('Заявка клиента с таким номером, как в файле не обнаружена!');
+                        if (res == 'ERR')
+                            alert('При обновлении данных возникла ошибка!');
+                        let obj = jQuery.parseJSON(res);
+                        if (typeof obj === 'object') {
+                            $(".modal").modal("hide");
+                            alert('Загружено строк ' + obj.num + ' из ' + obj.rows + '.\n' +
+                                'Позиций, не найденных в базе: ' + obj.err + '.\n');
+                            location.reload();
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status + '\n' + thrownError);
+                        $('#file-loader').hide();
+                    }
+                });
+            }
         });
 
         $("#firm_id").change(function () {
@@ -1059,9 +1160,9 @@
                 let row = $(this).parent().parent().parent();
                 $("#editPos").modal("show");
                 $('#htitle').text(row.children('td').eq(2).text().trim());
-                $('#eqty').val(row.children('td').eq(4).text());
-                $('#eprice').val(row.children('td').eq(7).text());
-                $('#evat').val(row.children('td').eq(9).text());
+                $('#eqty').val(row.children('td').eq(5).text());
+                $('#eprice').val(row.children('td').eq(8).text());
+                $('#evat').val(row.children('td').eq(10).text());
                 $('#epos_id').val(row.attr('id'));
                 let eunit = row.children('td').eq(6).text();
                 $('#eunit_id_id option:contains(eunit)').prop("selected", true);
@@ -1155,14 +1256,14 @@
                             $('#state').text('Всего позиций: ' + obj.num + ' на сумму с НДС ' + obj.amount + ' руб.');
                             $('#rem').text('Заказано с НДС: ' + obj.amount + ' руб.');
                             if ($('#ecomment').val())
-                                $('#' + id).children('td').eq(3).text($("#ecomment option:selected").text());
-                            $('#' + id).children('td').eq(4).text($('#eqty').val());
-                            $('#' + id).children('td').eq(6).text($("#eunit_id option:selected").text());
-                            $('#' + id).children('td').eq(7).text($('#eprice').val());
+                                $('#' + id).children('td').eq(4).text($("#ecomment option:selected").text());
+                            $('#' + id).children('td').eq(5).text($('#eqty').val());
+                            $('#' + id).children('td').eq(7).text($("#eunit_id option:selected").text());
+                            $('#' + id).children('td').eq(8).text($('#eprice').val());
                             let amount = parseFloat($('#eqty').val()) * parseFloat($('#eprice').val());
-                            $('#' + id).children('td').eq(8).text(amount);
-                            $('#' + id).children('td').eq(9).text($('#evat').val());
-                            $('#' + id).children('td').eq(10).text(obj.vat_amount);
+                            $('#' + id).children('td').eq(9).text(amount);
+                            $('#' + id).children('td').eq(10).text($('#evat').val());
+                            $('#' + id).children('td').eq(11).text(obj.vat_amount);
 
                             $('#eprice').val('');
                             $('#epos_id').val('');
